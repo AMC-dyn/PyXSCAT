@@ -8,6 +8,7 @@ from pzerotable import pzerotablenew as pzerot
 from MDcoeffs import md_table_gen as mtg
 from integral_ijkr import integral_k_ijkr as intk
 from integral_ijkr_pzero import integral_k_ijkr_0_case as intkzero
+from unsortunique import uunique
 
 # Rotational averaged  caclulation of total scattering
 
@@ -123,7 +124,7 @@ fulltable = np.array(np.vstack((ga, l, m, n, xx, yy, zz)))  # Note: is this tabl
 print(np.asmatrix(fulltable[:,4]))
 ndup = l.size
 # dummy,ipos,irep = unique(full_table,'rows','stable')
-dummy, ipos, irep = np.unique(fulltable, return_index=True, return_inverse=True, axis=1)
+dummy, ipos, irep = uunique(fulltable)
 ipos = np.sort(ipos)
 #irep = np.sort(irep)
 print(irep)
@@ -191,7 +192,7 @@ dz = mtg(n, zz, ga)  # Note: s.a.
 print(np.shape(dz), "gusto")
 
 # Dealing with the orbitals of a similar type together
-dummy, apos, arep = np.unique(angpart, return_index=True, return_inverse=True, axis=0)  # Note: is "axis=0" correct?
+dummy, apos, arep = uunique(angpart)  # Note: is "axis=0" correct?
 nnew = apos.size
 print('The number of GTOs after compression is: ', str(nnew))
 # duplicatesang = np.zeros(nnew)
