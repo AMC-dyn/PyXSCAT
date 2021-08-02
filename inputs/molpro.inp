@@ -1,0 +1,31 @@
+***, scattering calculation in PYXCAT
+gprint,civector,angles=-1,distance=-1
+gthresh,twoint=1.0d-13
+gthresh,energy=1.0d-7,gradient=1.0d-4
+gthresh,thrpun=0.0001
+punch,molpro.pun,new
+basis=aug-cc-pvdz
+symmetry,nosym;
+orient,mass;
+Angstrom;
+geomtype=xyz;
+geometry={
+2
+
+H 0.7 0.0 0.0
+H 0.0 0.0 0.0
+}
+hf
+
+{multi,failsafe;
+maxiter,40;
+occ,4
+closed,0
+wf,2,1,0
+state,2
+pspace,10.0        
+orbital,2140.3;
+ORBITAL,IGNORE_ERROR;
+ciguess,2501.2 
+save,ci=2501.2}
+put, molden, molpro.mld
