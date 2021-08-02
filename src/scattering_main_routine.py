@@ -82,7 +82,7 @@ if q[0] < 1E-10:
     q[0] = 1E-10
 
 # reading the 2-particle RDM from MOLPRO output
-mat, total = td.twordmconst()  # Note: CHECK AND IMPORT FUNCTION "twordmhf"; state1 and state2 should be used here
+mat, total = td.twordmconst()  #  state1 and state2 should be used here
 
 nmocutoff = np.max(np.max(mat))
 # atoms, ga, xx, yy, zz, l, m, n, c, mos, dummy, angpart, ntc, reps, matoms = mldread(mldfile, nmocutoff)
