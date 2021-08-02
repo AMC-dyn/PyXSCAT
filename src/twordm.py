@@ -23,7 +23,6 @@ def twordmconst():
                 if len(NN) != 1:
                     count += 1
 
-
     twordm = np.zeros((int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2)))
     nc1 = 0
     ep = 1
@@ -77,7 +76,6 @@ def twordmconst():
 
                 if ndiff == 4:
 
-
                     sorb = diffs2[0]
                     qorb = diffs2[1]
                     porb = diffs1[1]
@@ -88,7 +86,6 @@ def twordmconst():
                     if spin2[0] == spin1[0] and spin2[1] == spin1[1]:
                         twordm[porb - 1, rorb - 1, sorb - 1, qorb - 1] += float(civs[nc1][0]) * float(
                             civs[nc2][0]) * ep * eg
-
 
                     sorb = diffs2[0]
                     qorb = diffs2[1]
@@ -110,7 +107,6 @@ def twordmconst():
                         twordm[porb - 1, rorb - 1, sorb - 1, qorb - 1] += float(civs[nc1][0]) * float(
                             civs[nc2][0]) * ep * eg
 
-
                     qorb = diffs2[0]
                     sorb = diffs2[1]
                     rorb = diffs1[1]
@@ -123,7 +119,6 @@ def twordmconst():
 
 
                 elif ndiff == 2:
-
 
                     qorb = diffs2[0]
                     porb = diffs1[0]
@@ -208,8 +203,6 @@ def twordmconst():
                             rorb = round((i) / 2 + 0.1)
                             spinr = c1[i - 1]
 
-
-
                         if rdef and qdef and spins == spinr and spin1[0] == spin2[0]:
                             sdef = False
                             rdef = False
@@ -282,17 +275,16 @@ def twordmconst():
                                 twordm[porb - 1, rorb - 1, sorb - 1, qorb - 1] += float(civs[nc1][0]) * float(
                                     civs[nc2][0]) * ep * eg
 
-
             nc2 += 1
         nc1 += 1
-    cutoff = 1E-4
+    cutoff = 1e-9
     mat = []
     total = []
-    for p in range(3):
-        for q in range(3):
-            for r in range(3):
-                for s in range(3):
-                    if twordm[p, q, r, s] >= cutoff:
+    for p in range(int(len(confs[0]) / 2)):
+        for q in range(int(len(confs[0]) / 2)):
+            for r in range(int(len(confs[0]) / 2)):
+                for s in range(int(len(confs[0]) / 2)):
+                    if abs(twordm[p, q, r, s]) >= cutoff:
                         mat.append([p, s, q, r])
                         total.append(twordm[p, q, r, s])
     mat = np.asarray(mat)
@@ -301,7 +293,8 @@ def twordmconst():
     for i in range(np.size(total)):
         f.write("{0} {1}\n".format(mat[i, :].flatten(), str(total[i])))
     f.close()
-    np.savetxt('barrileros.dat', mat)
-    np.savetxt('patron.dat', total)
+    mat=np.asarray(mat,dtype=np.int32)
+    np.savetxt('barrileros.dat', np.vstack((np.transpose(mat),total)))
+    #np.savetxt('patron.dat', total)
 
     return np.asarray(mat, dtype=np.float64), np.asarray(total, dtype=np.float64)

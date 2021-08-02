@@ -63,7 +63,7 @@ else:
     cutoffcentre = input("Input cut off epsilon; if H < epsilon, use P0 cases")
     cutoffmd = input("Input the cutoff for the product of the MD coefficients")
     cutoffz = input("Input the cutoff for the Z integral")
-#hola
+# hola
 # def tot_rot_av(mldfile,outfile,state1,state2,nstates,q,cutoffs):
 
 # # cut off epsilon; if H < epsilon, use P0 cases
@@ -75,7 +75,7 @@ else:
 
 # reshape q to a column vector
 q = np.linspace(0.0001, 3, 100)
-#q = np.reshape(q, (q.size))
+# q = np.reshape(q, (q.size))
 # q = np.reshape(q, (q.size, 1))
 
 # set q t0 E-10 if q = 0
@@ -83,7 +83,7 @@ if q[0] < 1E-10:
     q[0] = 1E-10
 
 # reading the 2-particle RDM from MOLPRO output
-mat, total = td.twordmconst()  #  state1 and state2 should be used here
+mat, total = td.twordmconst()  # state1 and state2 should be used here
 
 nmocutoff = np.max(np.max(mat))
 # atoms, ga, xx, yy, zz, l, m, n, c, mos, dummy, angpart, ntc, reps, matoms = mldread(mldfile, nmocutoff)
@@ -121,19 +121,19 @@ print('The number of primitive GTOs before reduction: ', str(ncap))
 print(ga)
 fulltable = np.array(np.vstack((ga, l, m, n, xx, yy, zz)))  # Note: is this table correct?
 
-print(np.asmatrix(fulltable[:,4]))
+print(np.asmatrix(fulltable[:, 4]))
 ndup = l.size
 # dummy,ipos,irep = unique(full_table,'rows','stable')
 dummy, ipos, irep = uunique(fulltable)
-ipos = np.sort(ipos)
-#irep = np.sort(irep)
-print(irep)
-print(dummy)
-print(np.size(irep), ncap, ipos.size, "no pasaran, las dimensiones, no pasaran")
+# ipos = np.sort(ipos)
+# irep = np.sort(irep)
+# print(irep)
+# print(dummy)
+# print(np.size(irep), ncap, ipos.size, "no pasaran, las dimensiones, no pasaran")
 # reduce the matrices to include only the unique cGTOs
 ga = ga[ipos]
 l = np.asarray(l[ipos], dtype=np.int32)  # AMBIGUOUS VARIABLE NAME?
-print(ipos, irep, "fascistas")
+# print(ipos, irep, "fascistas")
 m = m[ipos]
 n = n[ipos]
 xx = xx[ipos]
@@ -157,7 +157,7 @@ for i in range(np.multiply(4, np.max(l)) + 1):
     for j in range(np.multiply(4, np.max(l)) + 1):
         for k in range(np.multiply(4, np.max(l)) + 1):
             p0matrix[:, i, j, k] = pzerot(i, j, k, q)
-print("p0 first point:", p0matrix[:, 1, 0, 0])
+# print("p0 first point:", p0matrix[:, 1, 0, 0])
 m1 = np.asarray(mat[:, 0], dtype=np.int32)
 m2 = np.asarray(mat[:, 1], dtype=np.int32)
 m3 = np.asarray(mat[:, 2], dtype=np.int32)
@@ -169,17 +169,17 @@ z2 = z1
 
 print(mmod[0, :])
 for i in range(ncap):
-    iduplicates = np.argwhere(irep == ipos[i])
-    print(i, iduplicates)
+    iduplicates = np.argwhere(irep == irep[ipos[i]])
+    iduplicates = np.asarray(iduplicates).flatten()
+    print(ipos[i], iduplicates)
     for j in range(ncap):
-
-        jduplicates = np.argwhere(irep == ipos[j])
-
+        jduplicates = np.argwhere(irep == irep[ipos[j]])
+        jduplicates = np.asarray(jduplicates).flatten()
         for ii in iduplicates:
             for jj in jduplicates:
-                temp1 = np.multiply(np.transpose(total),
-                                    np.multiply(mmod[m1, ii], mmod[m2, jj]) + np.multiply(mmod[m1, jj], mmod[m2, ii]))
-                temp2 = np.multiply(mmod[m3, ii], mmod[m4, jj]) + np.multiply(mmod[m3, jj], mmod[m4, ii])
+                temp1 = total * (mmod[m1, ii] * mmod[m2, jj] + mmod[m1, jj] * mmod[m2, ii])
+                temp2 = mmod[m3, ii] * mmod[m4, jj] + mmod[m3, jj] * mmod[m4, ii]
+
                 z1[:, i, j] = z1[:, i, j] + np.transpose(temp1)
                 z2[:, i, j] = z2[:, i, j] + np.transpose(temp2)
 
@@ -192,7 +192,7 @@ dz = mtg(n, zz, ga)  # Note: s.a.
 print(np.shape(dz), "gusto")
 
 # Dealing with the orbitals of a similar type together
-dummy, apos, arep = uunique(angpart)  # Note: is "axis=0" correct?
+dummy, apos, arep = np.unique(angpart, return_index=True, return_inverse=True)  # Note: is "axis=0" correct?
 nnew = apos.size
 print('The number of GTOs after compression is: ', str(nnew))
 # duplicatesang = np.zeros(nnew)

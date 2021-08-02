@@ -191,7 +191,7 @@ def outputreading(x, y, z):
     yy = []
     zz = []
     cc = 0
-    with open('../molpro.mld') as f:
+    with open('molpro.mld') as f:
         for lines in f:
 
             if '[GTO]' in lines:
