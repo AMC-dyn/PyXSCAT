@@ -100,22 +100,29 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                                     Zkr = Z[:, posK, posR]
                                     Zkr2 = Z2[:, posK, posR]
                                     Ztot = np.sum(Zij * Zkr2 + Zij2 * Zkr) / 8
+                                    if i == 1 and j == 1 and k == 2 and r == 9:
+                                        print('Ztot', Ztot, cutOffZ)
                                     if abs(Ztot) < cutOffZ:
                                         posR = posR + 1
                                         continue
                                     for L in range(0, (l1 + l2) + 1):
                                         MDL = Dx[i, j, L, l1, l2] * Ztot
+                                        if i == 1 and j == 1 and k == 2 and r == 9:
+                                            print('MDL', MDL, Dx[1,1,0,0,0])
                                         if MDL == 0:
                                             continue
 
                                         for M in range(0, (m1 + m2 + 1)):
                                             MDM = Dy[i, j, M, m1, m2] * MDL
+                                            if i == 1 and j == 1 and k == 2 and r == 9:
+                                                print('MDL', MDM, cutOffMD)
                                             if MDM == 0:
                                                 continue
                                             for N in range(0, (n1 + n2 + 1)):
                                                 H1 = (-1) ** (L + M + N)
                                                 MDN = Dz[i, j, N, n1, n2] * MDM * H1
-
+                                                if i == 1 and j == 1 and k == 2 and r == 9:
+                                                    print('MDL', MDN, cutOffMD)
                                                 if MDN == 0:
                                                     continue
 

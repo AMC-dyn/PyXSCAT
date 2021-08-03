@@ -222,9 +222,9 @@ pz = np.zeros((nnew, nnew))
 e12 = np.zeros((q.size, nnew, nnew))
 
 # Combined MD coefficients
-ddx = np.zeros((nnew, nnew, np.multiply(2, np.max(l) + 1) + 1, np.max(l) + 1, np.max(l) + 1), dtype=np.float32)
-ddy = np.zeros((nnew, nnew, np.multiply(2, np.max(m) + 1) + 1, np.max(m) + 1, np.max(m) + 1), dtype=np.float32)
-ddz = np.zeros((nnew, nnew, np.multiply(2, np.max(n) + 1) + 1, np.max(n) + 1, np.max(n) + 1), dtype=np.float32)
+ddx = np.zeros((nnew, nnew, 2 * (np.max(l) + 2) + 1, np.max(l) + 1, np.max(l) + 1), dtype=np.float32)
+ddy = np.zeros((nnew, nnew, 2 * (np.max(m) + 2), np.max(m) + 1, np.max(m) + 1), dtype=np.float32)
+ddz = np.zeros((nnew, nnew, 2 * (np.max(n) + 2), np.max(n) + 1, np.max(n) + 1), dtype=np.float32)
 
 for i in range(nnew):
     iduplicates = np.asarray(np.argwhere(arep == arep[apos[i]]), dtype=np.int32)
@@ -247,11 +247,10 @@ for i in range(nnew):
         #       combination of the MD coefficients
         iduplicates = iduplicates.flatten()
         jduplicates = jduplicates.flatten()
-
+        print(dx[1, 1, 0, 0, 0])
         for ii in iduplicates:
             for jj in jduplicates:
-                ii = ii
-                jj = jj
+
                 for ls in range(l[ii] + l[jj] + 1):
                     ddx[i, j, ls, l[ii], l[jj]] = dx[ii, jj, ls, l[ii], l[jj]]
                 for ms in range(m[ii] + m[jj] + 1):
@@ -267,6 +266,8 @@ for i in range(nnew):
 dx = ddx
 dy = ddy
 dz = ddz
+
+print(dx[1, 1, 0, 0, 0])
 
 # definition of the new size
 ncap = nnew
