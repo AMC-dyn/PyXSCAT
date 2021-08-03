@@ -30,16 +30,14 @@ def twordmconst():
     for c1 in confs:
         nc2 = 0
         for c2 in confs:
-            print(c1, c2)
+
 
             mat1 = [i for i in range(len(c1)) if c1[i] != "0"]
             mat2 = [i for i in range(len(c1)) if c2[i] != "0"]
 
             for i in range(len(mat1)):
 
-                if mat1[i] == mat2[i]:
-                    print("maximum coincidence!!!!!!", c1, c2, mat1, mat2, mat1[i])
-                else:
+                if mat1[i] != mat2[i]:
                     for j in range(len(mat2)):
                         if mat1[i] == mat2[j]:
                             ep2[nc1, nc2] = -ep2[nc1, nc2]

@@ -12,10 +12,10 @@ def reorder(l, m, n, ga, ci, M, angpart):
     print(len(l))
     print(angpart)
     for i in range(N_new):
-        duplicates_ang = np.argwhere(arep == apos[i] - 1)
+        duplicates_ang = np.argwhere(arep == arep[apos2[i]])
         # print(duplicates_ang)
         num = len(duplicates_ang)
-        print(arep[apos[i]], num)
+        print(arep[apos2[i]], num)
 
         if num == 1:
             ord_vec[counter] = duplicates_ang[0]

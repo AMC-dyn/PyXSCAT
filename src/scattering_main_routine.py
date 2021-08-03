@@ -113,10 +113,10 @@ ncap = l.size
 print('The number of primitive GTOs before reduction: ', str(ncap))
 
 # generate table with GTO descriptors
-print(ga)
+
 fulltable = np.array(np.vstack((ga, l, m, n, xx, yy, zz)))  # Note: is this table correct?
 
-print(np.asmatrix(fulltable[:, 4]))
+
 ndup = l.size
 # dummy,ipos,irep = unique(full_table,'rows','stable')
 dummy, ipos, irep = uunique(fulltable)
@@ -271,6 +271,7 @@ for i in range(ncap):
                 #               add to the total intensity
                 tsi += 8 * f * e12[:, i, j] * e12[:, k, r]
 
+
 # diagonal with respect two 1st and 3rd element (k = i)
 for i in range(ncap):
     for j in range(i + 1, ncap):
@@ -331,13 +332,13 @@ for i in range(ncap):
             f = intk(q, ll[i], ll[i], ll[k], ll[k], hx, hy, hz, h, dx, dy, dz, i, i, k, k,
                      z1, z2, apos, cutoffz, cutoffmd)
         #       add to the total intensity
-        tsi += 2 * f * e12[:, i, i] * e12[:, k, r]
+        tsi += 2 * f * e12[:, i, i] * e12[:, k, k]
 
 # all GTOs are identical (j = r = k = i)
 for i in range(ncap):
     f = intkzero(nq, ll[i], ll[i], ll[i], ll[i], p0matrix, dx, dy, dz, i, i, i, i,
                  z1, z2, apos, cutoffz, cutoffmd)
     #   add to the total intensity
-    tsi += f * e12[:, i, i] * e12[:, k, r]
+    tsi += f * e12[:, i, i] * e12[:, i, i]
 
 print('Maximum intenstiy: ', q[0], np.max(tsi))

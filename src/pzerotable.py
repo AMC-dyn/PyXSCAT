@@ -172,7 +172,7 @@ def pzerotablenew(L, M, N, nu):
     elif A[0] == 6 and A[1] == 6 and A[2] == 10:
         f2 = -5 * ((nu) ** 22 / 7436429)
     elif A[0] == 2 and A[1] == 4 and A[2] == 10:
-        f2 = ((nu) ** 16 / 12155)
+        f2 = (nu ** 16 / 12155)
     elif A[0] == 4 and A[1] == 4 and A[2] == 10:
         f2 = -3 * (nu ** 18 / 230945)
     elif A[0] == 2 and A[1] == 2 and A[2] == 10:

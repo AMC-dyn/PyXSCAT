@@ -140,7 +140,7 @@ config,det
 ''')
         line_wr = 'occ,' + str(occ) + ';\n'
         line_wr2 = 'closed,' + str(closed) + ';\n'
-        line_wr3 = 'wf,' + str(numel) + ',1,'+ str(mult)+';'
+        line_wr3 = 'wf,' + str(numel) + ',1,'+ str(mult)+';\n'
         line_wr4 = 'state,' + str(nstates) + ';\n'
 
         f.write(line_wr)
