@@ -318,11 +318,11 @@ def md_table_gen(l, x, ga):
             D[i, j, 0, 0, 1] = PB
             D[i, j, 1, 0, 1] = a
             D[i, j, 0, 1, 0] = PA
-            D[i, j, 1, 2, 0] = a
+            D[i, j, 1, 1, 0] = a  # corrected
 
-            D[i, j, 0, 1, 1] = PB * D[i, j, 0, 1, 0] + D[i, j, 1, 2, 0]
-            D[i, j, 1, 2, 1] = a * D[i, j, 0, 1, 0] + PB * D[i, j, 1, 2, 0]
-            D[i, j, 2, 1, 1] = a * D[i, j, 1, 2, 0]
+            D[i, j, 0, 1, 1] = PB * D[i, j, 0, 1, 0] + D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 1, 1, 1] = a * D[i, j, 0, 1, 0] + PB * D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 2, 1, 1] = a * D[i, j, 1, 1, 0]  # corrected
         elif l1 == 2:
             a = 0.5 / gaP
 
@@ -332,18 +332,18 @@ def md_table_gen(l, x, ga):
             D[i, j, 1, 0, 2] = a * D[i, j, 0, 0, 1] + PB * D[i, j, 1, 0, 1]
             D[i, j, 2, 0, 2] = a * D[i, j, 1, 0, 1]
             D[i, j, 0, 1, 0] = PA
-            D[i, j, 1, 2, 0] = a
-            D[i, j, 0, 1, 1] = PB * D[i, j, 0, 1, 0] + D[i, j, 1, 2, 0]
-            D[i, j, 1, 2, 1] = a * D[i, j, 0, 1, 0] + PB * D[i, j, 1, 2, 0]
-            D[i, j, 2, 1, 1] = a * D[i, j, 1, 2, 0]
-            D[i, j, 0, 1, 2] = PB * D[i, j, 0, 1, 1] + D[i, j, 1, 2, 1]
-            D[i, j, 1, 2, 2] = a * D[i, j, 0, 1, 1] + PB * D[i, j, 1, 2, 1] + 2. * D[i, j, 2, 1, 1]
-            D[i, j, 2, 1, 2] = a * D[i, j, 1, 2, 1] + PB * D[i, j, 2, 1, 1]
+            D[i, j, 1, 1, 0] = a  # corrected
+            D[i, j, 0, 1, 1] = PB * D[i, j, 0, 1, 0] + D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 1, 1, 1] = a * D[i, j, 0, 1, 0] + PB * D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 2, 1, 1] = a * D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 0, 1, 2] = PB * D[i, j, 0, 1, 1] + D[i, j, 1, 1, 1]  # corrected
+            D[i, j, 1, 1, 2] = a * D[i, j, 0, 1, 1] + PB * D[i, j, 1, 1, 1] + 2. * D[i, j, 2, 1, 1]  # corrected
+            D[i, j, 2, 1, 2] = a * D[i, j, 1, 1, 1] + PB * D[i, j, 2, 1, 1]
             D[i, j, 3, 1, 2] = a * D[i, j, 2, 1, 1]
 
-            D[i, j, 0, 2, 0] = PA * D[i, j, 0, 1, 0] + D[i, j, 1, 2, 0]
-            D[i, j, 1, 2, 0] = a * D[i, j, 0, 1, 0] + PA * D[i, j, 1, 2, 0]
-            D[i, j, 2, 2, 0] = a * D[i, j, 1, 2, 0]
+            D[i, j, 0, 2, 0] = PA * D[i, j, 0, 1, 0] + D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 1, 2, 0] = a * D[i, j, 0, 1, 0] + PA * D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 2, 2, 0] = a * D[i, j, 1, 1, 0]  # corrected
             D[i, j, 0, 2, 1] = PB * D[i, j, 0, 2, 0] + D[i, j, 1, 2, 0]
             D[i, j, 1, 2, 1] = a * D[i, j, 0, 2, 0] + PB * D[i, j, 1, 2, 0] + 2. * D[i, j, 2, 2, 0]
             D[i, j, 2, 2, 1] = a * D[i, j, 1, 2, 0] + PB * D[i, j, 2, 2, 0]
@@ -366,23 +366,23 @@ def md_table_gen(l, x, ga):
             D[i, j, 2, 0, 3] = a * D[i, j, 1, 0, 2] + PB * D[i, j, 2, 0, 2]
             D[i, j, 3, 0, 3] = a * D[i, j, 2, 0, 2]
             D[i, j, 0, 1, 0] = PA
-            D[i, j, 1, 2, 0] = a
-            D[i, j, 0, 1, 1] = PB * D[i, j, 0, 1, 0] + D[i, j, 1, 2, 0]
-            D[i, j, 1, 2, 1] = a * D[i, j, 0, 1, 0] + PB * D[i, j, 1, 2, 0]
-            D[i, j, 2, 1, 1] = a * D[i, j, 1, 2, 0]
-            D[i, j, 0, 1, 2] = PB * D[i, j, 0, 1, 1] + D[i, j, 1, 2, 1]
-            D[i, j, 1, 2, 2] = a * D[i, j, 0, 1, 1] + PB * D[i, j, 1, 2, 1] + 2. * D[i, j, 2, 1, 1]
-            D[i, j, 2, 1, 2] = a * D[i, j, 1, 2, 1] + PB * D[i, j, 2, 1, 1]
+            D[i, j, 1, 1, 0] = a  # corrected
+            D[i, j, 0, 1, 1] = PB * D[i, j, 0, 1, 0] + D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 1, 1, 1] = a * D[i, j, 0, 1, 0] + PB * D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 2, 1, 1] = a * D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 0, 1, 2] = PB * D[i, j, 0, 1, 1] + D[i, j, 1, 1, 1]  # corrected
+            D[i, j, 1, 1, 2] = a * D[i, j, 0, 1, 1] + PB * D[i, j, 1, 1, 1] + 2. * D[i, j, 2, 1, 1]  # corrected
+            D[i, j, 2, 1, 2] = a * D[i, j, 1, 1, 1] + PB * D[i, j, 2, 1, 1]  # corrected
             D[i, j, 3, 1, 2] = a * D[i, j, 2, 1, 1]
 
-            D[i, j, 0, 1, 3] = PB * D[i, j, 0, 1, 2] + D[i, j, 1, 2, 2]
-            D[i, j, 1, 2, 3] = a * D[i, j, 0, 1, 2] + PB * D[i, j, 1, 2, 2] + 2. * D[i, j, 2, 1, 2]
-            D[i, j, 2, 1, 3] = a * D[i, j, 1, 2, 2] + PB * D[i, j, 2, 1, 2] + 3. * D[i, j, 3, 1, 2]
+            D[i, j, 0, 1, 3] = PB * D[i, j, 0, 1, 2] + D[i, j, 1, 1, 2]  # corrected
+            D[i, j, 1, 1, 3] = a * D[i, j, 0, 1, 2] + PB * D[i, j, 1, 1, 2] + 2. * D[i, j, 2, 1, 2]
+            D[i, j, 2, 1, 3] = a * D[i, j, 1, 1, 2] + PB * D[i, j, 2, 1, 2] + 3. * D[i, j, 3, 1, 2]
             D[i, j, 3, 1, 3] = a * D[i, j, 2, 1, 2] + PB * D[i, j, 3, 1, 2]
             D[i, j, 4, 1, 3] = a * D[i, j, 3, 1, 2]
-            D[i, j, 0, 2, 0] = PA * D[i, j, 0, 1, 0] + D[i, j, 1, 2, 0]
-            D[i, j, 1, 2, 0] = a * D[i, j, 0, 1, 0] + PA * D[i, j, 1, 2, 0]
-            D[i, j, 2, 2, 0] = a * D[i, j, 1, 2, 0]
+            D[i, j, 0, 2, 0] = PA * D[i, j, 0, 1, 0] + D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 1, 2, 0] = a * D[i, j, 0, 1, 0] + PA * D[i, j, 1, 1, 0]  # corrected
+            D[i, j, 2, 2, 0] = a * D[i, j, 1, 1, 0]  # corrected
             D[i, j, 0, 2, 1] = PB * D[i, j, 0, 2, 0] + D[i, j, 1, 2, 0]
             D[i, j, 1, 2, 1] = a * D[i, j, 0, 2, 0] + PB * D[i, j, 1, 2, 0] + 2. * D[i, j, 2, 2, 0]
             D[i, j, 2, 2, 1] = a * D[i, j, 1, 2, 0] + PB * D[i, j, 2, 2, 0]
