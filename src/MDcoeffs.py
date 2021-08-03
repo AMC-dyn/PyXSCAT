@@ -53,9 +53,9 @@ def md_table_gen(l, x, ga):
                 D[ii, jj, 0, 1, 0] = PA
                 D[ii, jj, 1, 1, 0] = a
 
-                D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 2, 0]
-                D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 2, 0]
-                D[ii, jj, 2, 2, 0] = a * D[ii, jj, 1, 2, 0]
+                D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 2, 2, 0] = a * D[ii, jj, 1, 1, 0]  # corrected
 
                 D[jj, ii, 0, 0, 2] = D[ii, jj, 0, 2, 0]
                 D[jj, ii, 1, 0, 2] = D[ii, jj, 1, 2, 0]
