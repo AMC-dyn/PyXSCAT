@@ -36,9 +36,9 @@ realnum = np.asarray(realnum)
 mos = mos[:, realnum - 1]
 
 # Change everything to atomic units (originally in Angstroms)
-xx = xx / 0.529
-yy = yy / 0.529
-zz = zz / 0.529
+xx = xx / 0.529177210920
+yy = yy / 0.529177210920
+zz = zz / 0.529177210920
 
 # The original GTOs are reordered and MOS is changed and converted in a matrix in reorder
 l, m, n, ga, ci, mos, angpart = rdgt.reorder(l, m, n, ga, ci, mos, angpart)
@@ -74,7 +74,7 @@ else:
 # cutoffmd = cutoffs[2]  # suggested: cutoffmd = 1E-20;
 
 # reshape q to a column vector
-q = np.linspace(0.0001, 3, 100)
+q = np.linspace(0.000001, 3, 100)
 # q = np.reshape(q, (q.size))
 # q = np.reshape(q, (q.size, 1))
 
