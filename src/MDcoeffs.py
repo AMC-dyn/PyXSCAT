@@ -66,8 +66,8 @@ def md_table_gen(l, x, ga):
                 D[ii, jj, 1, 0, 1] = a
                 D[ii, jj, 0, 1, 0] = PA
                 D[ii, jj, 1, 1, 0] = a
-                D[ii, jj, 0, 1, 1] = PB * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 2, 0]
-                D[ii, jj, 1, 1, 1] = a * D[ii, jj, 0, 1, 0] + PB * D[ii, jj, 1, 2, 0]
+                D[ii, jj, 0, 1, 1] = PB * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 1, 1, 1] = a * D[ii, jj, 0, 1, 0] + PB * D[ii, jj, 1, 1, 0]  # corrected
                 D[ii, jj, 2, 1, 1] = a * D[ii, jj, 1, 1, 0]
                 D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 1, 0]
                 D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 1, 0]
@@ -91,18 +91,18 @@ def md_table_gen(l, x, ga):
                 D[ii, jj, 1, 0, 2] = a * D[ii, jj, 0, 0, 1] + PB * D[ii, jj, 1, 0, 1]
                 D[ii, jj, 2, 0, 2] = a * D[ii, jj, 1, 0, 1]
                 D[ii, jj, 0, 1, 0] = PA
-                D[ii, jj, 1, 2, 0] = a
-                D[ii, jj, 0, 1, 1] = PB * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 2, 0]
-                D[ii, jj, 1, 2, 1] = a * D[ii, jj, 0, 1, 0] + PB * D[ii, jj, 1, 2, 0]
-                D[ii, jj, 2, 1, 1] = a * D[ii, jj, 1, 2, 0]
-                D[ii, jj, 0, 1, 2] = PB * D[ii, jj, 0, 1, 1] + D[ii, jj, 1, 2, 1]
-                D[ii, jj, 1, 2, 2] = a * D[ii, jj, 0, 1, 1] + PB * D[ii, jj, 1, 2, 1] + 2. * D[ii, jj, 2, 1, 1]
-                D[ii, jj, 2, 1, 2] = a * D[ii, jj, 1, 2, 1] + PB * D[ii, jj, 2, 1, 1]
+                D[ii, jj, 1, 1, 0] = a  # corrected
+                D[ii, jj, 0, 1, 1] = PB * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 1, 1, 1] = a * D[ii, jj, 0, 1, 0] + PB * D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 2, 1, 1] = a * D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 0, 1, 2] = PB * D[ii, jj, 0, 1, 1] + D[ii, jj, 1, 1, 1]  # corrected
+                D[ii, jj, 1, 1, 2] = a * D[ii, jj, 0, 1, 1] + PB * D[ii, jj, 1, 1, 1] + 2. * D[ii, jj, 2, 1, 1]  # corrected
+                D[ii, jj, 2, 1, 2] = a * D[ii, jj, 1, 1, 1] + PB * D[ii, jj, 2, 1, 1]  # corrected
                 D[ii, jj, 3, 1, 2] = a * D[ii, jj, 2, 1, 1]
 
-                D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 2, 0]
-                D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 2, 0]
-                D[ii, jj, 2, 2, 0] = a * D[ii, jj, 1, 2, 0]
+                D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 1, 0]  # corrected
+                D[ii, jj, 2, 2, 0] = a * D[ii, jj, 1, 1, 0]  # corrected
                 D[ii, jj, 0, 2, 1] = PB * D[ii, jj, 0, 2, 0] + D[ii, jj, 1, 2, 0]
                 D[ii, jj, 1, 2, 1] = a * D[ii, jj, 0, 2, 0] + PB * D[ii, jj, 1, 2, 0] + 2. * D[ii, jj, 2, 2, 0]
                 D[ii, jj, 2, 2, 1] = a * D[ii, jj, 1, 2, 0] + PB * D[ii, jj, 2, 2, 0]
@@ -426,4 +426,4 @@ def md_table_gen(l, x, ga):
 
         else:
             print('case not programmed yet: l1/2= ', str(l1), str(l2))
-        return D
+    return D
