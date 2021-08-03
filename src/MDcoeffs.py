@@ -51,7 +51,7 @@ def md_table_gen(l, x, ga):
                 a = 0.5 / gaP
 
                 D[ii, jj, 0, 1, 0] = PA
-                D[ii, jj, 1, 2, 0] = a
+                D[ii, jj, 1, 1, 0] = a
 
                 D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 2, 0]
                 D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 2, 0]
@@ -65,13 +65,13 @@ def md_table_gen(l, x, ga):
                 D[ii, jj, 0, 0, 1] = PB
                 D[ii, jj, 1, 0, 1] = a
                 D[ii, jj, 0, 1, 0] = PA
-                D[ii, jj, 1, 2, 0] = a
+                D[ii, jj, 1, 1, 0] = a
                 D[ii, jj, 0, 1, 1] = PB * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 2, 0]
-                D[ii, jj, 1, 2, 1] = a * D[ii, jj, 0, 1, 0] + PB * D[ii, jj, 1, 2, 0]
-                D[ii, jj, 2, 1, 1] = a * D[ii, jj, 1, 2, 0]
-                D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 2, 0]
-                D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 2, 0]
-                D[ii, jj, 2, 2, 0] = a * D[ii, jj, 1, 2, 0]
+                D[ii, jj, 1, 1, 1] = a * D[ii, jj, 0, 1, 0] + PB * D[ii, jj, 1, 2, 0]
+                D[ii, jj, 2, 1, 1] = a * D[ii, jj, 1, 1, 0]
+                D[ii, jj, 0, 2, 0] = PA * D[ii, jj, 0, 1, 0] + D[ii, jj, 1, 1, 0]
+                D[ii, jj, 1, 2, 0] = a * D[ii, jj, 0, 1, 0] + PA * D[ii, jj, 1, 1, 0]
+                D[ii, jj, 2, 2, 0] = a * D[ii, jj, 1, 1, 0]
 
                 D[ii, jj, 0, 2, 1] = PB * D[ii, jj, 0, 2, 0] + D[ii, jj, 1, 2, 0]
                 D[ii, jj, 1, 2, 1] = a * D[ii, jj, 0, 2, 0] + PB * D[ii, jj, 1, 2, 0] + 2. * D[ii, jj, 2, 2, 0]
@@ -79,7 +79,7 @@ def md_table_gen(l, x, ga):
                 D[ii, jj, 3, 2, 1] = a * D[ii, jj, 2, 2, 0]
 
                 D[jj, ii, 0, 1, 2] = D[ii, jj, 0, 2, 1]
-                D[jj, ii, 1, 2, 2] = D[ii, jj, 1, 2, 1]
+                D[jj, ii, 1, 1, 2] = D[ii, jj, 1, 2, 1]
                 D[jj, ii, 2, 1, 2] = D[ii, jj, 2, 2, 1]
                 D[jj, ii, 3, 1, 2] = D[ii, jj, 3, 2, 1]
             elif l1 == 2 and l2 == 2:

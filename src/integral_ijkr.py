@@ -18,7 +18,7 @@ def BesselDeriv(LL, MM, NN, a, b, c, LLmax):
                     continue
                 C3 = C2 * Ct3
                 hOrder = np.ceil((LL + MM + NN - ii - jj - kk) / 2) + ii + jj + kk
-                hOrder = np.asarray(hOrder,dtype=np.int32)
+                hOrder = np.asarray(hOrder, dtype=np.int32)
 
                 TempBesselPre[hOrder] = TempBesselPre[hOrder] + C3
 
@@ -35,7 +35,7 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
         a[1, 1] = -Hx
 
     for L in range(1, LLmax):
-        a[L+1, 0] = -(L) * a[L - 1, 0]
+        a[L + 1, 0] = -(L) * a[L - 1, 0]
 
         for ka in range(0, LLmax):
             a[L + 1, ka + 1] = -Hx * a[L, ka] - (L) * a[L - 1, ka + 1]
@@ -71,7 +71,8 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
             for n in range(0, LLmax + 1 - l - m):
                 Temp_h_pre = BesselDeriv(l, m, n, a, b, c, LLmax)
                 h_pre2[:, l, m, n] = Temp_h_pre
-
+    if i == 1 and j == 1 and k == 2 and r == 9:
+        print("h_pre2", h_pre2)
     posI = apos[i]
     for l1 in range(0, lmax1 + 1):
         for m1 in range(0, (lmax1 + 1 - l1)):
@@ -135,13 +136,17 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
 
                                                             if abs(prodD) < cutOffMD:
                                                                 continue
-
+                                                            if i == 1 and j == 1 and k == 2 and r == 9:
+                                                                print("prod", prodD)
                                                             NN = N + Np
                                                             h_saved = h_saved + h_pre2[:, LL, MM, NN] * prodD
                                     posR = posR + 1
                             posK = posK + 1
                     posJ = posJ + 1
             posI = posI + 1
+
+    if i == 1 and j == 1 and k == 2 and r == 9:
+        print("h_saved", h_saved)
 
     Pmu = H * mu
 

@@ -164,28 +164,32 @@ m3 = np.asarray(mat[:, 2], dtype=np.int32)
 m4 = np.asarray(mat[:, 3], dtype=np.int32)
 
 # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
-z1 = np.zeros((m1.size, ncap, ncap))
-z2 = z1
+z1 = np.zeros((m1.size, ncap, ncap), dtype=np.float64)
+z2 = np.zeros((m1.size, ncap, ncap), dtype=np.float64)
 
-print(mmod[0, :])
 for i in range(ncap):
     iduplicates = np.argwhere(irep == irep[ipos[i]])
     iduplicates = np.asarray(iduplicates).flatten()
-    print(ipos[i], iduplicates)
+    # print(ipos[i], iduplicates)
     for j in range(ncap):
         jduplicates = np.argwhere(irep == irep[ipos[j]])
         jduplicates = np.asarray(jduplicates).flatten()
+        # print(ipos[j], jduplicates)
         for ii in iduplicates:
             for jj in jduplicates:
                 temp1 = total * (mmod[m1, ii] * mmod[m2, jj] + mmod[m1, jj] * mmod[m2, ii])
                 temp2 = mmod[m3, ii] * mmod[m4, jj] + mmod[m3, jj] * mmod[m4, ii]
 
-                z1[:, i, j] = z1[:, i, j] + np.transpose(temp1)
-                z2[:, i, j] = z2[:, i, j] + np.transpose(temp2)
+                z1[:, i, j] += temp1
+                z2[:, i, j] += temp2
+print('orb1', mmod[0, :])
+print('orb2', mmod[1, :])
+print('orb3', mmod[2, :])
+print('orb4', mmod[3, :])
+print(total)
 
-print(z1[:, 0, 0])
 # Generating the MacMurchie-Davidson coefficients
-print(n, np.max(n), "cojones")
+
 dx = mtg(l, xx, ga)  # Note: CHECK AND INSERT FUNCTION "mdtablegen"
 dy = mtg(m, yy, ga)  # Note: s.a.
 dz = mtg(n, zz, ga)  # Note: s.a.
@@ -193,6 +197,8 @@ print(np.shape(dz), "gusto")
 
 # Dealing with the orbitals of a similar type together
 dummy, apos, arep = np.unique(angpart, return_index=True, return_inverse=True)  # Note: is "axis=0" correct?
+print(apos)
+print(arep)
 nnew = apos.size
 print('The number of GTOs after compression is: ', str(nnew))
 # duplicatesang = np.zeros(nnew)
@@ -253,6 +259,10 @@ for i in range(nnew):
                 for ns in range(n[ii] + n[jj] + 1):
                     ddz[i, j, ns, n[ii], n[jj]] = dz[ii, jj, ns, n[ii], n[jj]]
 
+# print(e12[:,0,0])
+# print(py)
+# print(pz)
+
 # update of the MD coeffs
 dx = ddx
 dy = ddy
@@ -263,7 +273,7 @@ ncap = nnew
 
 # Loops over 4xpGTOs
 # Strictly non-diagonal elements with all GTOs being different
-tsi = np.zeros((q.size, 1))
+tsi = np.zeros(q.size)
 for i in range(ncap):
     for j in range(i + 1, ncap):
         for k in range(i + 1, ncap):  # Note: is the range correct? "i+1" or "j+1"? Andres says "i+1".
@@ -282,7 +292,7 @@ for i in range(ncap):
                     f = intk(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, k, r,
                              z1, z2, apos, cutoffz, cutoffmd)
                 #               add to the total intensity
-                tsi = tsi + np.multiply(8, np.multiply(f, np.multiply(e12[:, i, j], e12[:, k, r])))
+                tsi += 8 * f * e12[:, i, j] * e12[:, k, r]
 
 # diagonal with respect two 1st and 3rd element (k = i)
 for i in range(ncap):
@@ -302,7 +312,7 @@ for i in range(ncap):
                 f = intk(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, i, r,
                          z1, z2, apos, cutoffz, cutoffmd)
             #           add to the total intensity
-            tsi = tsi + np.multiply(4, np.multiply(f, np.multiply(e12[:, i, j], e12[:, i, r])))
+            tsi += 4 * f * e12[:, i, j] * e12[:, i, r]
 
 # diagonal in only one pair (j = i)
 for i in range(ncap):
@@ -322,7 +332,10 @@ for i in range(ncap):
                 f = intk(q, ll[i], ll[i], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i, i, k, r,
                          z1, z2, apos, cutoffz, cutoffmd)
             #           add to the total intensity
-            tsi = tsi + np.multiply(4, np.multiply(f, np.multiply(e12[:, i, i], e12[:, k, r])))
+            if i == 1 and k == 2 and r == 9:
+                print(f)
+                print(i, i, k, r, tsi)
+            tsi += 4 * f * e12[:, i, i] * e12[:, k, r]
 
 # diagonal in both pairs without repetition of the pair (j = i, r = k)
 for i in range(ncap):
