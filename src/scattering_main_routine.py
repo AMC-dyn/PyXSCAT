@@ -30,19 +30,19 @@ x, y, z = mp.create_input()
 # are read
 ga, ci, realnum, m, l, n, mos, monums, actives, total, angpart, xx, yy, zz = mp.outputreading(x, y, z)
 
-mos = np.reshape(mos, (total, max(realnum)))
-mos = mos[:actives, :]
-realnum = np.asarray(realnum)
-mos = mos[:, realnum - 1]
+# mos = np.reshape(mos, (total, max(realnum)))
+# mos = mos[:actives, :]
+# realnum = np.asarray(realnum)
+# mos = mos[:, realnum - 1]
 
 # Change everything to atomic units (originally in Angstroms)
 xx = xx / 0.529177210920
 yy = yy / 0.529177210920
 zz = zz / 0.529177210920
 
-# The original GTOs are reordered and MOS is changed and converted in a matrix in reorder
+# The original GTOs are reordered and MOS is changed,converted in a matrix and reordered
 l, m, n, ga, ci, mos, angpart = rdgt.reorder(l, m, n, ga, ci, mos, angpart)
-print(l)
+
 # mldfile = sys.argv[1]
 # outfile = sys.argv[2]
 # state1 = sys.argv[3]  # Note: NOT USED ANYWHERE!
@@ -105,11 +105,6 @@ for i in range(l.size):
                            factd(np.multiply(2, n[i]) - 1))
 nrm = norma * normb * normc / normd ** 0.5
 
-print(norma, "norma")
-print(normb[0], "normb")
-print(normc[0], "normc")
-print(normd[0], "normd")
-print(nrm[0], "nrm")
 # combine the normalisation, MO, and contraction coefficients
 mmod = np.multiply(np.multiply(mos, ci), nrm)
 
@@ -145,11 +140,6 @@ angpart = angpart[ipos]
 ncap = l.size
 
 print('The number of primitive GTOs after reduction: ', str(ncap))
-
-# duplicates = []
-# for i in range(ncap):  # Note: changed range(ipos.size) to range(ncap)
-#     duplicates.append([np.argwhere(irep == irep[ipos[i]])])
-
 # precomputing the P=0 cases
 nq = q.size
 p0matrix = np.zeros((nq, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1))
@@ -182,23 +172,16 @@ for i in range(ncap):
 
                 z1[:, i, j] += temp1
                 z2[:, i, j] += temp2
-print('orb1', mmod[0, :])
-print('orb2', mmod[1, :])
-print('orb3', mmod[2, :])
-print('orb4', mmod[3, :])
-print(total)
 
 # Generating the MacMurchie-Davidson coefficients
 
 dx = mtg(l, xx, ga)  # Note: CHECK AND INSERT FUNCTION "mdtablegen"
 dy = mtg(m, yy, ga)  # Note: s.a.
 dz = mtg(n, zz, ga)  # Note: s.a.
-print(np.shape(dz), "gusto")
 
 # Dealing with the orbitals of a similar type together
 dummy, apos, arep = np.unique(angpart, return_index=True, return_inverse=True)  # Note: is "axis=0" correct?
-print(apos)
-print(arep)
+
 nnew = apos.size
 print('The number of GTOs after compression is: ', str(nnew))
 # duplicatesang = np.zeros(nnew)
@@ -215,7 +198,7 @@ ll = ll[apos]
 
 # Hasta aqui funciona
 
-print("position", xx)
+
 px = np.zeros((nnew, nnew))
 py = np.zeros((nnew, nnew))
 pz = np.zeros((nnew, nnew))
@@ -247,7 +230,6 @@ for i in range(nnew):
         #       combination of the MD coefficients
         iduplicates = iduplicates.flatten()
         jduplicates = jduplicates.flatten()
-        print(dx[1, 1, 0, 0, 0])
         for ii in iduplicates:
             for jj in jduplicates:
 
@@ -258,16 +240,10 @@ for i in range(nnew):
                 for ns in range(n[ii] + n[jj] + 1):
                     ddz[i, j, ns, n[ii], n[jj]] = dz[ii, jj, ns, n[ii], n[jj]]
 
-# print(e12[:,0,0])
-# print(py)
-# print(pz)
-
 # update of the MD coeffs
 dx = ddx
 dy = ddy
 dz = ddz
-
-print(dx[1, 1, 0, 0, 0])
 
 # definition of the new size
 ncap = nnew
@@ -355,13 +331,13 @@ for i in range(ncap):
             f = intk(q, ll[i], ll[i], ll[k], ll[k], hx, hy, hz, h, dx, dy, dz, i, i, k, k,
                      z1, z2, apos, cutoffz, cutoffmd)
         #       add to the total intensity
-        tsi = tsi + np.multiply(2, np.multiply(f, np.multiply(e12[:, i, i], e12[:, k, k])))
+        tsi += 2 * f * e12[:, i, i] * e12[:, k, r]
 
 # all GTOs are identical (j = r = k = i)
 for i in range(ncap):
     f = intkzero(nq, ll[i], ll[i], ll[i], ll[i], p0matrix, dx, dy, dz, i, i, i, i,
                  z1, z2, apos, cutoffz, cutoffmd)
     #   add to the total intensity
-    tsi = tsi + np.multiply(f, np.multiply(e12[:, i, i], e12[:, i, i]))
+    tsi += f * e12[:, i, i] * e12[:, k, r]
 
 print('Maximum intenstiy: ', q[0], np.max(tsi))

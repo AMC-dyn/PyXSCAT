@@ -71,8 +71,6 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
             for n in range(0, LLmax + 1 - l - m):
                 Temp_h_pre = BesselDeriv(l, m, n, a, b, c, LLmax)
                 h_pre2[:, l, m, n] = Temp_h_pre
-    if i == 1 and j == 1 and k == 2 and r == 9:
-        print("h_pre2", h_pre2)
     posI = apos[i]
     for l1 in range(0, lmax1 + 1):
         for m1 in range(0, (lmax1 + 1 - l1)):
@@ -100,29 +98,25 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                                     Zkr = Z[:, posK, posR]
                                     Zkr2 = Z2[:, posK, posR]
                                     Ztot = np.sum(Zij * Zkr2 + Zij2 * Zkr) / 8
-                                    if i == 1 and j == 1 and k == 2 and r == 9:
-                                        print('Ztot', Ztot, cutOffZ)
+
                                     if abs(Ztot) < cutOffZ:
                                         posR = posR + 1
                                         continue
                                     for L in range(0, (l1 + l2) + 1):
                                         MDL = Dx[i, j, L, l1, l2] * Ztot
-                                        if i == 1 and j == 1 and k == 2 and r == 9:
-                                            print('MDL', MDL, Dx[1,1,0,0,0])
+
                                         if MDL == 0:
                                             continue
 
                                         for M in range(0, (m1 + m2 + 1)):
                                             MDM = Dy[i, j, M, m1, m2] * MDL
-                                            if i == 1 and j == 1 and k == 2 and r == 9:
-                                                print('MDL', MDM, cutOffMD)
+
                                             if MDM == 0:
                                                 continue
                                             for N in range(0, (n1 + n2 + 1)):
                                                 H1 = (-1) ** (L + M + N)
                                                 MDN = Dz[i, j, N, n1, n2] * MDM * H1
-                                                if i == 1 and j == 1 and k == 2 and r == 9:
-                                                    print('MDL', MDN, cutOffMD)
+
                                                 if MDN == 0:
                                                     continue
 
@@ -143,17 +137,13 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
 
                                                             if abs(prodD) < cutOffMD:
                                                                 continue
-                                                            if i == 1 and j == 1 and k == 2 and r == 9:
-                                                                print("prod", prodD)
+
                                                             NN = N + Np
                                                             h_saved = h_saved + h_pre2[:, LL, MM, NN] * prodD
                                     posR = posR + 1
                             posK = posK + 1
                     posJ = posJ + 1
             posI = posI + 1
-
-    if i == 1 and j == 1 and k == 2 and r == 9:
-        print("h_saved", h_saved)
 
     Pmu = H * mu
 

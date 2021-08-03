@@ -1,25 +1,24 @@
 GEOMETRY
 Angstrom
-2
-H 0.70 0.00 0.00
-H 0.00 0.00 0.00
+1
+Li 0.00 0.00 0.00
 METHOD
 CAS
 SYM
 OFF
 NONE
 BASIS
-aug-cc-pvdz
+6-311G
 OCC
-4
+3
 CLOSED
 0
 COM
 True
 NEL
-2
+3
 MULTIPLICITY
-Singlet
+Doublet
 NSTATES
 2
 STATESYM

@@ -20,6 +20,7 @@ def create_input():
     BASISlog = False
     NEL = False
     NUMSTATES = False
+    MULTIPLICITY=False
     geomind = 0
     j = 0
     calctype = 'none'
@@ -56,7 +57,8 @@ def create_input():
                 METHOD = False
             if lines.startswith('OCC') and calctype == 'CAS' or calctype == 'cas':
                 OCCUPATION = True
-
+            if lines.startswith('MULT'):
+                MULTIPLICITY=True
             if OCCUPATION and not lines.startswith('OCC'):
                 print(lines)
                 occ = str(lines.strip().split())[2]
@@ -86,6 +88,15 @@ def create_input():
             if NUMSTATES and not lines.startswith('NSTATES'):
                 NUMSTATES = False
                 nstates = str(lines.strip())
+            if MULTIPLICITY and not lines.startswith('MULT'):
+                MULTIPLICITY=False
+                if lines.strip()=='singlet' or lines.strip()=='Singlet' or lines.strip()=='SINGLET':
+                    mult=0
+                elif lines.strip()=='doublet' or lines.strip()=='Doublet' or lines.strip()=='DOUBLET':
+                    mult=1
+                else:
+                    mult=2
+
 
     print(x)
     # Molpro input, it must be changed for other codes
@@ -129,7 +140,7 @@ config,det
 ''')
         line_wr = 'occ,' + str(occ) + ';\n'
         line_wr2 = 'closed,' + str(closed) + ';\n'
-        line_wr3 = 'wf,' + str(numel) + ',1,0;'
+        line_wr3 = 'wf,' + str(numel) + ',1,'+ str(mult)+';'
         line_wr4 = 'state,' + str(nstates) + ';\n'
 
         f.write(line_wr)
@@ -299,7 +310,231 @@ def outputreading(x, y, z):
                             orbs = False
                             ccc = 0
                             cc += 3
-                        # Include d,f,g functions here!
+                    elif DORB and orbs:
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 1)
+                        typ.append(type)
+                        angpart.append(rr)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(2)
+                        mang.append(0)
+                        nang.append(0)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 2)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        angpart.append(rr)
+                        lang.append(0)
+                        mang.append(2)
+                        nang.append(0)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 3)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(0)
+                        nang.append(2)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 4)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(1)
+                        nang.append(0)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 5)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(0)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 6)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(1)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        ccc += 1
+                        rr += 1
+                        if ccc == ncont:
+                            DORB = False
+                            orbs = False
+                            ccc = 0
+                            cc += 6
+
+                    elif FORB and orbs:
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 1)
+                        typ.append(type)
+                        angpart.append(rr)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(3)
+                        mang.append(0)
+                        nang.append(0)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 2)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        angpart.append(rr)
+                        lang.append(0)
+                        mang.append(3)
+                        nang.append(0)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 3)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(0)
+                        nang.append(3)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 4)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(2)
+                        nang.append(0)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 5)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(2)
+                        mang.append(1)
+                        nang.append(0)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 6)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(2)
+                        mang.append(0)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 7)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(0)
+                        nang.append(2)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 8)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(1)
+                        nang.append(2)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 9)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(2)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 10)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(1)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        ccc += 1
+                        rr += 1
+                        if ccc == ncont:
+                            FORB = False
+                            orbs = False
+                            ccc = 0
+                            cc += 10
 
             if MO and '[MO]' not in lines and len(lines) != 0 and len(lines.strip().split()) > 0:
 
@@ -320,13 +555,26 @@ def outputreading(x, y, z):
                     s1 = [s for s in s1 if s]
                     MOS.append(s1[1])
                     MOnums.append(s1[0])
-        print(angpart)
-        print(np.matrix([lang, mang, nang]))
+        # Number of active orbitals, in a calculation with SA the occupation of the virtual orbitals can be 0 or
+        # close to 0
         actives = sum(map(lambda x: x != 0.0000, occs))
         total = len(occs)
-        print(realnum)
         xx = np.asarray(xx, dtype=np.float32)
         yy = np.asarray(yy, dtype=np.float32)
         zz = np.asarray(zz, dtype=np.float32)
+        # It is necessary to reorder the orbitals to appear in the same order as they do in the output
+        # We can use the symmetries to do this
+        idx = np.argsort(np.asarray(syms))
 
-    return ga, ci, realnum, mang, lang, nang, MOS, MOnums, actives, total, angpart, xx, yy, zz
+        mos = np.reshape(MOS, (total, max(realnum)))
+        mos = mos[idx, :]
+
+        # We restrict the number of orbitals to those with an occupation bigger than 0
+        mos = mos[:actives, :]
+
+        # Realnum just duplicates the MOs for the different contractions and/or the different angular momenta in the
+        # basis sets
+        realnum = np.asarray(realnum)
+        mos = mos[:, realnum - 1]
+
+    return ga, ci, realnum, mang, lang, nang, mos, MOnums, actives, total, angpart, xx, yy, zz
