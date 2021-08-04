@@ -1,4 +1,4 @@
-import sys
+
 import numpy as np
 import molproinp_out as mp
 import ReorderGTOS as rdgt
@@ -51,8 +51,9 @@ l, m, n, ga, ci, mos, angpart = rdgt.reorder(l, m, n, ga, ci, mos, angpart)
 # q = float(sys.argv[6])
 
 print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
-condit = input("Do you want to continue Y/N?")
-if condit == "Y":
+#condit = input("Do you want to continue Y/N?")
+x=True
+if x:
     # cut off epsilon; if H < epsilon, use P0 cases
     cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
     # the cutoff for the Z integral

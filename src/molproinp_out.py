@@ -20,7 +20,7 @@ def create_input():
     BASISlog = False
     NEL = False
     NUMSTATES = False
-    MULTIPLICITY=False
+    MULTIPLICITY = False
     geomind = 0
     j = 0
     calctype = 'none'
@@ -58,7 +58,7 @@ def create_input():
             if lines.startswith('OCC') and calctype == 'CAS' or calctype == 'cas':
                 OCCUPATION = True
             if lines.startswith('MULT'):
-                MULTIPLICITY=True
+                MULTIPLICITY = True
             if OCCUPATION and not lines.startswith('OCC'):
                 print(lines)
                 occ = str(lines.strip().split())[2]
@@ -89,14 +89,13 @@ def create_input():
                 NUMSTATES = False
                 nstates = str(lines.strip())
             if MULTIPLICITY and not lines.startswith('MULT'):
-                MULTIPLICITY=False
-                if lines.strip()=='singlet' or lines.strip()=='Singlet' or lines.strip()=='SINGLET':
-                    mult=0
-                elif lines.strip()=='doublet' or lines.strip()=='Doublet' or lines.strip()=='DOUBLET':
-                    mult=1
+                MULTIPLICITY = False
+                if lines.strip() == 'singlet' or lines.strip() == 'Singlet' or lines.strip() == 'SINGLET':
+                    mult = 0
+                elif lines.strip() == 'doublet' or lines.strip() == 'Doublet' or lines.strip() == 'DOUBLET':
+                    mult = 1
                 else:
-                    mult=2
-
+                    mult = 2
 
     print(x)
     # Molpro input, it must be changed for other codes
@@ -140,7 +139,7 @@ config,det
 ''')
         line_wr = 'occ,' + str(occ) + ';\n'
         line_wr2 = 'closed,' + str(closed) + ';\n'
-        line_wr3 = 'wf,' + str(numel) + ',1,'+ str(mult)+';\n'
+        line_wr3 = 'wf,' + str(numel) + ',1,' + str(mult) + ';\n'
         line_wr4 = 'state,' + str(nstates) + ';\n'
 
         f.write(line_wr)
@@ -557,17 +556,21 @@ def outputreading(x, y, z):
                     MOnums.append(s1[0])
         # Number of active orbitals, in a calculation with SA the occupation of the virtual orbitals can be 0 or
         # close to 0
-        actives = sum(map(lambda x: x != 0.0000, occs))
+
         total = len(occs)
         xx = np.asarray(xx, dtype=np.float32)
         yy = np.asarray(yy, dtype=np.float32)
         zz = np.asarray(zz, dtype=np.float32)
         # It is necessary to reorder the orbitals to appear in the same order as they do in the output
         # We can use the symmetries to do this
-        idx = np.argsort(np.asarray(syms))
+        print(syms)
+        idx = np.argsort(np.asarray(syms, dtype=np.float32))
 
         mos = np.reshape(MOS, (total, max(realnum)))
+        print('idx', idx)
         mos = mos[idx, :]
+        occs = np.asarray(occs)[idx]
+        actives = sum(map(lambda x: x != 0.0000, occs))
 
         # We restrict the number of orbitals to those with an occupation bigger than 0
         mos = mos[:actives, :]

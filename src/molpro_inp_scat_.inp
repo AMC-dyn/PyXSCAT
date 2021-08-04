@@ -6,7 +6,7 @@ gprint,civector,orbitals,angles=-1,distance=-1
 
  gthresh,thrpun=0.0000001
  punch,molpro.pun,new
-basis= aug-cc-pVDZ
+basis= 6-311G
 symmetry,nosym;
 orient,noorient;
 angstrom;
@@ -14,15 +14,15 @@ geomtype=xyz;
 geom={
         2
 
-O 0.0 0.0 0.0
-O 0.0 0.0 1.09
+N 0.0 0.0 0.0
+N 0.0 0.0 1.09
 }
 {multi,failsafe;
 maxiter,40;
 config,det
-occ,9;
+occ,8;
 closed,0;
-wf,16,1,0;
+wf,14,1,0;
 state,2;
 pspace,10.0        
 orbital,2140.3;
