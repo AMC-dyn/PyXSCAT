@@ -265,7 +265,7 @@ def main():
                     hx = px[k, r] - px[i, j]
                     hy = py[k, r] - py[i, j]
                     hz = pz[k, r] - pz[i, j]
-                    h = np.sqrt(np.square(hx) + np.square(hy) + np.square(hz))
+                    h =(hx*hx+hy*hy+hz*hz)**0.5
                     if h < cutoffcentre:
                         #                   compute the zero cases
                         f = intkzero(nq, ll[i], ll[j], ll[k], ll[r], p0matrix, dx, dy, dz, i, j, k, r,
@@ -286,7 +286,7 @@ def main():
                 hx = px[i, r] - px[i, j]
                 hy = py[i, r] - py[i, j]
                 hz = pz[i, r] - pz[i, j]
-                h = np.sqrt(np.square(hx) + np.square(hy) + np.square(hz))
+                h =(hx*hx+hy*hy+hz*hz)**0.5
                 if h < cutoffcentre:
                     #             computation of the zero cases
                     f = intkzero(nq, ll[i], ll[j], ll[i], ll[r], p0matrix, dx, dy, dz, i, j, i, r,
@@ -306,7 +306,7 @@ def main():
                 hx = px[k, r] - px[i, i]
                 hy = py[k, r] - py[i, i]
                 hz = pz[k, r] - pz[i, i]
-                h = np.sqrt(np.square(hx) + np.square(hy) + np.square(hz))
+                h =(hx*hx+hy*hy+hz*hz)**0.5
                 if h < cutoffcentre:
                     #               compute the zero cases
                     f = intkzero(nq, ll[i], ll[i], ll[k], ll[r], p0matrix, dx, dy, dz, i, i, k, r,
@@ -328,7 +328,7 @@ def main():
             hx = px[k, k] - px[i, i]
             hy = py[k, k] - py[i, i]
             hz = pz[k, k] - pz[i, i]
-            h = np.sqrt(np.square(hx) + np.square(hy) + np.square(hz))
+            h =(hx*hx+hy*hy+hz*hz)**0.5
             if h < cutoffcentre:
                 #           compute the zero cases
                 f = intkzero(nq, ll[i], ll[i], ll[k], ll[k], p0matrix, dx, dy, dz, i, i, k, k,
@@ -348,3 +348,6 @@ def main():
         tsi += f * e12[:, i, i] * e12[:, i, i]
 
     print('Maximum intenstiy: ', q[0], np.max(tsi))
+
+
+main()
