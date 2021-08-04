@@ -28,10 +28,16 @@ def BesselDeriv(LL, MM, NN, a, b, c, LLmax):
 def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                     Dx, Dy, Dz, i, j, k, r, Z, Z2, apos, cutOffZ, cutOffMD):
     LLmax = lmax1 + lmax2 + lmax3 + lmax4
-    
-    Z=np.asarray(Z)
-    Z2=np.asarray(Z2)
-    
+
+    Z = np.asarray(Z)
+    Z2 = np.asarray(Z2)
+    dxij = Dx[i, j, :, :, :]
+    dxkr = Dx[k, r, :, :, :]
+    dyij = Dy[i, j, :, :, :]
+    dykr = Dy[k, r, :, :, :]
+    dzij = Dz[i, j, :, :, :]
+    dzkr = Dz[k, r, :, :, :]
+
     a = np.zeros((LLmax + 1, LLmax + 1))
     a[0, 0] = 1
 
@@ -101,14 +107,15 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                                     n4 = lmax4 - l4 - m4
                                     Zkr = Z[:, posK, posR]
                                     Zkr2 = Z2[:, posK, posR]
-                                    varztot=np.divide(np.multiply(Zij,Zkr2) + np.multiply(Zij2,Zkr),8)
-                                    Ztot = np.sum(varztot) 
-                                    
+                                    varztot = np.divide(np.multiply(Zij, Zkr2) + np.multiply(Zij2, Zkr), 8)
+                                    Ztot = np.sum(varztot)
+
                                     if abs(Ztot) < cutOffZ:
                                         posR = posR + 1
                                         continue
                                     for L in range(0, (l1 + l2) + 1):
-                                        MDL = Dx[i, j, L, l1, l2] * Ztot
+                                        #MDL = Dx[i, j, L, l1, l2] * Ztot
+                                        MDL = dxij[L, l1, l2] * Ztot
 
                                         if MDL == 0:
                                             continue
