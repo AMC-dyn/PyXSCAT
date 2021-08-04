@@ -24,8 +24,11 @@ from unsortunique import uunique
 
 # OUTPUT:
 # tsi[0:nq]     column vec      scattering signal
-x, y, z = mp.create_input()
+#x, y, z = mp.create_input()
 
+x=[0.0,0.0]
+y=[0.0,0.0]
+z=[0.0,1.09]
 # This routine creates the molpro input, a punch file with the CI vectors and a molden file where the basis and MO coefficients
 # are read
 ga, ci, realnum, m, l, n, mos, monums, actives, total, angpart, xx, yy, zz = mp.outputreading(x, y, z)
