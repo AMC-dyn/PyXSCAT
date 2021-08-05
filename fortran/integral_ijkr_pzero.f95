@@ -19,7 +19,7 @@ CONTAINS
         REAL(kind=dp), INTENT(IN), DIMENSION(:)               :: z1, z2
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: apos
         ! definition of output
-        REAL(kind=dp), INTENT(OUT), DIMENSION(size(p0mat))    :: itgr 
+        REAL(kind=dp), INTENT(OUT), DIMENSION(nq)             :: itgr 
         ! definition of loop indices    
         INTEGER(kind=ikind)                                   :: l1, m1, l2, m2, l3, m3, l4, m4
         INTEGER(kind=ikind)                                   :: l, m, n, lp, mp, np
@@ -27,9 +27,9 @@ CONTAINS
         INTEGER(kind=ikind)                                   :: n1, n2, n3, n4, h1i, posj, posk, posr
         REAL(kind=dp)                                         :: ztot
         REAL(kind=dp)                                         :: mdl, mdm, mdn, mdlp, mdmp, prodd
-        REAL(kind=dp), DIMENSION(size(z1))                    :: zij1, zkr1
-        REAL(kind=dp), DIMENSION(size(z2))                    :: zij2, zkr2
-        REAL(kind=dp), DIMENSION(size(p0mat))                 :: f
+        REAL(kind=dp), DIMENSION(nq)                          :: zij1, zkr1
+        REAL(kind=dp), DIMENSION(nq)                          :: zij2, zkr2
+        REAL(kind=dp), DIMENSION(nq)                          :: f
 
         ! loop through all possible ways to get total angular momentum lmax1
         do l1 = 0, lmax1
