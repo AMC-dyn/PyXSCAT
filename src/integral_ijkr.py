@@ -48,7 +48,7 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
         a[L + 1, 0] = -(L) * a[L - 1, 0]
 
         for ka in range(0, LLmax):
-            a[L + 1, ka + 1] = -Hx * a[L, ka] - (L) * a[L - 1, ka + 1]
+            a[L + 1, ka + 1] = -Hx * a[L, ka] - L * a[L - 1, ka + 1]
 
     b = np.zeros((LLmax + 1, LLmax + 1))
     b[0, 0] = 1
@@ -82,6 +82,7 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                 Temp_h_pre = BesselDeriv(l, m, n, a, b, c, LLmax)
                 h_pre2[:, l, m, n] = Temp_h_pre
     posI = apos[i]
+    count = 0
     for l1 in range(0, lmax1 + 1):
         for m1 in range(0, (lmax1 + 1 - l1)):
             n1 = lmax1 - l1 - m1
@@ -107,14 +108,19 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                                     n4 = lmax4 - l4 - m4
                                     Zkr = Z[:, posK, posR]
                                     Zkr2 = Z2[:, posK, posR]
-                                    varztot = np.divide(np.multiply(Zij, Zkr2) + np.multiply(Zij2, Zkr), 8)
+                                    varztot = (Zij * Zkr2 + Zij2 * Zkr) * 0.125
+
                                     Ztot = np.sum(varztot)
+                                    count += 1
+                                    if i == 0 and j == 1 and k == 1 and r == 16:
+                                        print(posI,posJ,posK,posR,Ztot)
+                                        print(count)
 
                                     if abs(Ztot) < cutOffZ:
                                         posR = posR + 1
                                         continue
                                     for L in range(0, (l1 + l2) + 1):
-                                        #MDL = Dx[i, j, L, l1, l2] * Ztot
+                                        # MDL = Dx[i, j, L, l1, l2] * Ztot
                                         MDL = dxij[L, l1, l2] * Ztot
 
                                         if MDL == 0:
@@ -178,4 +184,7 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
             h_sum = h_sum + h_r * coeff
             h_0 = h_1
             h_1 = h_r
+    if i == 0 and j == 1 and k == 1 and r == 16:
+        print('comparison with integral_ijkr',h_sum)
+        print(count)
     return h_sum

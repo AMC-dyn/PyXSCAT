@@ -14,15 +14,15 @@ geomtype=xyz;
 geom={
         2
 
-N 0.0 0.0 0.0
-N 0.0 0.0 1.09
+F 0.0 0.0 0.0
+H 0.0 0.0 1.09
 }
 {multi,failsafe;
 maxiter,40;
 config,det
-occ,8;
+occ,5;
 closed,0;
-wf,14,1,0;
+wf,8,1,0;
 state,2;
 pspace,10.0        
 orbital,2140.3;

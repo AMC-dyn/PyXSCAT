@@ -1,4 +1,3 @@
-
 import numpy as np
 import molproinp_out as mp
 import ReorderGTOS as rdgt
@@ -7,13 +6,15 @@ from factd import factd
 from pzerotable import pzerotablenew as pzerot
 from MDcoeffs import md_table_gen as mtg
 from integral_ijkr import integral_k_ijkr as intk
+from integral_ijkr_vect import integral_k_ijkr as intk_vec
 from integral_ijkr_pzero import integral_k_ijkr_0_case as intkzero
 from unsortunique import uunique
+from integrals_wrapper import integrals_ijkr
+
 
 # Rotational averaged  caclulation of total scattering
 
 def main():
-
     # INPUT:
     # mldfile       string          input molden file name
     # outifle       string          molpro output file name
@@ -26,11 +27,11 @@ def main():
 
     # OUTPUT:
     # tsi[0:nq]     column vec      scattering signal
-    #x, y, z = mp.create_input()
+    x, y, z = mp.create_input()
 
-    x=[0.0,0.0]
-    y=[0.0,0.0]
-    z=[0.0,1.09]
+    x = [0.0, 0.0]
+    y = [0.0, 0.0]
+    z = [0.0, 1.09]
     # This routine creates the molpro input, a punch file with the CI vectors and a molden file where the basis and MO coefficients
     # are read
     ga, ci, realnum, m, l, n, mos, monums, actives, total, angpart, xx, yy, zz = mp.outputreading(x, y, z)
@@ -56,8 +57,8 @@ def main():
     # q = float(sys.argv[6])
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
-    #condit = input("Do you want to continue Y/N?")
-    x=True
+    # condit = input("Do you want to continue Y/N?")
+    x = True
     if x:
         # cut off epsilon; if H < epsilon, use P0 cases
         cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
@@ -106,13 +107,14 @@ def main():
     normd = np.zeros(l.size)
     for i in range(l.size):
         normb[i] = np.power(2, l[i] + m[i] + n[i])
-        normc[i] = np.power(ga[i], np.divide(np.multiply(2, l[i]) + np.multiply(2, m[i]) + np.multiply(2, n[i]) + 3, 4.0))
+        normc[i] = np.power(ga[i],
+                            np.divide(np.multiply(2, l[i]) + np.multiply(2, m[i]) + np.multiply(2, n[i]) + 3, 4.0))
         normd[i] = np.multiply(np.multiply(factd(np.multiply(2, l[i]) - 1), factd(np.multiply(2, m[i]) - 1)),
                                factd(np.multiply(2, n[i]) - 1))
     nrm = norma * normb * normc / normd ** 0.5
 
     # combine the normalisation, MO, and contraction coefficients
-    mmod = np.multiply(np.multiply(mos, ci), nrm)
+    mmod = np.multiply(np.multiply(mos, ci), nrm, dtype=np.double)
 
     # total number of primitive GTOs
     ncap = l.size
@@ -121,7 +123,6 @@ def main():
     # generate table with GTO descriptors
 
     fulltable = np.array(np.vstack((ga, l, m, n, xx, yy, zz)))  # Note: is this table correct?
-
 
     ndup = l.size
     # dummy,ipos,irep = unique(full_table,'rows','stable')
@@ -148,7 +149,8 @@ def main():
     print('The number of primitive GTOs after reduction: ', str(ncap))
     # precomputing the P=0 cases
     nq = q.size
-    p0matrix = np.zeros((nq, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1))
+    p0matrix = np.zeros(
+        (nq, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1))
     for i in range(np.multiply(4, np.max(l)) + 1):
         for j in range(np.multiply(4, np.max(l)) + 1):
             for k in range(np.multiply(4, np.max(l)) + 1):
@@ -160,8 +162,8 @@ def main():
     m4 = np.asarray(mat[:, 3], dtype=np.int32)
 
     # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
-    z1 = np.zeros((m1.size, ncap, ncap), dtype=np.float64)
-    z2 = np.zeros((m1.size, ncap, ncap), dtype=np.float64)
+    z1 = np.zeros((m1.size, ncap, ncap))
+    z2 = np.zeros((m1.size, ncap, ncap))
 
     for i in range(ncap):
         iduplicates = np.argwhere(irep == irep[ipos[i]])
@@ -203,7 +205,6 @@ def main():
     ll = ll[apos]
 
     # Hasta aqui funciona
-
 
     px = np.zeros((nnew, nnew))
     py = np.zeros((nnew, nnew))
@@ -254,30 +255,65 @@ def main():
     # definition of the new size
     ncap = nnew
 
+    # Trying vectorization for the integral_ijkr
+    lmax = int(np.max(l))
+    lmat = np.zeros((int((lmax + 1) * (lmax + 2) / 2), lmax + 1))
+    mmat = np.zeros((int((lmax + 1) * (lmax + 2) / 2), lmax + 1))
+    nmat = np.zeros((int((lmax + 1) * (lmax + 2) / 2), lmax + 1))
+    maxcount = np.ones(lmax + 1)
+    count = 0
+    lmaxvec = range(lmax + 1)
+    for i in lmaxvec:
+        maxcount[i] = (i + 1) * (i + 2) / 2
+        count = 0
+        for l1 in range(0, i + 1):
+            for j in range(0, i - l1 + 1):
+                lmat[count, i] = l1
+                mmat[count, i] = j
+                nmat[count, i] = i - l1 - j
+                count += 1
+
+    print('number of values', lmat, count, lmax)
+
     # Loops over 4xpGTOs
     # Strictly non-diagonal elements with all GTOs being different
     tsi = np.zeros(q.size)
+    int_res = np.zeros(q.size)
+
     for i in range(ncap):
         for j in range(i + 1, ncap):
             for k in range(i + 1, ncap):  # Note: is the range correct? "i+1" or "j+1"? Andres says "i+1".
                 for r in range(k + 1, ncap):
                     #               The coordinates of the point H
+                    #  print(i,j,k,r)
                     hx = px[k, r] - px[i, j]
                     hy = py[k, r] - py[i, j]
                     hz = pz[k, r] - pz[i, j]
-                    h =(hx*hx+hy*hy+hz*hz)**0.5
+                    h = (hx * hx + hy * hy + hz * hz) ** 0.5
+                    # New
+                    # print(ll[i], ll[j], ll[k], ll[r])
                     if h < cutoffcentre:
+
                         #                   compute the zero cases
                         f = intkzero(nq, ll[i], ll[j], ll[k], ll[r], p0matrix, dx, dy, dz, i, j, k, r,
                                      z1, z2, apos, cutoffz, cutoffmd)
                     else:
+                        apos2 = np.array(apos, dtype=np.int) + 1
                         #                   computation of the F-integral / sum
-                        f = intk(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, k, r,
-                                 z1, z2, apos, cutoffz, cutoffmd)
+
+                        f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz,
+                                                               i, j, k, r,
+                                                               z1, z2, apos2, cutoffz, cutoffmd)
+
+                    # f = intk_vec(q, angvec1, angvec2, angvec3, angvec4, maxi, maxj, maxk, maxr, ll[i], ll[j], ll[k],
+                    #    ll[r], hx, hy, hz, h, dx, dy, dz, i,
+                    #  j, k, r, z1, z2, apos, cutoffz, cutoffmd)
+                    # f = intk(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, k, r,
+                    # z1, z2, apos, cutoffz, cutoffmd)
+
                     #               add to the total intensity
                     tsi += 8 * f * e12[:, i, j] * e12[:, k, r]
-
-
+    print('hola')
     # diagonal with respect two 1st and 3rd element (k = i)
     for i in range(ncap):
         for j in range(i + 1, ncap):
@@ -286,15 +322,17 @@ def main():
                 hx = px[i, r] - px[i, j]
                 hy = py[i, r] - py[i, j]
                 hz = pz[i, r] - pz[i, j]
-                h =(hx*hx+hy*hy+hz*hz)**0.5
+                h = (hx * hx + hy * hy + hz * hz) ** 0.5
                 if h < cutoffcentre:
                     #             computation of the zero cases
                     f = intkzero(nq, ll[i], ll[j], ll[i], ll[r], p0matrix, dx, dy, dz, i, j, i, r,
                                  z1, z2, apos, cutoffz, cutoffmd)
                 else:
+                    apos2 = np.array(apos, dtype=np.int) + 1
                     #               computation of the F-integral / sum
-                    f = intk(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, i, r,
-                             z1, z2, apos, cutoffz, cutoffmd)
+                    f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz, i,
+                                                           j, i, r,
+                                                           z1, z2, apos2, cutoffz, cutoffmd)
                 #           add to the total intensity
                 tsi += 4 * f * e12[:, i, j] * e12[:, i, r]
 
@@ -306,15 +344,17 @@ def main():
                 hx = px[k, r] - px[i, i]
                 hy = py[k, r] - py[i, i]
                 hz = pz[k, r] - pz[i, i]
-                h =(hx*hx+hy*hy+hz*hz)**0.5
+                h = (hx * hx + hy * hy + hz * hz) ** 0.5
                 if h < cutoffcentre:
                     #               compute the zero cases
                     f = intkzero(nq, ll[i], ll[i], ll[k], ll[r], p0matrix, dx, dy, dz, i, i, k, r,
                                  z1, z2, apos, cutoffz, cutoffmd)
                 else:
+                    apos2 = np.array(apos, dtype=np.int) + 1
                     #               compute the F-integral / sum
-                    f = intk(q, ll[i], ll[i], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i, i, k, r,
-                             z1, z2, apos, cutoffz, cutoffmd)
+                    f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[i], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i,
+                                                           i, k, r,
+                                                           z1, z2, apos2, cutoffz, cutoffmd)
                 #           add to the total intensity
                 if i == 1 and k == 2 and r == 9:
                     print(f)
@@ -328,15 +368,17 @@ def main():
             hx = px[k, k] - px[i, i]
             hy = py[k, k] - py[i, i]
             hz = pz[k, k] - pz[i, i]
-            h =(hx*hx+hy*hy+hz*hz)**0.5
+            h = (hx * hx + hy * hy + hz * hz) ** 0.5
             if h < cutoffcentre:
                 #           compute the zero cases
                 f = intkzero(nq, ll[i], ll[i], ll[k], ll[k], p0matrix, dx, dy, dz, i, i, k, k,
                              z1, z2, apos, cutoffz, cutoffmd)
             else:
+                apos2 = np.array(apos, dtype=np.int) + 1
                 #           compute the F-integral / sum
-                f = intk(q, ll[i], ll[i], ll[k], ll[k], hx, hy, hz, h, dx, dy, dz, i, i, k, k,
-                         z1, z2, apos, cutoffz, cutoffmd)
+                f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[i], ll[k], ll[k], hx, hy, hz, h, dx, dy, dz, i, i,
+                                                       k, k,
+                                                       z1, z2, apos2, cutoffz, cutoffmd)
             #       add to the total intensity
             tsi += 2 * f * e12[:, i, i] * e12[:, k, k]
 
@@ -349,5 +391,4 @@ def main():
 
     print('Maximum intenstiy: ', q[0], np.max(tsi))
 
-
-main()
+# main()
