@@ -2,7 +2,7 @@ module integrals_ijkr
 
     implicit none 
 
-    contains 
+    contains
 
 
     subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx, dy, dz, i,j, k, r, z, z2, apos, cutoffz, &
