@@ -5,29 +5,37 @@ module integrals_ijkr
     contains
 
 
+
+
+
+
+
     subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx, dy, dz, i,j, k, r, z, z2, apos, cutoffz, &
                 cutoffmd,int_res)
 
         implicit none 
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=selected_int_kind(8)), intent(in)  :: lmax1,lmax2,lmax3,lmax4,i,j,k,r
         integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: apos
         real(kind=dp), intent(in)              :: cutoffz,cutoffmd, hx, hy, hz, h
         real(kind=dp), intent(in), dimension(:,:,:) :: z, z2
         real(kind=dp), intent(in), dimension(:)   ::  mu
+
         real(kind=dp), intent(in),  dimension(:,:,:,:,:) :: dx,dy,dz
 
 
 
         integer(kind=selected_int_kind(8)) :: llmax, l, m, n, ka, posi, posj, posk, posr, ra
         integer(kind=selected_int_kind(8)) ::  l1, l2, l3, l4, m1, m2, m3, m4, n1, n2, n3, n4, h1
-        integer(kind=selected_int_kind(8)) ::  ll, mm, nn, lp, mp, np
+        integer(kind=selected_int_kind(8)) ::  ll2, mm2, nn2, lp, mp, np
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp
+        real(kind=dp), dimension(lmax1+lmax2+lmax3+lmax4+1)  :: bd
         real(kind=dp), dimension(:,:), allocatable :: a, b, c
         real(kind=dp), dimension(:,:,:,:), allocatable :: h_pre2
-        real(kind=dp), dimension(:), allocatable :: h_saved, bd, pmu, h_sum, h_0, h_1, h_r, muoh,zij, zij2, zkr, zkr2
+        real(kind=dp), dimension(:), allocatable :: h_saved, pmu, h_sum, h_0, h_1, h_r, muoh,zij, zij2, zkr, zkr2
 
         real(kind=dp), intent(out), dimension(size(mu)) :: int_res
 
@@ -38,15 +46,21 @@ module integrals_ijkr
         llmax=lmax1+lmax2+lmax3+lmax4
 
         allocate(zij(size(Z(:,1,1))), zij2(size(Z(:,1,1))), zkr(size(Z(:,1,1))), zkr2(size(Z(:,1,1))))
+        zij=0.0_dp
+        zij2=0.0_dp
+        zkr=0.0_dp
+        zkr2=0.0_dp
 
 
+        allocate(a(llmax+1,llmax+1),b(llmax+1,llmax+1), c(llmax+1,llmax+1))
+        a=0.0_dp
+        b=0.0_dp
+        c=0.0_dp
+        a(1,1)=1.0_dp
+        b(1,1)=1.0_dp
+        c(1,1)=1.0_dp
 
-        allocate(a(llmax+1,llmax+1),b(llmax+1,llmax+1), c(llmax+1,llmax+1),bd(llmax+1))
-        a(1,1)=1
-        b(1,1)=1
-        c(1,1)=1
-
-        if (llmax==0) then 
+        if (llmax>0) then
             a(2,2)=-hx
             b(2,2)=-hy
             c(2,2)=-hz
@@ -65,12 +79,12 @@ module integrals_ijkr
         enddo
 
         allocate(h_saved(llmax+1),h_pre2(llmax+1,llmax+1,llmax+1,llmax+1))
-
+        h_pre2=0.0_dp
+        bd=0.0_dp
         do l=0,llmax
-            do m=0,llmax-1
-                do n=0,llmax-l-m
-                    call besselderiv(bd,l, m,n,a,b,c,llmax)
-               
+            do m=0,llmax-l
+                do n=0,(llmax-l-m)
+                    call besselderiv(bd,l,m,n,a,b,c,llmax)
                     h_pre2(:,l+1,m+1,n+1) = bd
                 enddo
             enddo
@@ -78,6 +92,7 @@ module integrals_ijkr
         posi=apos(i+1)
 
 
+        h_saved=0.0_dp
 ! loop through all possible ways to get total angular momentum lmax1
         do l1=0,lmax1
             do m1=0,(lmax1-l1)
@@ -101,13 +116,13 @@ module integrals_ijkr
                         ! loop through all possible ways to get total angular momentum lmax4
                                 do l4=0,lmax4
                                     do m4=0,(lmax4-l4)
-                                        n4=lmax4-l4-m4;
+                                        n4=lmax4-l4-m4
 
                                         zkr=z(:,posk,posr)
                                         zkr2=z2(:,posk,posr)
                                 ! total prefactor
 
-                                        ztot=sum(zij*zkr2+zij2*zkr)/8.d0
+                                        ztot=sum(zij*zkr2+zij2*zkr)/8.0_dp
 
                                         if (abs(ztot)<cutoffz) then 
                                             posr=posr+1
@@ -118,35 +133,37 @@ module integrals_ijkr
                                         do l=0,(l1+l2)
                                             mdl=dx(i+1,j+1,l+1,l1+1,l2+1)*ztot
                                    
-                                            if (mdl==0) cycle
+                                            if (mdl==0.0_dp) cycle
                                                  
                                          
                                             do m=0,(m1+m2)
                                                 mdm=dy(i+1,j+1,m+1,m1+1,m2+1)*mdl
-                                                if (mdm==0) cycle
+                                                if (mdm==0.0_dp) cycle
                                          
                                                 do n=0,(n1+n2)
                                                     h1=(-1)**(l+m+n)
                                                     mdn=dz(i+1,j+1,n+1,n1+1,n2+1)*mdm*h1
-                                                    if (mdn==0) cycle  
+                                                    if (mdn==0.0_dp) cycle
                                                     
                                                     do lp=0,(l3+l4)
                                                         mdlp=dx(k+1,r+1,lp+1,l3+1,l4+1)*mdn
-                                                        if (mdlp==0) cycle 
+                                                        if (mdlp==0.0_dp) cycle
 
                                                     
-                                                        ll=l+lp+1;
+                                                        ll2=l+lp+1
                                                         do mp=0,(m3+m4)
                                                             mdmp=dy(k+1,r+1,mp+1,m3+1,m4+1)*mdlp
-                                                            if (mdmp==0) cycle
+                                                            if (mdmp==0.0_dp) cycle
                                                      
-                                                            mm=m+mp+1
+                                                            mm2=m+mp+1
                                                             do np=0,(n3+n4)
                                                                 prodd=dz(k+1,r+1,np+1,n3+1,n4+1)*mdmp
                                                                 if (abs(prodd)<cutoffmd) cycle
 
-                                                                nn=n+np+1
-                                                                h_saved=h_saved+h_pre2(:,ll,mm,nn)*prodd
+                                                                nn2=n+np+1
+
+                                                                h_saved=h_saved+h_pre2(:,ll2,mm2,nn2)*prodd
+
                                                             enddo
                                                         enddo
                                                     enddo
@@ -171,28 +188,30 @@ module integrals_ijkr
         pmu=h*mu
 
 
-        h_0=sin(pmu)/pmu
+        h_0=dsin(pmu)/pmu
         coeff=h_saved(1)
         h_sum=h_0*coeff
 
         if (llmax==1) then
-            h_1=(sin(pmu)/pmu**2-cos(pmu)/pmu)*mu/h 
+            h_1=(dsin(pmu)/pmu**2.0_dp-dcos(pmu)/pmu)*mu/h
             coeff=h_saved(2)
             h_sum=h_sum+coeff*h_1
         elseif (llmax>1) then
             muoh=mu/h
-            h_1=(sin(pmu)/pmu**2-cos(pmu)/pmu)*muoh
+            h_1=(dsin(pmu)/pmu**2.0_dp-dcos(pmu)/pmu)*muoh
             coeff=h_saved(2)
             h_sum=h_sum+coeff*h_1
             do ra=2,llmax
                 coeff=h_saved(ra+1)
-                h_r= ((2*ra-1)/(pmu)*h_1-h_0*muoh)*muoh
+                h_r= ((2.0d0*ra-1.0d0)/(pmu)*h_1-h_0*muoh)*muoh
                 h_sum=h_sum+h_r*coeff
                 h_0=h_1
                 h_1=h_r
             enddo
         endif
+
         int_res=h_sum
+
     end subroutine
 
 
@@ -202,6 +221,7 @@ module integrals_ijkr
         ! the three nested loops give the formula 
         ! in the form of coefficients multiplying the h functions
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        !INTEGER, PARAMETER :: dp = kind(1.0d0)
         real(kind=dp), intent(out), dimension(llmax+1)  :: bd
         integer(kind=selected_int_kind(8)), intent(in)                 :: ll, mm, nn, llmax
         real(kind=dp), intent(in), dimension(llmax+1,llmax+1)  :: a, b, c
@@ -210,7 +230,7 @@ module integrals_ijkr
         integer(kind=selected_int_kind(8)) :: ii, jj, kk, horder, temp, ceil
         real(kind=dp)       :: c1, c2, c3, ct2, ct3
         ! set this to 0 initially and accumulate
-        bd = 0 
+        bd = 0.0_dp
         !tempbesselpre=zeros(llmax+1,1);
         do ii = 0, ll
             c1=a(ll+1,ii+1)
@@ -233,5 +253,6 @@ module integrals_ijkr
                 end do
             end do
         end do
+
         end subroutine
     end module integrals_ijkr

@@ -4,7 +4,7 @@ import numpy as np
 def md_table_gen(l, x, ga):
     N = len(l)
     maxl = np.max(l)
-    D = np.zeros((N, N, 2 * maxl + 1, maxl + 1, maxl + 1))
+    D = np.zeros((N, N, 2 * maxl + 1, maxl + 1, maxl + 1),dtype=np.float64)
     print(2*maxl+1)
 
     for i in range(0, N):

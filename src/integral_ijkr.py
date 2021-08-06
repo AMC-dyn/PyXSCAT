@@ -32,11 +32,6 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
     Z = np.asarray(Z)
     Z2 = np.asarray(Z2)
     dxij = Dx[i, j, :, :, :]
-    dxkr = Dx[k, r, :, :, :]
-    dyij = Dy[i, j, :, :, :]
-    dykr = Dy[k, r, :, :, :]
-    dzij = Dz[i, j, :, :, :]
-    dzkr = Dz[k, r, :, :, :]
 
     a = np.zeros((LLmax + 1, LLmax + 1))
     a[0, 0] = 1
@@ -82,7 +77,6 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                 Temp_h_pre = BesselDeriv(l, m, n, a, b, c, LLmax)
                 h_pre2[:, l, m, n] = Temp_h_pre
     posI = apos[i]
-    count = 0
     for l1 in range(0, lmax1 + 1):
         for m1 in range(0, (lmax1 + 1 - l1)):
             n1 = lmax1 - l1 - m1
@@ -111,10 +105,6 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                                     varztot = (Zij * Zkr2 + Zij2 * Zkr) * 0.125
 
                                     Ztot = np.sum(varztot)
-                                    count += 1
-                                    if i == 0 and j == 1 and k == 1 and r == 16:
-                                        print(posI,posJ,posK,posR,Ztot)
-                                        print(count)
 
                                     if abs(Ztot) < cutOffZ:
                                         posR = posR + 1
@@ -159,7 +149,9 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
                                                             NN = N + Np
                                                             h_saved += h_pre2[:, LL, MM, NN] * prodD
                                     posR = posR + 1
+                                    print(posR)
                             posK = posK + 1
+                            print(posK)
                     posJ = posJ + 1
             posI = posI + 1
 
@@ -184,7 +176,4 @@ def integral_k_ijkr(mu, lmax1, lmax2, lmax3, lmax4, Hx, Hy, Hz, H,
             h_sum = h_sum + h_r * coeff
             h_0 = h_1
             h_1 = h_r
-    if i == 0 and j == 1 and k == 1 and r == 16:
-        print('comparison with integral_ijkr',h_sum)
-        print(count)
     return h_sum

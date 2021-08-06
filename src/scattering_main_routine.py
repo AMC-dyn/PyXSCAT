@@ -81,7 +81,7 @@ def main():
     # cutoffmd = cutoffs[2]  # suggested: cutoffmd = 1E-20;
 
     # reshape q to a column vector
-    q = np.linspace(0.000001, 3, 100)
+    q = np.linspace(0.000001, 3, 4)
     # q = np.reshape(q, (q.size))
     # q = np.reshape(q, (q.size, 1))
 
@@ -162,8 +162,8 @@ def main():
     m4 = np.asarray(mat[:, 3], dtype=np.int32)
 
     # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
-    z1 = np.zeros((m1.size, ncap, ncap))
-    z2 = np.zeros((m1.size, ncap, ncap))
+    z1 = np.zeros((m1.size, ncap, ncap),dtype=np.float64)
+    z2 = np.zeros((m1.size, ncap, ncap),dtype=np.float64)
 
     for i in range(ncap):
         iduplicates = np.argwhere(irep == irep[ipos[i]])
@@ -206,15 +206,15 @@ def main():
 
     # Hasta aqui funciona
 
-    px = np.zeros((nnew, nnew))
-    py = np.zeros((nnew, nnew))
-    pz = np.zeros((nnew, nnew))
-    e12 = np.zeros((q.size, nnew, nnew))
+    px = np.zeros((nnew, nnew),dtype=np.float64)
+    py = np.zeros((nnew, nnew),dtype=np.float64)
+    pz = np.zeros((nnew, nnew),dtype=np.float64)
+    e12 = np.zeros((q.size, nnew, nnew),dtype=np.float64)
 
     # Combined MD coefficients
-    ddx = np.zeros((nnew, nnew, 2 * (np.max(l) + 2) + 1, np.max(l) + 1, np.max(l) + 1), dtype=np.float32)
-    ddy = np.zeros((nnew, nnew, 2 * (np.max(m) + 2), np.max(m) + 1, np.max(m) + 1), dtype=np.float32)
-    ddz = np.zeros((nnew, nnew, 2 * (np.max(n) + 2), np.max(n) + 1, np.max(n) + 1), dtype=np.float32)
+    ddx = np.zeros((nnew, nnew, 2 * (np.max(l) + 2) + 1, np.max(l) + 1, np.max(l) + 1), dtype=np.float64)
+    ddy = np.zeros((nnew, nnew, 2 * (np.max(m) + 2), np.max(m) + 1, np.max(m) + 1), dtype=np.float64)
+    ddz = np.zeros((nnew, nnew, 2 * (np.max(n) + 2), np.max(n) + 1, np.max(n) + 1), dtype=np.float64)
 
     for i in range(nnew):
         iduplicates = np.asarray(np.argwhere(arep == arep[apos[i]]), dtype=np.int32)
@@ -255,30 +255,10 @@ def main():
     # definition of the new size
     ncap = nnew
 
-    # Trying vectorization for the integral_ijkr
-    lmax = int(np.max(l))
-    lmat = np.zeros((int((lmax + 1) * (lmax + 2) / 2), lmax + 1))
-    mmat = np.zeros((int((lmax + 1) * (lmax + 2) / 2), lmax + 1))
-    nmat = np.zeros((int((lmax + 1) * (lmax + 2) / 2), lmax + 1))
-    maxcount = np.ones(lmax + 1)
-    count = 0
-    lmaxvec = range(lmax + 1)
-    for i in lmaxvec:
-        maxcount[i] = (i + 1) * (i + 2) / 2
-        count = 0
-        for l1 in range(0, i + 1):
-            for j in range(0, i - l1 + 1):
-                lmat[count, i] = l1
-                mmat[count, i] = j
-                nmat[count, i] = i - l1 - j
-                count += 1
-
-    print('number of values', lmat, count, lmax)
-
     # Loops over 4xpGTOs
     # Strictly non-diagonal elements with all GTOs being different
     tsi = np.zeros(q.size)
-    int_res = np.zeros(q.size)
+    #int_res = np.zeros(q.size)
 
     for i in range(ncap):
         for j in range(i + 1, ncap):
@@ -289,31 +269,36 @@ def main():
                     hx = px[k, r] - px[i, j]
                     hy = py[k, r] - py[i, j]
                     hz = pz[k, r] - pz[i, j]
-                    h = (hx * hx + hy * hy + hz * hz) ** 0.5
+                    h = np.sqrt((hx * hx + hy * hy + hz * hz),dtype=np.float64)
                     # New
                     # print(ll[i], ll[j], ll[k], ll[r])
                     if h < cutoffcentre:
 
                         #                   compute the zero cases
-                        f = intkzero(nq, ll[i], ll[j], ll[k], ll[r], p0matrix, dx, dy, dz, i, j, k, r,
-                                     z1, z2, apos, cutoffz, cutoffmd)
+                        int_res = intkzero(nq, ll[i], ll[j], ll[k], ll[r], p0matrix, dx, dy, dz, i, j, k, r,
+                                           z1, z2, apos, cutoffz, cutoffmd)
                     else:
+
                         apos2 = np.array(apos, dtype=np.int) + 1
                         #                   computation of the F-integral / sum
 
-                        f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz,
-                                                               i, j, k, r,
-                                                               z1, z2, apos2, cutoffz, cutoffmd)
+                        int_res = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx,
+                                                                      dy, dz,
+                                                                     i, j, k, r,
+                                                                      z1, z2, apos2, cutoffz, cutoffmd)
 
-                    # f = intk_vec(q, angvec1, angvec2, angvec3, angvec4, maxi, maxj, maxk, maxr, ll[i], ll[j], ll[k],
-                    #    ll[r], hx, hy, hz, h, dx, dy, dz, i,
-                    #  j, k, r, z1, z2, apos, cutoffz, cutoffmd)
-                    # f = intk(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, k, r,
-                    # z1, z2, apos, cutoffz, cutoffmd)
+                        # f = intk_vec(q, angvec1, angvec2, angvec3, angvec4, maxi, maxj, maxk, maxr, ll[i], ll[j], ll[k],
+                        #    ll[r], hx, hy, hz, h, dx, dy, dz, i,
+                        #  j, k, r, z1, z2, apos, cutoffz, cutoffmd)
+                        #int_res = intk(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, k, r,
+                               #  z1, z2, apos, cutoffz, cutoffmd)
 
                     #               add to the total intensity
-                    tsi += 8 * f * e12[:, i, j] * e12[:, k, r]
+
+                    tsi += 8.000 * int_res * e12[:, i, j] * e12[:, k, r]
+
     print('hola')
+    print(tsi[0])
     # diagonal with respect two 1st and 3rd element (k = i)
     for i in range(ncap):
         for j in range(i + 1, ncap):
@@ -391,4 +376,4 @@ def main():
 
     print('Maximum intenstiy: ', q[0], np.max(tsi))
 
-# main()
+main()
