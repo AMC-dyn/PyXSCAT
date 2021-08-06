@@ -1,14 +1,261 @@
+!-----------------------------------------------------------------------
+! Fortran Modules for PyXSCAT code
+! Andres Moreno Carrascosa and Mats Simmermacher, 2021
+!-----------------------------------------------------------------------
+
+
+
 module integrals_ijkr
 
     implicit none 
 
     contains
+        
+    subroutine integration(ncap,px,py,pz,ll,p0matrix,dx,dy,dz,z1,z2,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+        implicit none
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        
+        INTEGER(kind=ikind), INTENT(IN) :: ncap
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: ll,apos
+        
+        REAL(kind=dp), intent(in), dimension(:,:,:,:,:) :: dx,dy,dz
+        REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
+        REAL(kind=dp), intent(in), dimension(:,:,:) :: z1,z2,e12
+        REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
+        REAL(kind=dp), intent(in), dimension(:) :: q
+        REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
+        
+        
+        REAL(kind=dp), dimension(size(q)) :: f
+        REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
+        real(kind=dp) :: hx,hy,hz,h
+        integer(kind=ikind) :: nq,i,j,k,r
+        
+        
+        
+        
+        nq= size(q)
+        tsi=0.0_dp
+        !First big loop 
+        do i=1,ncap
+            do j=i+1,ncap
+                do k=i+1,ncap
+                    do r=k+1,ncap
+                        hx = px(k, r) - px(i, j)
+                        hy = py(k, r) - py(i, j)
+                        hz = pz(k, r) - pz(i, j)
+                        h = sqrt((hx * hx + hy * hy + hz * hz))
+                        if (h < cutoffcentre) then
+                            call integral_ijkr_pzero(nq, ll(i), ll(j), ll(k), ll(r), p0matrix, dx, dy, &
+                                    dz, i, j, k, r, &
+                                    z1, z2, apos, cutoffz, cutoffmd, f)
+                        else
+
+                            call tot_integral_k_ijkr(q, ll(i), ll(j), ll(k), ll(r), hx, hy, hz, h, dx, &
+                                    dy, dz, &
+                                    i, j, k, r, &
+                                    z1, z2, apos, cutoffz, cutoffmd, f)
 
 
 
+                        end if
+                        tsi = tsi + 8.000 * f * e12(:, i, j) * e12(:, k, r)
+                    end do
+                end do
+            end do
+        end do
+        write(*,*) 'First loop', tsi
+        do i=1,ncap
+            do j=i+1,ncap
+                do r=i+1,ncap
+                    hx = px(i, r) - px(i, j)
+                    hy = py(i, r) - py(i, j)
+                    hz = pz(i, r) - pz(i, j)
+                    h = sqrt((hx * hx + hy * hy + hz * hz))
+                    if (h < cutoffcentre) then
+                        call integral_ijkr_pzero(nq, ll(i), ll(j), ll(i), ll(r), p0matrix, dx, dy, &
+                                dz, i, j, i, r, &
+                                z1, z2, apos, cutoffz, cutoffmd, f)
+                    else
+
+                        call tot_integral_k_ijkr(q, ll(i), ll(j), ll(i), ll(r), hx, hy, hz, h, dx, &
+                                dy, dz, &
+                                i, j, i, r, &
+                                z1, z2, apos, cutoffz, cutoffmd, f)
 
 
 
+                    end if
+                    tsi = tsi + 4.000 * f * e12(:, i, j) * e12(:, i, r)
+                end do
+            end do
+
+        end do
+
+        do i=1,ncap
+            do k=1,ncap
+                do r=k+1,ncap
+                    hx = px(k, r) - px(i, i)
+                    hy = py(k, r) - py(i, i)
+                    hz = pz(k, r) - pz(i, i)
+                    h = sqrt((hx * hx + hy * hy + hz * hz))
+                    if (h < cutoffcentre) then
+                        call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(r), p0matrix, dx, dy, &
+                                dz, i, i, k, r, &
+                                z1, z2, apos, cutoffz, cutoffmd, f)
+                    else
+
+                        call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(r), hx, hy, hz, h, dx, &
+                                dy, dz, &
+                                i, i, k, r, &
+                                z1, z2, apos, cutoffz, cutoffmd, f)
+
+
+
+                    end if
+                    tsi = tsi+ 4.000 * f * e12(:, i, i) * e12(:, k, r)
+                end do
+            end do
+        end do
+
+
+        do i=1,ncap
+            do k=i+1,ncap
+
+                hx = px(k, k) - px(i, i)
+                hy = py(k, k) - py(i, i)
+                hz = pz(k, k) - pz(i, i)
+                h = sqrt((hx * hx + hy * hy + hz * hz))
+                if (h < cutoffcentre) then
+                    call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(k), p0matrix, dx, dy, &
+                            dz, i, i, k, k, &
+                            z1, z2, apos, cutoffz, cutoffmd, f)
+                else
+
+                    call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(k), hx, hy, hz, h, dx, &
+                            dy, dz, &
+                            i, i, k, k, &
+                            z1, z2, apos, cutoffz, cutoffmd, f)
+                end if
+                tsi = tsi+ 2.000 * f * e12(:, i, i) * e12(:, k, k)
+            end do
+        end do
+        do i=1,ncap
+            call integral_ijkr_pzero(nq, ll(i), ll(i), ll(i), ll(i), p0matrix, dx, dy, dz, i, i, i, i, &
+            z1, z2, apos, cutoffz, cutoffmd,f)
+
+            tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
+
+        end do
+
+    write(*,*) tsi
+    end subroutine integration
+
+        
+    SUBROUTINE integral_ijkr_pzero(nq,lmax1,lmax2,lmax3,lmax4,p0mat,dx,dy,dz,i,j,k,r,z1,z2,apos,cutoffz,cutoffmd,itgr)
+
+        ! definition of input
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        INTEGER(kind=ikind), INTENT(IN)                       :: nq, lmax1, lmax2, lmax3, lmax4, i, j, k, r
+        REAL(kind=dp), INTENT(IN)                             :: cutoffz, cutoffmd
+        REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: p0mat
+        REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:,:)               :: dx, dy, dz
+        REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:)               :: z1, z2
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: apos
+        ! definition of output
+        REAL(kind=dp), INTENT(OUT), DIMENSION(nq)             :: itgr
+        ! definition of loop indices
+        INTEGER(kind=ikind)                                   :: l1, m1, l2, m2, l3, m3, l4, m4, h1
+        INTEGER(kind=ikind)                                   :: l, m, n, lp, mp, np
+        ! definition of internal variables
+        INTEGER(kind=ikind)                                   :: n1, n2, n3, n4, posi, posj, posk, posr
+        REAL(kind=dp)                                         :: ztot
+        REAL(kind=dp)                                         :: mdl, mdm, mdn, mdlp, mdmp, prodd
+        REAL(kind=dp), DIMENSION(size(Z1(:,1,1)))                          :: zij1, zkr1
+        REAL(kind=dp), DIMENSION(size(Z2(:,1,1)))                          :: zij2, zkr2
+        REAL(kind=dp), DIMENSION(nq)                          :: f
+
+
+        posI=apos(i)
+        itgr=0.0
+        ! loop through all possible ways to get total angular momentum lmax1
+        do l1 = 0, lmax1
+            do m1 = 0, lmax1-l1
+                n1 = lmax1-l1-m1
+                posj = apos(j)
+                ! loop through all possible ways to get total angular momentum lmax2
+                do l2 = 0, lmax2
+                    do m2 = 0, lmax2-l2
+                        n2 = lmax2-l2-m2
+                        zij1 = z1(:,posi,posj)
+                        zij2 = z2(:,posi,posj)
+                        posk = apos(k)
+                        ! loop through all possible ways to get total angular momentum lmax3
+                        do l3 = 0, lmax3
+                            do m3 = 0, lmax3-l3
+                                n3 = lmax3-l3-m3
+                                posr = apos(r)
+                                ! loop through all possible ways to get total angular momentum lmax4
+                                do l4 = 0, lmax4
+                                    do m4 = 0, lmax4-l4
+                                        n4 = lmax4-l4-m4
+                                        zkr1 = z1(:,posk,posr)
+                                        zkr2 = z2(:,posk,posr)
+                                        ! total prefactor
+                                        ztot = sum(zij1*zkr2 + zij2*zkr1) / 8
+
+                                        ! continue only if larger
+                                        if (abs(ztot) < cutoffz) then
+                                            posr = posr+1
+                                            cycle
+                                        end if
+                                        ! the 6-dimensional sum over MD coefficents
+                                        do l = 0, l1+l2
+                                            mdl = dx(i,j,l+1,l1+1,l2+1) * ztot
+                                            if (mdl == 0) cycle
+                                            do m = 0, m1+m2
+                                                mdm = dy(i,j,m+1,m1+1,m2+1) * mdl
+                                                if (mdm == 0) cycle
+                                                do n = 0, n1+n2
+                                                    h1 = (-1)**(l+m+n)
+                                                    mdn = dz(i,j,n+1,n1+1,n2+1) * mdm * h1
+                                                    if (mdn == 0) cycle
+                                                    do lp = 0, l3+l4
+                                                        mdlp = dx(k,r,lp+1,l3+1,l4+1) * mdn
+                                                        if (mdlp == 0) cycle
+                                                        do mp = 0, m3+m4
+                                                            mdmp = dy(k,r,mp+1,m3+1,m4+1) * mdlp
+                                                            if (mdmp == 0) cycle
+                                                            do np = 0, n3+n4
+                                                                prodd = dz(k,r,np+1,n3+1,n4+1) * mdmp
+                                                                ! cutoff after md
+                                                                if (abs(prodd) < cutoffmd) cycle
+
+                                                                ! add the contribution to the total
+                                                                f = p0mat(:,l+lp+1,m+mp+1,n+np+1)
+                                                                itgr = itgr + prodd*f
+                                                            end do
+                                                        end do
+                                                    end do
+                                                end do
+                                            end do
+                                        end do
+                                        posr = posr+1
+                                    end do
+                                end do
+                                posk = posk+1
+                            end do
+                        end do
+                        posj = posj+1
+                    end do
+                end do
+                posi = posi+1
+            end do
+        end do
+
+    END SUBROUTINE
 
     subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx, dy, dz, i,j, k, r, z, z2, apos, cutoffz, &
                 cutoffmd,int_res)
@@ -89,7 +336,7 @@ module integrals_ijkr
                 enddo
             enddo
         enddo
-        posi=apos(i+1)
+        posi=apos(i)
 
 
         h_saved=0.0_dp
@@ -97,7 +344,7 @@ module integrals_ijkr
         do l1=0,lmax1
             do m1=0,(lmax1-l1)
                 n1=lmax1-l1-m1
-                posj=apos(j+1)
+                posj=apos(j)
         !loop through all possible ways to get total angular momentum lmax2
                 do l2=0,lmax2
                     do m2=0,(lmax2-l2)
@@ -107,11 +354,11 @@ module integrals_ijkr
                         zij(:)=z(:,posi,posj)
                         zij2(:)=z2(:,posi,posj)
 
-                        posk=apos(k+1)
+                        posk=apos(k)
                         do l3=0,lmax3
                             do m3=0,(lmax3-l3)
                                 n3=lmax3-l3-m3
-                                posr=apos(r+1)
+                                posr=apos(r)
 
                         ! loop through all possible ways to get total angular momentum lmax4
                                 do l4=0,lmax4
@@ -131,33 +378,33 @@ module integrals_ijkr
 
 
                                         do l=0,(l1+l2)
-                                            mdl=dx(i+1,j+1,l+1,l1+1,l2+1)*ztot
+                                            mdl=dx(i,j,l+1,l1+1,l2+1)*ztot
                                    
                                             if (mdl==0.0_dp) cycle
                                                  
                                          
                                             do m=0,(m1+m2)
-                                                mdm=dy(i+1,j+1,m+1,m1+1,m2+1)*mdl
+                                                mdm=dy(i,j,m+1,m1+1,m2+1)*mdl
                                                 if (mdm==0.0_dp) cycle
                                          
                                                 do n=0,(n1+n2)
                                                     h1=(-1)**(l+m+n)
-                                                    mdn=dz(i+1,j+1,n+1,n1+1,n2+1)*mdm*h1
+                                                    mdn=dz(i,j,n+1,n1+1,n2+1)*mdm*h1
                                                     if (mdn==0.0_dp) cycle
                                                     
                                                     do lp=0,(l3+l4)
-                                                        mdlp=dx(k+1,r+1,lp+1,l3+1,l4+1)*mdn
+                                                        mdlp=dx(k,r,lp+1,l3+1,l4+1)*mdn
                                                         if (mdlp==0.0_dp) cycle
 
                                                     
                                                         ll2=l+lp+1
                                                         do mp=0,(m3+m4)
-                                                            mdmp=dy(k+1,r+1,mp+1,m3+1,m4+1)*mdlp
+                                                            mdmp=dy(k,r,mp+1,m3+1,m4+1)*mdlp
                                                             if (mdmp==0.0_dp) cycle
                                                      
                                                             mm2=m+mp+1
                                                             do np=0,(n3+n4)
-                                                                prodd=dz(k+1,r+1,np+1,n3+1,n4+1)*mdmp
+                                                                prodd=dz(k,r,np+1,n3+1,n4+1)*mdmp
                                                                 if (abs(prodd)<cutoffmd) cycle
 
                                                                 nn2=n+np+1

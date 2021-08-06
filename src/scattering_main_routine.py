@@ -162,8 +162,8 @@ def main():
     m4 = np.asarray(mat[:, 3], dtype=np.int32)
 
     # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
-    z1 = np.zeros((m1.size, ncap, ncap),dtype=np.float64)
-    z2 = np.zeros((m1.size, ncap, ncap),dtype=np.float64)
+    z1 = np.zeros((m1.size, ncap, ncap), dtype=np.float64)
+    z2 = np.zeros((m1.size, ncap, ncap), dtype=np.float64)
 
     for i in range(ncap):
         iduplicates = np.argwhere(irep == irep[ipos[i]])
@@ -206,10 +206,10 @@ def main():
 
     # Hasta aqui funciona
 
-    px = np.zeros((nnew, nnew),dtype=np.float64)
-    py = np.zeros((nnew, nnew),dtype=np.float64)
-    pz = np.zeros((nnew, nnew),dtype=np.float64)
-    e12 = np.zeros((q.size, nnew, nnew),dtype=np.float64)
+    px = np.zeros((nnew, nnew), dtype=np.float64)
+    py = np.zeros((nnew, nnew), dtype=np.float64)
+    pz = np.zeros((nnew, nnew), dtype=np.float64)
+    e12 = np.zeros((q.size, nnew, nnew), dtype=np.float64)
 
     # Combined MD coefficients
     ddx = np.zeros((nnew, nnew, 2 * (np.max(l) + 2) + 1, np.max(l) + 1, np.max(l) + 1), dtype=np.float64)
@@ -258,122 +258,133 @@ def main():
     # Loops over 4xpGTOs
     # Strictly non-diagonal elements with all GTOs being different
     tsi = np.zeros(q.size)
-    #int_res = np.zeros(q.size)
+    # int_res = np.zeros(q.size)
+    apos2 = np.array(apos, dtype=np.int) + 1
 
-    for i in range(ncap):
-        for j in range(i + 1, ncap):
-            for k in range(i + 1, ncap):  # Note: is the range correct? "i+1" or "j+1"? Andres says "i+1".
-                for r in range(k + 1, ncap):
-                    #               The coordinates of the point H
-                    #  print(i,j,k,r)
-                    hx = px[k, r] - px[i, j]
-                    hy = py[k, r] - py[i, j]
-                    hz = pz[k, r] - pz[i, j]
-                    h = np.sqrt((hx * hx + hy * hy + hz * hz),dtype=np.float64)
-                    # New
-                    # print(ll[i], ll[j], ll[k], ll[r])
-                    if h < cutoffcentre:
+    resultado2 = integrals_ijkr.integration(ncap, px, py, pz, ll, p0matrix, dx, dy, dz, z1, z2, apos2, cutoffz,
+                                            cutoffmd,
+                                            cutoffcentre, q, e12)
+    print(resultado2)
+    # for i in range(ncap):
+    #     for j in range(i + 1, ncap):
+    #         for k in range(i + 1, ncap):  # Note: is the range correct? "i+1" or "j+1"? Andres says "i+1".
+    #             for r in range(k + 1, ncap):
+    #                 #               The coordinates of the point H
+    #                 #  print(i,j,k,r)
+    #                 hx = px[k, r] - px[i, j]
+    #                 hy = py[k, r] - py[i, j]
+    #                 hz = pz[k, r] - pz[i, j]
+    #                 h = np.sqrt((hx * hx + hy * hy + hz * hz), dtype=np.float64)
+    #                 # New
+    #                 # print(ll[i], ll[j], ll[k], ll[r])
+    #                 if h < cutoffcentre:
+    #                     #                   compute the zero cases
+    #                     print('Entering pzero')
+    #                     int_res = integrals_ijkr.integral_ijkr_pzero(nq, ll[i], ll[j], ll[k], ll[r], p0matrix, dx, dy,
+    #                                                                  dz, i, j, k, r,
+    #                                                                  z1, z2, apos2, cutoffz, cutoffmd)
+    #                     print(int_res)
+    #                 else:
+    #
+    #                     #                   computation of the F-integral / sum
+    #
+    #                     int_res = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx,
+    #                                                                  dy, dz,
+    #                                                                  i, j, k, r,
+    #                                                                  z1, z2, apos2, cutoffz, cutoffmd)
+    #
+    #                     # f = intk_vec(q, angvec1, angvec2, angvec3, angvec4, maxi, maxj, maxk, maxr, ll[i], ll[j], ll[k],
+    #                     #    ll[r], hx, hy, hz, h, dx, dy, dz, i,
+    #                     #  j, k, r, z1, z2, apos, cutoffz, cutoffmd)
+    #                     # int_res = intk(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, k, r,
+    #                     #  z1, z2, apos, cutoffz, cutoffmd)
+    #
+    #                 #               add to the total intensity
+    #                 print('First loop is OK')
+    #                 tsi += 8.000 * int_res * e12[:, i, j] * e12[:, k, r]
+    #
+    # print('hola')
+    # print(tsi[0])
+    # # diagonal with respect two 1st and 3rd element (k = i)
+    # for i in range(ncap):
+    #     for j in range(i + 1, ncap):
+    #         for r in range(i + 1, ncap):
+    #             #           coordinates of the point H
+    #             hx = px[i, r] - px[i, j]
+    #             hy = py[i, r] - py[i, j]
+    #             hz = pz[i, r] - pz[i, j]
+    #             h = (hx * hx + hy * hy + hz * hz) ** 0.5
+    #             if h < cutoffcentre:
+    #                 #             computation of the zero cases
+    #                 f = integrals_ijkr.integral_ijkr_pzero(nq, ll[i], ll[j], ll[i], ll[r], p0matrix, dx, dy, dz, i, j,
+    #                                                        i, r,
+    #                                                        z1, z2, apos2, cutoffz, cutoffmd)
+    #             else:
+    #                 apos2 = np.array(apos, dtype=np.int) + 1
+    #                 #               computation of the F-integral / sum
+    #                 f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz, i,
+    #                                                        j, i, r,
+    #                                                        z1, z2, apos2, cutoffz, cutoffmd)
+    #             #           add to the total intensity
+    #             tsi += 4 * f * e12[:, i, j] * e12[:, i, r]
+    #
+    # # diagonal in only one pair (j = i)
+    #
+    # for i in range(ncap):
+    #     for k in range(ncap):
+    #         for r in range(k + 1, ncap):
+    #
+    #             #           The coordinates of the point H
+    #             hx = px[k, r] - px[i, i]
+    #             hy = py[k, r] - py[i, i]
+    #             hz = pz[k, r] - pz[i, i]
+    #             h = (hx * hx + hy * hy + hz * hz) ** 0.5
+    #             if h < cutoffcentre:
+    #                 #               compute the zero cases
+    #                 f = integrals_ijkr.integral_ijkr_pzero(nq, ll[i], ll[i], ll[k], ll[r], p0matrix, dx, dy, dz, i, i,
+    #                                                        k, r,
+    #                                                        z1, z2, apos2, cutoffz, cutoffmd)
+    #             else:
+    #
+    #                 #               compute the F-integral / sum
+    #                 f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[i], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i,
+    #                                                        i, k, r,
+    #                                                        z1, z2, apos2, cutoffz, cutoffmd)
+    #             #           add to the total intensity
+    #             if i == 1 and k == 2 and r == 9:
+    #                 print(f)
+    #                 print(i, i, k, r, tsi)
+    #             tsi += 4 * f * e12[:, i, i] * e12[:, k, r]
+    #
+    # # diagonal in both pairs without repetition of the pair (j = i, r = k)
+    # for i in range(ncap):
+    #     for k in range(i + 1, ncap):
+    #         #       The coordinates of the point H
+    #         hx = px[k, k] - px[i, i]
+    #         hy = py[k, k] - py[i, i]
+    #         hz = pz[k, k] - pz[i, i]
+    #         h = (hx * hx + hy * hy + hz * hz) ** 0.5
+    #         if h < cutoffcentre:
+    #             #           compute the zero cases
+    #             f = integrals_ijkr.integral_ijkr_pzero(nq, ll[i], ll[i], ll[k], ll[k], p0matrix, dx, dy, dz, i, i, k, k,
+    #                                                    z1, z2, apos2, cutoffz, cutoffmd)
+    #         else:
+    #
+    #             #           compute the F-integral / sum
+    #             f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[i], ll[k], ll[k], hx, hy, hz, h, dx, dy, dz, i, i,
+    #                                                    k, k,
+    #                                                    z1, z2, apos2, cutoffz, cutoffmd)
+    #         #       add to the total intensity
+    #         tsi += 2 * f * e12[:, i, i] * e12[:, k, k]
+    #
+    # # all GTOs are identical (j = r = k = i)
+    # for i in range(ncap):
+    #     f = integrals_ijkr.integral_ijkr_pzero(nq, ll[i], ll[i], ll[i], ll[i], p0matrix, dx, dy, dz, i, i, i, i,
+    #                                            z1, z2, apos2, cutoffz, cutoffmd)
+    #     #   add to the total intensity
+    #     tsi += f * e12[:, i, i] * e12[:, i, i]
+    #
+    # print('Maximum intenstiy: ', q[0], np.max(tsi))
 
-                        #                   compute the zero cases
-                        int_res = intkzero(nq, ll[i], ll[j], ll[k], ll[r], p0matrix, dx, dy, dz, i, j, k, r,
-                                           z1, z2, apos, cutoffz, cutoffmd)
-                    else:
-
-                        apos2 = np.array(apos, dtype=np.int) + 1
-                        #                   computation of the F-integral / sum
-
-                        int_res = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx,
-                                                                      dy, dz,
-                                                                     i, j, k, r,
-                                                                      z1, z2, apos2, cutoffz, cutoffmd)
-
-                        # f = intk_vec(q, angvec1, angvec2, angvec3, angvec4, maxi, maxj, maxk, maxr, ll[i], ll[j], ll[k],
-                        #    ll[r], hx, hy, hz, h, dx, dy, dz, i,
-                        #  j, k, r, z1, z2, apos, cutoffz, cutoffmd)
-                        #int_res = intk(q, ll[i], ll[j], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i, j, k, r,
-                               #  z1, z2, apos, cutoffz, cutoffmd)
-
-                    #               add to the total intensity
-
-                    tsi += 8.000 * int_res * e12[:, i, j] * e12[:, k, r]
-
-    print('hola')
-    print(tsi[0])
-    # diagonal with respect two 1st and 3rd element (k = i)
-    for i in range(ncap):
-        for j in range(i + 1, ncap):
-            for r in range(i + 1, ncap):
-                #           coordinates of the point H
-                hx = px[i, r] - px[i, j]
-                hy = py[i, r] - py[i, j]
-                hz = pz[i, r] - pz[i, j]
-                h = (hx * hx + hy * hy + hz * hz) ** 0.5
-                if h < cutoffcentre:
-                    #             computation of the zero cases
-                    f = intkzero(nq, ll[i], ll[j], ll[i], ll[r], p0matrix, dx, dy, dz, i, j, i, r,
-                                 z1, z2, apos, cutoffz, cutoffmd)
-                else:
-                    apos2 = np.array(apos, dtype=np.int) + 1
-                    #               computation of the F-integral / sum
-                    f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[j], ll[i], ll[r], hx, hy, hz, h, dx, dy, dz, i,
-                                                           j, i, r,
-                                                           z1, z2, apos2, cutoffz, cutoffmd)
-                #           add to the total intensity
-                tsi += 4 * f * e12[:, i, j] * e12[:, i, r]
-
-    # diagonal in only one pair (j = i)
-    for i in range(ncap):
-        for k in range(ncap):
-            for r in range(k + 1, ncap):
-                #           The coordinates of the point H
-                hx = px[k, r] - px[i, i]
-                hy = py[k, r] - py[i, i]
-                hz = pz[k, r] - pz[i, i]
-                h = (hx * hx + hy * hy + hz * hz) ** 0.5
-                if h < cutoffcentre:
-                    #               compute the zero cases
-                    f = intkzero(nq, ll[i], ll[i], ll[k], ll[r], p0matrix, dx, dy, dz, i, i, k, r,
-                                 z1, z2, apos, cutoffz, cutoffmd)
-                else:
-                    apos2 = np.array(apos, dtype=np.int) + 1
-                    #               compute the F-integral / sum
-                    f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[i], ll[k], ll[r], hx, hy, hz, h, dx, dy, dz, i,
-                                                           i, k, r,
-                                                           z1, z2, apos2, cutoffz, cutoffmd)
-                #           add to the total intensity
-                if i == 1 and k == 2 and r == 9:
-                    print(f)
-                    print(i, i, k, r, tsi)
-                tsi += 4 * f * e12[:, i, i] * e12[:, k, r]
-
-    # diagonal in both pairs without repetition of the pair (j = i, r = k)
-    for i in range(ncap):
-        for k in range(i + 1, ncap):
-            #       The coordinates of the point H
-            hx = px[k, k] - px[i, i]
-            hy = py[k, k] - py[i, i]
-            hz = pz[k, k] - pz[i, i]
-            h = (hx * hx + hy * hy + hz * hz) ** 0.5
-            if h < cutoffcentre:
-                #           compute the zero cases
-                f = intkzero(nq, ll[i], ll[i], ll[k], ll[k], p0matrix, dx, dy, dz, i, i, k, k,
-                             z1, z2, apos, cutoffz, cutoffmd)
-            else:
-                apos2 = np.array(apos, dtype=np.int) + 1
-                #           compute the F-integral / sum
-                f = integrals_ijkr.tot_integral_k_ijkr(q, ll[i], ll[i], ll[k], ll[k], hx, hy, hz, h, dx, dy, dz, i, i,
-                                                       k, k,
-                                                       z1, z2, apos2, cutoffz, cutoffmd)
-            #       add to the total intensity
-            tsi += 2 * f * e12[:, i, i] * e12[:, k, k]
-
-    # all GTOs are identical (j = r = k = i)
-    for i in range(ncap):
-        f = intkzero(nq, ll[i], ll[i], ll[i], ll[i], p0matrix, dx, dy, dz, i, i, i, i,
-                     z1, z2, apos, cutoffz, cutoffmd)
-        #   add to the total intensity
-        tsi += f * e12[:, i, i] * e12[:, i, i]
-
-    print('Maximum intenstiy: ', q[0], np.max(tsi))
 
 main()

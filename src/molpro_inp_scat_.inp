@@ -23,7 +23,7 @@ config,det
 occ,8;
 closed,0;
 wf,14,1,0;
-state,2;
+state,1;
 pspace,10.0        
 orbital,2140.3;
 ORBITAL,IGNORE_ERROR;
