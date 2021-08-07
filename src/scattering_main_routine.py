@@ -27,11 +27,10 @@ def main():
 
     # OUTPUT:
     # tsi[0:nq]     column vec      scattering signal
-    x, y, z = mp.create_input()
 
-    x = [0.0, 0.0]
-    y = [0.0, 0.0]
-    z = [0.0, 1.09]
+
+    # We need to make the molpro execution voluntary, otherwise the punch file and the molden file are copied into molpro.pun and molpro.mld
+    x, y, z = mp.create_input()
     # This routine creates the molpro input, a punch file with the CI vectors and a molden file where the basis and MO coefficients
     # are read
     ga, ci, realnum, m, l, n, mos, monums, actives, total, angpart, xx, yy, zz = mp.outputreading(x, y, z)
@@ -49,12 +48,6 @@ def main():
     # The original GTOs are reordered and MOS is changed,converted in a matrix and reordered
     l, m, n, ga, ci, mos, angpart = rdgt.reorder(l, m, n, ga, ci, mos, angpart)
 
-    # mldfile = sys.argv[1]
-    # outfile = sys.argv[2]
-    # state1 = sys.argv[3]  # Note: NOT USED ANYWHERE!
-    # state2 = sys.argv[4]  # Note: NOT USED ANYWHERE!
-    # nstates = sys.argv[5]  # Note: NOT USED ANYWHERE!
-    # q = float(sys.argv[6])
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
     # condit = input("Do you want to continue Y/N?")
@@ -65,40 +58,20 @@ def main():
         # the cutoff for the Z integral
         cutoffz = 1e-9  # suggested: cutoffz = 1E-9;
         # the cutoff for the product of the MD coefficients
-        cutoffmd = 1e-20  # suggested: cutoffmd = 1E-20;
+        cutoffmd = 1e-30  # suggested: cutoffmd = 1E-20;
     else:
         cutoffcentre = input("Input cut off epsilon; if H < epsilon, use P0 cases")
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
         cutoffz = input("Input the cutoff for the Z integral")
-    # hola
-    # def tot_rot_av(mldfile,outfile,state1,state2,nstates,q,cutoffs):
-
-    # # cut off epsilon; if H < epsilon, use P0 cases
-    # cutoffcentre = cutoffs[0]  # suggested: cutoffcentre = 0.01;
-    # # the cutoff for the Z integral
-    # cutoffz = cutoffs[1]  # suggested: cutoffz = 1E-9;
-    # # the cutoff for the product of the MD coefficients
-    # cutoffmd = cutoffs[2]  # suggested: cutoffmd = 1E-20;
-
     # reshape q to a column vector
-    q = np.linspace(0.000001, 3, 4)
-    # q = np.reshape(q, (q.size))
-    # q = np.reshape(q, (q.size, 1))
-
+    q = np.linspace(0.000001, 3, 100)
     # set q t0 E-10 if q = 0
     if q[0] < 1E-10:
         q[0] = 1E-10
 
     # reading the 2-particle RDM from MOLPRO output
+
     mat, total = td.twordmconst()  # state1 and state2 should be used here
-
-    nmocutoff = np.max(np.max(mat))
-    # atoms, ga, xx, yy, zz, l, m, n, c, mos, dummy, angpart, ntc, reps, matoms = mldread(mldfile, nmocutoff)
-    # Note: CHECK AND IMPORT FUNCTION "mldread"; CHANGE CHARACTER "M"
-
-    # reording the GTOs uising the angular momenta
-    # l, m, n, c, mos, ga, angpart = reorder(l, m, n, c, mos, ga, angpart)
-    # Note: CHECK VARIABLES
 
     # normalisation of the GTOs
     norma = np.power(np.divide(2, np.pi), 0.75)

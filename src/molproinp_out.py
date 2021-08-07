@@ -7,12 +7,13 @@ import numpy as np
 
 
 def create_input():
-    os.system('rm -f molpro.mld molpro.pun molpro*.out molpro*.xml ')
+
     if os.path.isfile('inputs/abinitio.dat'):
         print('reading abinitio input file')
     else:
         print('try to create your own input or change the name of the bloody file to the correct one, '
               'remember ----> abinitio.dat')
+    RUN  = False
     GEOM = False
     METHOD = False
     OCCUPATION = False
@@ -50,6 +51,18 @@ def create_input():
                     j = j + 1
                 elif j > natoms - 1:
                     GEOM = False
+            if lines.startswith('RUN'):
+                RUN=True
+            if not lines.startswith('RUN') and RUN:
+                RUN=False
+                runningmolprocalc=str(lines.strip().split()[0])
+                if 'n' in runningmolprocalc or 'N' in runningmolprocalc:
+                    varname1=input('Specify the name of the molden file')
+                    os.system('cp '+ varname1 + ' molpro.mld')
+                    varname2 = input('Specify the name of the punch')
+                    os.system('cp ' + varname2 + '.pun molpro.pun')
+                    return x,y,z
+                os.system('rm -f molpro.mld molpro.pun molpro*.out molpro*.xml ')
             if lines.startswith('METHOD'):
                 METHOD = True
             if not lines.startswith('METHOD') and METHOD:
