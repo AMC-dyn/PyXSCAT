@@ -571,13 +571,21 @@ def outputreading(x, y, z):
         # close to 0
 
         total = len(occs)
-        xx = np.asarray(xx, dtype=np.float32)
-        yy = np.asarray(yy, dtype=np.float32)
-        zz = np.asarray(zz, dtype=np.float32)
+        xx = np.asarray(xx, dtype=np.float64)
+        yy = np.asarray(yy, dtype=np.float64)
+        zz = np.asarray(zz, dtype=np.float64)
+
+        ga = np.asarray(ga, dtype=np.float64)
+        ci = np.asarray(ci, dtype=np.float64)
+
+        lang = np.asarray(lang, dtype=np.int64)
+        mang = np.asarray(mang, dtype=np.int64)
+        nang = np.asarray(nang, dtype=np.int64)
+
         # It is necessary to reorder the orbitals to appear in the same order as they do in the output
         # We can use the symmetries to do this
         print(syms)
-        idx = np.argsort(np.asarray(syms, dtype=np.float32))
+        idx = np.argsort(np.asarray(syms, dtype=np.float64))
 
         mos = np.reshape(MOS, (total, max(realnum)))
         print('idx', idx)

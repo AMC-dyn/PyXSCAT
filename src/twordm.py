@@ -31,7 +31,6 @@ def twordmconst():
         nc2 = 0
         for c2 in confs:
 
-
             mat1 = [i for i in range(len(c1)) if c1[i] != "0"]
             mat2 = [i for i in range(len(c1)) if c2[i] != "0"]
 
@@ -291,8 +290,8 @@ def twordmconst():
     for i in range(np.size(total)):
         f.write("{0} {1}\n".format(mat[i, :].flatten(), str(total[i])))
     f.close()
-    mat=np.asarray(mat,dtype=np.int32)
-    np.savetxt('barrileros.dat', np.vstack((np.transpose(mat),total)))
-    #np.savetxt('patron.dat', total)
+    mat = np.asarray(mat, dtype=np.int64)
+    np.savetxt('barrileros.dat', np.vstack((np.transpose(mat), total)))
+    # np.savetxt('patron.dat', total)
 
-    return np.asarray(mat, dtype=np.float64), np.asarray(total, dtype=np.float64)
+    return np.asarray(mat, dtype=np.int64), np.asarray(total, dtype=np.float64)
