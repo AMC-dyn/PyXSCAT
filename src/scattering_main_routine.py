@@ -125,6 +125,12 @@ def main():
     m3 = np.asarray(mat[:, 2], dtype=np.int64) + 1
     m4 = np.asarray(mat[:, 3], dtype=np.int64) + 1
 
+    p0matrix = np.zeros(
+        (np.size(q), np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1))
+    for i in range(np.multiply(4, np.max(l)) + 1):
+        for j in range(np.multiply(4, np.max(l)) + 1):
+            for k in range(np.multiply(4, np.max(l)) + 1):
+                p0matrix[:, i, j, k] = pzerot(i, j, k, q)
     # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
 
     listofdups1 = np.zeros((ncap, len(irep)))
@@ -172,24 +178,25 @@ def main():
     nq = np.size(q)
     nnn3 = np.size(m1)
     nnn2 = np.size(ipos)
-    px, py, pz, dx, dy, dz, z1, z2, e12, p0matrix, ll = integrals_ijkr.variables_total(maxl, ipos, nnn2, apos, nnew, ga,
-                                                                                       l, m, n,
-                                                                                       xx, yy, zz, mmod, m1, m2, m3, m4,
-                                                                                       nnn3,
-                                                                                       total, q, nq, listofdups1,
-                                                                                       listofnumbers1,
-                                                                                       listofdups2, listofnumbers2)
+    print(np.max(p0matrix))
+    px, py, pz, dx, dy, dz, z1, z2, e12, ll = integrals_ijkr.variables_total_3(maxl, ipos, nnn2, apos, nnew, ga,
+                                                                             l, m, n,
+                                                                             xx, yy, zz, mmod, m1, m2, m3, m4,
+                                                                             nnn3,
+                                                                             total, q, nq, listofdups1,
+                                                                             listofnumbers1,
+                                                                             listofdups2, listofnumbers2)
     print(px[1, 1])
-    # resultado2 = np.zeros(nq)
-    # resultado2 = integrals_ijkr.integration(ncap, px, py, pz, ll, p0matrix, dx, dy, dz, z1, z2, apos, cutoffz,
-    #                                         cutoffmd,
-    #                                         cutoffcentre, q, e12)
-    #
-    # print(resultado2)
+    resultado2 = np.zeros(nq)
+    resultado2 = integrals_ijkr.integration(ncap, px, py, pz, ll, p0matrix, dx, dy, dz, z1, z2, apos, cutoffz,
+                                            cutoffmd,
+                                            cutoffcentre, q, e12)
+
+    print(resultado2)
 
     print('whats the fucking problem')
     return 1
 
 
-re = main()
-print('whats the error')
+# re = main()
+# print('whats the error')

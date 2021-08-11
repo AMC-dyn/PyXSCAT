@@ -409,8 +409,9 @@ module integrals_ijkr
 
 
 
-subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
+        subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12 &
+           ,ll2, maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, mmod,m1,m2,m3,m4,nmat, total, &
+            q, nq, list1,listN1,list2,listN2)
         implicit none
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
@@ -449,6 +450,19 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
         print*,m3(188)
         N1=size(ipos)
 
+        !allocate(p0matrix(nq,max4l,max4l,max4l), z1(size(m1), N1, N1), z2(size(m1), N1, N1))
+        !allocate(dx(n1,n1,max2l,maxl+1,maxl+1),dy(n1,n1,max2l,maxl+1,maxl+1),dz(n1,n1,max2l,maxl+1,maxl+1))
+
+       ! p0matrix=0.0!   print*,shape(p0matrix)
+
+
+!        do k=0,max4l
+!           do j=0,max4l
+!               do i=0,max4l
+!                     CALL P_LMN(p0matrix, i, j, k, q)
+!                end do
+!           end do
+!        end do
 
         write(*,*)'P0CALCULATED'
         z1=0.0_dp
@@ -569,7 +583,7 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
 
 
         print*, 'everything fine until the end'
-    end subroutine variables_total_3
+    end subroutine variables_total
 
 
     SUBROUTINE fill_md_table(D, l, x, ga)
