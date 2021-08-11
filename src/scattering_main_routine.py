@@ -1,13 +1,13 @@
 import numpy as np
 import molproinp_out as mp
-import ReorderGTOS as rdgt
+import ReorderGTOS as Rdgt
 import twordm as td
 from factd import factd
 from pzerotable import pzerotablenew as pzerot
-from MDcoeffs import md_table_gen as mtg
-from integral_ijkr import integral_k_ijkr as intk
-from integral_ijkr_vect import integral_k_ijkr as intk_vec
-from integral_ijkr_pzero import integral_k_ijkr_0_case as intkzero
+# from MDcoeffs import md_table_gen as mtg
+# from integral_ijkr import integral_k_ijkr as intk
+# from integral_ijkr_vect import integral_k_ijkr as intk_vec
+# from integral_ijkr_pzero import integral_k_ijkr_0_case as intkzero
 from unsortunique import uunique
 from integrals_wrapper import integrals_ijkr
 
@@ -28,9 +28,11 @@ def main():
     # OUTPUT:
     # tsi[0:nq]     column vec      scattering signal
 
-    # We need to make the molpro execution voluntary, otherwise the punch file and the molden file are copied into molpro.pun and molpro.mld
+    # We need to make the molpro execution voluntary, otherwise the punch file and the molden file
+    # are copied into molpro.pun and molpro.mld
     x, y, z = mp.create_input()
-    # This routine creates the molpro input, a punch file with the CI vectors and a molden file where the basis and MO coefficients
+    # This routine creates the molpro input, a punch file with the CI vectors and a molden file where
+    # the basis and MO coefficients
     # are read
     ga, ci, realnum, m, l, n, mos, monums, actives, total, angpart, xx, yy, zz = mp.outputreading(x, y, z)
 
@@ -45,7 +47,7 @@ def main():
     zz = zz / 0.529177210920
 
     # The original GTOs are reordered and MOS is changed,converted in a matrix and reordered
-    l, m, n, ga, ci, mos, angpart = rdgt.reorder(l, m, n, ga, ci, mos, angpart)
+    l, m, n, ga, ci, mos, angpart = Rdgt.reorder(l, m, n, ga, ci, mos, angpart)
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
     # condit = input("Do you want to continue Y/N?")
@@ -95,7 +97,6 @@ def main():
 
     fulltable = np.array(np.vstack((ga, l, m, n, xx, yy, zz)))  # Note: is this table correct?
 
-    ndup = l.size
     # dummy,ipos,irep = unique(full_table,'rows','stable')
     dummy, ipos, irep = uunique(fulltable)
     # ipos = np.sort(ipos)
@@ -169,34 +170,39 @@ def main():
     # Loops over 4xpGTOs
     # Strictly non-diagonal elements with all GTOs being different
     # int_res = np.zeros(q.size)
-    irep = np.array(irep, dtype=np.int) + 1
+
     ipos = np.array(ipos, dtype=np.int) + 1
-    arep = np.array(arep, dtype=np.int) + 1
+
     apos = np.array(apos, dtype=np.int) + 1
-    print(max(apos), min(apos))
+
     maxl = max(l)
     nq = np.size(q)
-    nnn3 = np.size(m1)
-    nnn2 = np.size(ipos)
-    print(np.max(p0matrix))
-    px, py, pz, dx, dy, dz, z1, z2, e12, ll = integrals_ijkr.variables_total_3(maxl, ipos, nnn2, apos, nnew, ga,
-                                                                             l, m, n,
-                                                                             xx, yy, zz, mmod, m1, m2, m3, m4,
-                                                                             nnn3,
-                                                                             total, q, nq, listofdups1,
-                                                                             listofnumbers1,
-                                                                             listofdups2, listofnumbers2)
-    print(px[1, 1])
-    resultado2 = np.zeros(nq)
-    resultado2 = integrals_ijkr.integration(ncap, px, py, pz, ll, p0matrix, dx, dy, dz, z1, z2, apos, cutoffz,
-                                            cutoffmd,
-                                            cutoffcentre, q, e12)
+    nmat = np.size(m1)
+    nipos = np.size(ipos)
+    napos = ncap
+    # print(np.max(p0matrix))
+    # px, py, pz, dx, dy, dz, z1, z2, e12, ll = integrals_ijkr.variables_total_3(maxl, ipos, nnn2, apos, nnew, ga,
+    #                                                                          l, m, n,
+    #                                                                          xx, yy, zz, mmod, m1, m2, m3, m4,
+    #                                                                          nnn3,
+    #                                                                          total, q, nq, listofdups1,
+    #                                                                          listofnumbers1,
+    #                                                                          listofdups2, listofnumbers2)
+    # print(px[1, 1])
+    # resultado2 = np.zeros(nq)
+    # resultado2 = integrals_ijkr.integration(ncap, px, py, pz, ll, p0matrix, dx, dy, dz, z1, z2, apos, cutoffz,
+    #                                         cutoffmd,
+    #                                         cutoffcentre, q, e12)
 
+    resultado2 = integrals_ijkr.total_scattering_calculation(maxl, ipos, nipos, apos, napos,
+                                                             ga, l, m, n, xx, yy, zz, mmod, m1, m2, m3, m4, nmat, total,
+                                                             q, nq, listofdups1, listofnumbers1, listofdups2,
+                                                             listofnumbers2, p0matrix,
+                                                             cutoffz, cutoffmd, cutoffcentre)
     print(resultado2)
 
-    print('whats the fucking problem')
     return 1
 
 
-# re = main()
+re = main()
 # print('whats the error')

@@ -2,8 +2,11 @@
 ! Fortran Modules for PyXSCAT code
 ! Andres Moreno Carrascosa and Mats Simmermacher, 2021
 !-----------------------------------------------------------------------
-
-
+module types
+    implicit none
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+end module types
 
 module integrals_ijkr
 
@@ -16,8 +19,8 @@ module integrals_ijkr
 
 
      SUBROUTINE P_LMN(P0, L, M, N, q)
-         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+         use types
+
         ! the three values of the angular momentum
         INTEGER(KIND=ikind), INTENT(IN) :: L, M, N
         ! The value of <qx^L*qy^M*qz^N>
@@ -245,9 +248,11 @@ module integrals_ijkr
     END SUBROUTINE P_LMN
 
     subroutine integration(ncap,px,py,pz,ll,p0matrix,dx,dy,dz,z1,z2,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+
+        use types
+
         implicit none
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+
         
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: ll,apos
@@ -298,7 +303,7 @@ module integrals_ijkr
                 end do
             end do
         end do
-        write(*,*) 'First loop', tsi
+
         do i=1,ncap
             do j=i+1,ncap
                 do r=i+1,ncap
@@ -382,12 +387,12 @@ module integrals_ijkr
 
         end do
 
-    write(*,*) tsi
+
     end subroutine integration
 
     SUBROUTINE Bubble_Sort(a)
-     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        use types
+        implicit none
     INTEGER(kind=ikind), INTENT(inout), DIMENSION(:) :: a
     INTEGER(kind=ikind) :: temp
     INTEGER :: i, j
@@ -409,12 +414,13 @@ module integrals_ijkr
 
 
 
-subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
+subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
+
+    use types
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+
 
         integer(kind=ikind), intent(in):: nipos, napos, nmat, nq, maxl
         integer(kind=ikind), intent(in),dimension(:) :: l, m, n, apos, ipos, m1, m2, m3, m4
@@ -446,7 +452,7 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
         max4l=maxval(l)*4
         max2l=maxval(l)*2+1
 
-        print*,m3(188)
+
         N1=size(ipos)
 
 
@@ -499,13 +505,13 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
         ddz=0.0
 
 
-        print*,'z1,z2 no prob'
-        print*,n1
+
+
         call fill_md_table(dx,l,xx,ga)
         call fill_md_table(dy,m,yy,ga)
         call fill_md_table(dz,n,zz,ga)
 
-        print*,'md no prob'
+
        ! allocate( ga2(size(apos)), xx2(size(apos)), yy2(size(apos)), zz2(size(apos)) )
 
         ll = l + m + n
@@ -516,8 +522,7 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
         ll2 = ll(apos)
 
         N2=size(apos)
-        print*, shape(ddx), shape(dx)
-         print*,'var2 no prob'
+
        ! allocate(ddx(n2,n2,max2l,maxl,maxl),ddy(n2,n2,max2l,maxl,maxl),ddz(n2,n2,max2l,maxl,maxl))
         !allocate(preexp(nq))
 
@@ -568,14 +573,13 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
         end do
 
 
-        print*, 'everything fine until the end'
-    end subroutine variables_total_3
+    end subroutine variables_total
 
 
     SUBROUTINE fill_md_table(D, l, x, ga)
+        use types
+        implicit none
 
-         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         ! The MD table to be populated D(Ngto, Ngto, 2maxl+1,maxl+1,maxl+1)
         REAL(kind=dp), INTENT(OUT), DIMENSION(:,:,:,:,:)    :: D
         ! vectors that contains the x coordinates for all GTOs, and all gammas
@@ -593,7 +597,7 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
         ! maximum angular momentum
         maxl = maxval(l)
 
-         print*, N
+
         ! the offdiagonal elements
         do i = 1,N
             do j = i+1, N
@@ -1050,9 +1054,10 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
 
     SUBROUTINE integral_ijkr_pzero(nq,lmax1,lmax2,lmax3,lmax4,p0mat,dx,dy,dz,i,j,k,r,z1,z2,apos,cutoffz,cutoffmd,itgr)
 
+        use types
+        implicit none
         ! definition of input
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+
         INTEGER(kind=ikind), INTENT(IN)                       :: nq, lmax1, lmax2, lmax3, lmax4, i, j, k, r
         REAL(kind=dp), INTENT(IN)                             :: cutoffz, cutoffmd
         REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: p0mat
@@ -1155,9 +1160,10 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
     subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx, dy, dz, i,j, k, r, z, z2, apos, cutoffz, &
                 cutoffmd,int_res)
 
-        implicit none 
+        use types
+        implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=selected_int_kind(8)), intent(in)  :: lmax1,lmax2,lmax3,lmax4,i,j,k,r
         integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: apos
@@ -1362,7 +1368,9 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
     subroutine besselderiv(bd, ll, mm,nn,a,b,c,llmax)
         ! the three nested loops give the formula 
         ! in the form of coefficients multiplying the h functions
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        use types
+        implicit none
+
         !INTEGER, PARAMETER :: dp = kind(1.0d0)
         real(kind=dp), intent(out), dimension(llmax+1)  :: bd
         integer(kind=selected_int_kind(8)), intent(in)                 :: ll, mm, nn, llmax
@@ -1397,4 +1405,41 @@ subroutine variables_total_3(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos
         end do
 
         end subroutine
-    end module integrals_ijkr
+
+
+subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
+        mmod,m1,m2,m3,m4,nmat,total,q,nq,list1,listN1,list2,listN2,p0matrix, &
+        cutoffz,cutoffmd,cutoffcentre,result)
+
+
+    use types
+    implicit none
+
+
+
+        integer(kind=ikind), intent(in):: nipos, napos, nmat, nq, maxl
+        integer(kind=ikind), intent(in),dimension(:) :: l, m, n, apos, ipos, m1, m2, m3, m4
+        integer(kind=ikind), intent(in),dimension(:) :: listN1,listN2
+        integer(kind=ikind), intent(in),dimension(:,:) :: list1, list2
+        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, total,q
+        real(kind=dp), intent(in),dimension(:,:) :: mmod
+        real(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
+        real(kind=dp), intent(in) :: cutoffmd, cutoffz,cutoffcentre
+
+        real(kind=dp), intent(out), dimension(nq):: result
+
+         real(kind=dp),  dimension(napos,napos,maxl*2+1,maxl+1,maxl+1) :: ddx,ddy,ddz
+        real(kind=dp), dimension(napos,napos) :: px,py,pz
+        real(kind=dp),  dimension(nmat,nipos,nipos) :: z1, z2
+        real(kind=dp),  dimension(nq,nipos,nipos) :: e12
+        integer(kind=ikind), dimension(napos) :: ll
+
+        call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
+        mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
+
+        call integration(napos,px,py,pz,ll,p0matrix,ddx,ddy,ddz,z1,z2,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,result)
+
+
+        end subroutine total_scattering_calculation
+
+        end module integrals_ijkr

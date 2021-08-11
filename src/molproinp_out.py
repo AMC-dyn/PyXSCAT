@@ -73,17 +73,17 @@ def create_input():
             if lines.startswith('MULT'):
                 MULTIPLICITY = True
             if OCCUPATION and not lines.startswith('OCC'):
-                print(lines)
+
                 occ = str(lines.strip().split())[2]
-                print(occ)
+
                 occ = int(occ)
                 OCCUPATION = False
             if lines.startswith('CLOSED') and calctype == 'CAS' or calctype == 'cas':
                 CLOSED = True
             if CLOSED and not lines.startswith('CLOSED'):
-                print(lines)
+
                 closed = str(lines.strip().split())
-                print(closed[2])
+
                 closed = closed[2]
                 CLOSED = False
             if lines.startswith('BASIS'):
@@ -110,7 +110,7 @@ def create_input():
                 else:
                     mult = 2
 
-    print(x)
+
     # Molpro input, it must be changed for other codes
     '''routine to create molpro input, valid for molpro2012'''
 
@@ -584,11 +584,11 @@ def outputreading(x, y, z):
 
         # It is necessary to reorder the orbitals to appear in the same order as they do in the output
         # We can use the symmetries to do this
-        print(syms)
+
         idx = np.argsort(np.asarray(syms, dtype=np.float64))
 
         mos = np.reshape(MOS, (total, max(realnum)))
-        print('idx', idx)
+
         mos = mos[idx, :]
         occs = np.asarray(occs)[idx]
         actives = sum(map(lambda x: x != 0.0000, occs))
