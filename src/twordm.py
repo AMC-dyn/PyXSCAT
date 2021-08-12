@@ -12,14 +12,36 @@ def twordmconst():
     count = 0
     confs = []
     civs = []
+    closed='none'
+    with open('../inputs/abinitio.dat', 'r') as fh2:
+        for line in fh2:
+            read = False
+            running = False
+            runlogic = 'none'
+            if line.startswith('RUN'):
+                running = True
+            if running and not line.startswith('RUN'):
+                runlogic = line.strip().split()
+                running = False
 
+            if not runlogic == 'none' and 'Y' in runlogic:
+                if line.startswith('CLOSED'):
+                    read = True
+                if read and not line.startswith('CLOSED'):
+                    closed = line.strip().split()
+            else:
+                closed ='none'
+    if 'none' in closed:
+       closed = input('Specify the number of closed orbitals \n')
+    closed = int(closed)
     with open('molpro.pun', 'r') as fh:
         for line in fh:
             if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
                 NN = line.strip().split()
 
                 civs.append(NN[1:])
-                confs.append(NN[0].replace("0", "00").replace("a", "a0").replace("b", "0b").replace("2", "ab"))
+                confs.append(
+                    'ab' * closed + NN[0].replace("0", "00").replace("a", "a0").replace("b", "0b").replace("2", "ab"))
                 if len(NN) != 1:
                     count += 1
 

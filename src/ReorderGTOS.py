@@ -43,10 +43,10 @@ def reorder(l, m, n, ga, ci, M, angpart):
             ord_vec[counter + 3] = duplicates_ang[1]
             ord_vec[counter + 4] = duplicates_ang[6]
             ord_vec[counter + 5] = duplicates_ang[9]
-            ord_vec[counter + 5] = duplicates_ang[3]
-            ord_vec[counter + 5] = duplicates_ang[5]
-            ord_vec[counter + 5] = duplicates_ang[4]
-            ord_vec[counter + 5] = duplicates_ang[0]
+            ord_vec[counter + 6] = duplicates_ang[3]
+            ord_vec[counter + 7] = duplicates_ang[5]
+            ord_vec[counter + 8] = duplicates_ang[4]
+            ord_vec[counter + 9] = duplicates_ang[0]
             counter = counter + 10
 
     ord_vec = np.array(ord_vec, dtype=np.int16)
@@ -56,7 +56,7 @@ def reorder(l, m, n, ga, ci, M, angpart):
     n = np.asarray(n)
     ga = np.asarray(ga)
     ci = np.asarray(ci)
-    M = np.asarray(M, dtype=np.float32)
+    M = np.asarray(M, dtype=np.float64)
     angpart = np.asarray(angpart)
 
 

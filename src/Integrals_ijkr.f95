@@ -275,6 +275,7 @@ module integrals_ijkr
         
         nq= size(q)
         tsi=0.0_dp
+
         !First big loop 
         do i=1,ncap
             do j=i+1,ncap
@@ -285,9 +286,11 @@ module integrals_ijkr
                         hz = pz(k, r) - pz(i, j)
                         h = sqrt((hx * hx + hy * hy + hz * hz))
                         if (h < cutoffcentre) then
+
                             call integral_ijkr_pzero(nq, ll(i), ll(j), ll(k), ll(r), p0matrix, dx, dy, &
                                     dz, i, j, k, r, &
                                     z1, z2, apos, cutoffz, cutoffmd, f)
+
                         else
 
                             call tot_integral_k_ijkr(q, ll(i), ll(j), ll(k), ll(r), hx, hy, hz, h, dx, &
@@ -387,6 +390,7 @@ module integrals_ijkr
 
         end do
 
+    print*, maxval(tsi)
 
     end subroutine integration
 
@@ -457,6 +461,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
 
 
         write(*,*)'P0CALCULATED'
+        print*,shape(z1), nmat
         z1=0.0_dp
         z2=0.0_dp
 
@@ -572,7 +577,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
             end do
         end do
 
-
+    print*, 'leaving variables'
     end subroutine variables_total
 
 
@@ -1079,6 +1084,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
 
 
         posI=apos(i)
+
         itgr=0.0
         ! loop through all possible ways to get total angular momentum lmax1
         do l1 = 0, lmax1
@@ -1101,8 +1107,10 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
                                 do l4 = 0, lmax4
                                     do m4 = 0, lmax4-l4
                                         n4 = lmax4-l4-m4
+
                                         zkr1 = z1(:,posk,posr)
                                         zkr2 = z2(:,posk,posr)
+
                                         ! total prefactor
                                         ztot = sum(zij1*zkr2 + zij2*zkr1) / 8
 
@@ -1134,6 +1142,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
                                                                 if (abs(prodd) < cutoffmd) cycle
 
                                                                 ! add the contribution to the total
+
                                                                 f = p0mat(:,l+lp+1,m+mp+1,n+np+1)
                                                                 itgr = itgr + prodd*f
                                                             end do
@@ -1436,6 +1445,8 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
 
         call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
+
+        print*,'In between variable and integration'
 
         call integration(napos,px,py,pz,ll,p0matrix,ddx,ddy,ddz,z1,z2,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,result)
 

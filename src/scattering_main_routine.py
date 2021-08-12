@@ -36,6 +36,7 @@ def main():
     # are read
     ga, ci, realnum, m, l, n, mos, monums, actives, total, angpart, xx, yy, zz = mp.outputreading(x, y, z)
 
+    print(np.shape(monums))
     # mos = np.reshape(mos, (total, max(realnum)))
     # mos = mos[:actives, :]
     # realnum = np.asarray(realnum)
@@ -48,7 +49,7 @@ def main():
 
     # The original GTOs are reordered and MOS is changed,converted in a matrix and reordered
     l, m, n, ga, ci, mos, angpart = Rdgt.reorder(l, m, n, ga, ci, mos, angpart)
-
+    print(np.shape(mos))
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
     # condit = input("Do you want to continue Y/N?")
     x = True
@@ -96,7 +97,7 @@ def main():
     # generate table with GTO descriptors
 
     fulltable = np.array(np.vstack((ga, l, m, n, xx, yy, zz)))  # Note: is this table correct?
-
+    print(l)
     # dummy,ipos,irep = unique(full_table,'rows','stable')
     dummy, ipos, irep = uunique(fulltable)
     # ipos = np.sort(ipos)
@@ -126,14 +127,16 @@ def main():
     m3 = np.asarray(mat[:, 2], dtype=np.int64) + 1
     m4 = np.asarray(mat[:, 3], dtype=np.int64) + 1
 
+    print(max(l))
     p0matrix = np.zeros(
-        (np.size(q), np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1, np.multiply(4, np.max(l)) + 1))
-    for i in range(np.multiply(4, np.max(l)) + 1):
-        for j in range(np.multiply(4, np.max(l)) + 1):
-            for k in range(np.multiply(4, np.max(l)) + 1):
+        (np.size(q), 4 * np.max(l) + 2, 4 * np.max(l) + 2, 4 * np.max(l) + 2), dtype=np.float64)
+    for i in range(4 * np.max(l) + 2):
+        for j in range(4 * np.max(l) + 2):
+            for k in range(4 * np.max(l) + 2):
                 p0matrix[:, i, j, k] = pzerot(i, j, k, q)
     # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
 
+    print(p0matrix[0, 12, 12, 12])
     listofdups1 = np.zeros((ncap, len(irep)))
     listofnumbers1 = np.zeros(ncap)
 
@@ -147,8 +150,9 @@ def main():
         listofnumbers1[i] = np.size(iduplicates)
 
     # Dealing with the orbitals of a similar type together
+    print(angpart)
     dummy, apos, arep = np.unique(angpart, return_index=True, return_inverse=True)  # Note: is "axis=0" correct?
-
+    print(apos,arep)
     nnew = apos.size
     print('The number of GTOs after compression is: ', str(nnew))
 
@@ -179,6 +183,8 @@ def main():
     nq = np.size(q)
     nmat = np.size(m1)
     nipos = np.size(ipos)
+    print(nipos)
+    print(apos)
     napos = ncap
     # print(np.max(p0matrix))
     # px, py, pz, dx, dy, dz, z1, z2, e12, ll = integrals_ijkr.variables_total_3(maxl, ipos, nnn2, apos, nnew, ga,

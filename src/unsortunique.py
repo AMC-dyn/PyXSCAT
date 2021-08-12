@@ -3,6 +3,7 @@ import numpy as np
 
 def uunique(a):
     b, ipos, irep = np.unique(a, return_index=True, return_inverse=True, axis=1)
+    print(np.size(ipos))
     sipos = np.sort(ipos)
 
     bsort = a[:, sipos]

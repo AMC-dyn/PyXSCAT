@@ -7,27 +7,31 @@ import numpy as np
 
 
 def create_input():
-
     if os.path.isfile('inputs/abinitio.dat'):
         print('reading abinitio input file')
     else:
         print('try to create your own input or change the name of the bloody file to the correct one, '
               'remember ----> abinitio.dat')
-    RUN  = False
+    RUN = False
     GEOM = False
     METHOD = False
     OCCUPATION = False
     CLOSED = False
     BASISlog = False
     NEL = False
+    MLD = False
+    PUN = False
     NUMSTATES = False
     MULTIPLICITY = False
+    varname1 = 'n'
+    varname2 = 'n'
     geomind = 0
     j = 0
     calctype = 'none'
-
+    runningmolprocalc = 'def'
     with open('../inputs/abinitio.dat', 'r') as f:
         for lines in f:
+
             if lines.startswith('GEOMETRY'):
                 GEOM = True
             if GEOM and not lines.startswith('GEOMETRY'):
@@ -52,64 +56,83 @@ def create_input():
                 elif j > natoms - 1:
                     GEOM = False
             if lines.startswith('RUN'):
-                RUN=True
+                RUN = True
             if not lines.startswith('RUN') and RUN:
-                RUN=False
-                runningmolprocalc=str(lines.strip().split()[0])
-                if 'n' in runningmolprocalc or 'N' in runningmolprocalc:
-                    varname1=input('Specify the name of the molden file')
-                    os.system('cp '+ varname1 + ' molpro.mld')
-                    varname2 = input('Specify the name of the punch')
-                    os.system('cp ' + varname2 + '.pun molpro.pun')
-                    return x,y,z
+                RUN = False
+                runningmolprocalc = str(lines.strip().split()[0])
+
+            if 'n' in runningmolprocalc or 'N' in runningmolprocalc:
+
+
+
+                if lines.startswith('MLD'):
+                    MLD = True
+
+                if not lines.startswith('MLD') and MLD:
+                    print('here')
+                    MLD = False
+                    varname1 = str(lines.strip().split()[0])
+                    print(varname1)
+                if lines.startswith('PUNCH'):
+                    PUN = True
+                if not lines.startswith('PUNCH') and PUN:
+                    PUN = False
+                    varname2 = str(lines.strip().split()[0])
+                    print(varname2)
+
+                if varname1 != 'n' and varname2 != 'n':
+                    print('Copying the files')
+                    # varname1=input('Specify the name of the molden file')
+                    os.system('cp ' + varname1 + ' molpro.mld')
+                    # varname2 = input('Specify the name of the punch')
+                    os.system('cp ' + varname2 + ' molpro.pun')
+                    return x, y, z
+            elif 'y' in runningmolprocalc or 'Y' in runningmolprocalc:
                 os.system('rm -f molpro.mld molpro.pun molpro*.out molpro*.xml ')
-            if lines.startswith('METHOD'):
-                METHOD = True
-            if not lines.startswith('METHOD') and METHOD:
-                calctype = str(lines.strip().split()[0])
-                METHOD = False
-            if lines.startswith('OCC') and calctype == 'CAS' or calctype == 'cas':
-                OCCUPATION = True
-            if lines.startswith('MULT'):
-                MULTIPLICITY = True
-            if OCCUPATION and not lines.startswith('OCC'):
+                if lines.startswith('METHOD'):
+                    METHOD = True
+                if not lines.startswith('METHOD') and METHOD:
+                    calctype = str(lines.strip().split()[0])
+                    METHOD = False
+                if lines.startswith('OCC') and calctype == 'CAS' or calctype == 'cas':
+                    OCCUPATION = True
+                if lines.startswith('MULT'):
+                    MULTIPLICITY = True
+                if OCCUPATION and not lines.startswith('OCC'):
+                    occ = str(lines.strip().split())[2]
 
-                occ = str(lines.strip().split())[2]
+                    occ = int(occ)
+                    OCCUPATION = False
+                if lines.startswith('CLOSED') and calctype == 'CAS' or calctype == 'cas':
+                    CLOSED = True
+                if CLOSED and not lines.startswith('CLOSED'):
+                    closed = str(lines.strip().split())
 
-                occ = int(occ)
-                OCCUPATION = False
-            if lines.startswith('CLOSED') and calctype == 'CAS' or calctype == 'cas':
-                CLOSED = True
-            if CLOSED and not lines.startswith('CLOSED'):
-
-                closed = str(lines.strip().split())
-
-                closed = closed[2]
-                CLOSED = False
-            if lines.startswith('BASIS'):
-                BASISlog = True
-            if BASISlog and not lines.startswith('BASIS'):
-                basis = str(lines.strip().split(" "))
-                BASISlog = False
-            if lines.startswith("NEL"):
-                NEL = True
-            if NEL and not lines.startswith('NEL'):
-                NEL = False
-                numel = str(lines.strip())
-            if lines.startswith('NSTATES'):
-                NUMSTATES = True
-            if NUMSTATES and not lines.startswith('NSTATES'):
-                NUMSTATES = False
-                nstates = str(lines.strip())
-            if MULTIPLICITY and not lines.startswith('MULT'):
-                MULTIPLICITY = False
-                if lines.strip() == 'singlet' or lines.strip() == 'Singlet' or lines.strip() == 'SINGLET':
-                    mult = 0
-                elif lines.strip() == 'doublet' or lines.strip() == 'Doublet' or lines.strip() == 'DOUBLET':
-                    mult = 1
-                else:
-                    mult = 2
-
+                    closed = closed[2]
+                    CLOSED = False
+                if lines.startswith('BASIS'):
+                    BASISlog = True
+                if BASISlog and not lines.startswith('BASIS'):
+                    basis = str(lines.strip().split(" "))
+                    BASISlog = False
+                if lines.startswith("NEL"):
+                    NEL = True
+                if NEL and not lines.startswith('NEL'):
+                    NEL = False
+                    numel = str(lines.strip())
+                if lines.startswith('NSTATES'):
+                    NUMSTATES = True
+                if NUMSTATES and not lines.startswith('NSTATES'):
+                    NUMSTATES = False
+                    nstates = str(lines.strip())
+                if MULTIPLICITY and not lines.startswith('MULT'):
+                    MULTIPLICITY = False
+                    if lines.strip() == 'singlet' or lines.strip() == 'Singlet' or lines.strip() == 'SINGLET':
+                        mult = 0
+                    elif lines.strip() == 'doublet' or lines.strip() == 'Doublet' or lines.strip() == 'DOUBLET':
+                        mult = 1
+                    else:
+                        mult = 2
 
     # Molpro input, it must be changed for other codes
     '''routine to create molpro input, valid for molpro2012'''
