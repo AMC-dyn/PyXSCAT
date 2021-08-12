@@ -17,7 +17,7 @@ module twordmshit
 
 
 
-    SUBROUTINE ismember(col,matrix)
+    SUBROUTINE ismember(col,matrix,memval,colnum)
         use types
 
         integer(kind=ikind), intent(in), dimension(4)      :: col
@@ -28,7 +28,7 @@ module twordmshit
 
         subcol = sum(abs(matrix - spread(col, 1, size(matrix(:,1)))), dim=1)
         colnum = findloc(subcol, 0)
-        if (size(colnum) > 0) then
+        if colnum == 0 then
             memval = .true.
         else
             memval = .false.
@@ -41,10 +41,6 @@ module twordmshit
     SUBROUTINE whateverthename(whateverthevariables)
         use types
 
-        real(kind=dp), dimension(:), allocatable :: h_saved, pmu, h_sum, h_0, h_1, h_r, muoh,zij, zij2, zkr, zkr2
-       
-        allocate(zij(size(Z(:,1,1))), zij2(size(Z(:,1,1))), zkr(size(Z(:,1,1))), zkr2(size(Z(:,1,1))))
-        
         newtotal = []
         newmat = []
         
@@ -52,11 +48,14 @@ module twordmshit
             do j = 1, n
                 do k = 1, n 
                     do l = 1, n
-                        if ~ismember([i,j,k,l],matst,'rows') then
-                            if ismember([j i l k],matst,'rows') then
-                                [~,num] = ismember([j i l k],matst,'rows')
-                                newtotal = [newtotal;totalst(num)]
+                        call ismember((/i,j,k,l/),matst,memval,colnum)
+                        if not memval then
+                            call ismember((/j,i,l,k/),matst,memval,colnum)
+                            if memval then
+                                newtotal = [newtotal;totalst(colnum)]
                                 newmat = [newmat;[j i l k]]
+                            else
+                                call ismember((/l,k,j,i/)
                             elseif ismember([l,k,j,i],matst,'rows') then
                                 [~,num] = ismember([l,k,j,i],matst,'rows')
                                 newtotal = [newtotal;totalst(num)]
