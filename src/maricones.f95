@@ -1,6 +1,6 @@
 !-----------------------------------------------------------------------
 ! 2RDM Fortran Modules for PyXSCAT code
-! Andres Moreno Carrascosa and Mats Simmermacher, 2021
+! Andres Moreno Carrascosa and Mats Simmermacher, (2021)
 !-----------------------------------------------------------------------
 
 MODULE types
@@ -11,13 +11,11 @@ END MODULE types
 
 
 
-MODULE twordmshit
+MODULE membermodule
 
     implicit none 
 
     contains
-
-
 
     SUBROUTINE ismember(col,matrix,memval,colnum)
 
@@ -41,27 +39,38 @@ MODULE twordmshit
 
     END SUBROUTINE
 
+END MODULE
 
 
-    SUBROUTINE whateverthename(whateverthevariables)
+
+MODULE twordmreader
+
+    implicit none
+
+    contains
+
+    SUBROUTINE rederdensity_total(outfile,state1,state2,nstates,smat,stotal)
 
         use types
+        use membermodule
 
-        newtotal = []
-        newmat = []
+        integer(kind=ikind), intent(in)                                  :: state1, state2, nstates  ! ???
+        integer(kind=ikind), dimension(:)                                :: matst  ! ???
         
-        integer(kind=ikind)                                 :: i, j, k, l, cc
-        integer(kind=ikind)                                 :: n, sdr
-        integer(kind=ikind)                                 :: cnt, num
-        logical                                             :: memb
-        integer(kind=ikind), dimension(n**4)                :: newtotal
-        integer(kind=ikind), dimension(N**4,4)              :: newmat
-        integer(kind=ikind), dimension(:), allocatable      :: stotal
-        integer(kind=ikind), dimension(:,:), allocatable    :: smat   
-        integer(kind=ikind)                                 :: mo1, mo2, mo3, mo4
-        integer(kind=ikind), dimension(4)                   :: b
-        integer(kind=ikind), dimension(sdr)                 :: m1, m2, m3, m4, total2
-        integer(kind=ikind), dimension(:,:), allocatable    :: mat2
+        integer(kind=ikind)                                              :: i, j, k, l, cc
+        integer(kind=ikind)                                              :: n, sdr
+        integer(kind=ikind)                                              :: cnt, num
+        logical                                                          :: memb
+        integer(kind=ikind), dimension(n**4)                             :: newtotal
+        integer(kind=ikind), dimension(N**4,4)                           :: newmat
+        integer(kind=ikind), dimension(:), intent(out), allocatable      :: stotal
+        integer(kind=ikind), dimension(:,:), intent(out), allocatable    :: smat   
+        integer(kind=ikind)                                              :: mo1, mo2, mo3, mo4
+        integer(kind=ikind), dimension(4)                                :: b
+        integer(kind=ikind), dimension(sdr)                              :: m1, m2, m3, m4, total2
+        integer(kind=ikind), dimension(:,:), allocatable                 :: mat2
+
+!       Here the lines Andres is writing have to be added. 
 
         cnt = 0
         do i = 1, n
@@ -103,7 +112,7 @@ MODULE twordmshit
         smat = int8(smat)
         mat2 = unique(smat,'rows','stable')
         
-        sdr = size(mat2, dim=1)
+        sdr = size(mat2, dim=1)  ! is that the right dimension?
         
         do cc = 1, sdr
             mo1 = mat2(cc,1)
@@ -123,8 +132,6 @@ MODULE twordmshit
         newtotal = transpose(total2)  ! ???
    
     END SUBROUTINE
-
-
 
 END MODULE
 
