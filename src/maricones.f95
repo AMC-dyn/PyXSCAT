@@ -4,50 +4,56 @@
 !-----------------------------------------------------------------------
 
 MODULE types
-    implicit none
+
+        implicit none
+
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+
 END MODULE types
+
+
 
 MODULE uniquemodule
 
-    implicit none
+    implicit none 
 
     contains
 
 
-
-    SUBROUTINE unique(matrix,rmat,iuni,irec)
-
-        integer, dimension(:,:), intent(in)                       :: matrix
-        integer, dimension(:,:), allocatable                      :: sprmat
-        integer, dimension(:), allocatable                        :: same, iunifull
-        integer, dimension(:,:), intent(out), allocatable         :: rmat
-        integer, dimension(:), intent(out), allocatable           :: iuni
-        integer, dimension(:), intent(out), allocatable           :: irec
-        integer                                                   :: i, cnt
+    SUBROUTINE unique_integer(matrix,rmat,iuni,irec)
+    
+        use types
+        
+        integer(kind=ikind), dimension(:,:), intent(in)                  :: matrix
+        integer(kind=ikind), dimension(:,:), allocatable                 :: sprmat
+        integer(kind=ikind), dimension(:,:), intent(out), allocatable    :: rmat
+        integer(kind=ikind), dimension(:), allocatable                   :: same, iunifull
+        integer(kind=ikind), dimension(:), intent(out), allocatable      :: iuni
+        integer(kind=ikind), dimension(:), intent(out), allocatable      :: irec
+        integer(kind=ikind)                                              :: i, cnt
 
         allocate(sprmat(size(matrix(:,1)),size(matrix(1,:))))
         allocate(same(size(matrix(:,1))), iunifull(size(matrix(:,1))))
         allocate(irec(size(matrix(:,1))))
-
+        
         irec = 0
         cnt = 0
-
-        do i = 1, size(matrix(:,1))
+            
+        do i = 1, size(matrix(:,1))   
             if (irec(i) == 0) then
                 cnt = cnt + 1
                 iunifull(cnt) = i
                 sprmat = spread(matrix(i,:), 1, size(matrix(:,i)))
                 same = sum(abs(matrix - sprmat), dim=2)
-                same = (-2)*same + 1
+                same = (-1)*same + 1
                 same = (abs(same) + same)/2
                 irec = irec + same*cnt
             endif
         enddo
 
         allocate(iuni(cnt))
-        allocate(rmat(cnt,size(matrix(:,1))))
+        allocate(rmat(cnt,size(matrix(1,:))))
 
         iuni = iunifull(1:cnt)
         rmat = matrix(iuni,:)
@@ -55,14 +61,103 @@ MODULE uniquemodule
     END SUBROUTINE
 
 
+    SUBROUTINE unique_real(matrix,rmat,iuni,irec)
+    
+        use types
+        
+        real(kind=dp), dimension(:,:), intent(in)                      :: matrix
+        real(kind=dp), dimension(:,:), allocatable                     :: sprmat
+        real(kind=dp), dimension(:,:), intent(out), allocatable        :: rmat
+        integer(kind=ikind), dimension(:), allocatable                 :: same, iunifull
+        integer(kind=ikind), dimension(:), intent(out), allocatable    :: iuni
+        integer(kind=ikind), dimension(:), intent(out), allocatable    :: irec
+        integer(kind=ikind)                                            :: i, cnt
 
-END MODULE
+        allocate(sprmat(size(matrix(:,1)),size(matrix(1,:))))
+        allocate(same(size(matrix(:,1))), iunifull(size(matrix(:,1))))
+        allocate(irec(size(matrix(:,1))))
+        
+        irec = 0
+        cnt = 0
+            
+        do i = 1, size(matrix(:,1))   
+            if (irec(i) == 0) then
+                cnt = cnt + 1
+                iunifull(cnt) = i
+                sprmat = spread(matrix(i,:), 1, size(matrix(:,i)))
+                same = ceiling(sum(abs(matrix - sprmat), dim=2))
+                same = (-1)*same + 1
+                same = (abs(same) + same)/2
+                irec = irec + same*cnt
+            endif
+        enddo
+
+        allocate(iuni(cnt))
+        allocate(rmat(cnt,size(matrix(1,:))))
+
+        iuni = iunifull(1:cnt)
+        rmat = matrix(iuni,:)
+
+    END SUBROUTINE
+
+
+    SUBROUTINE unique_total(matrix,total,rmat,rtot)
+    
+        use types
+        
+        integer(kind=ikind), dimension(:,:), intent(in)                  :: matrix
+        real(kind=dp), dimension(:), intent(in)                          :: total
+        integer(kind=ikind), dimension(:,:), allocatable                 :: sprmat
+        integer(kind=ikind), dimension(:,:), intent(out), allocatable    :: rmat
+        real(kind=dp), dimension(:), intent(out), allocatable            :: rtot
+        integer(kind=ikind), dimension(:), allocatable                   :: same, iunifull
+        real(kind=dp), dimension(:), allocatable                         :: rtotfull
+        integer(kind=ikind), dimension(:), allocatable                   :: iuni
+        integer(kind=ikind), dimension(:), allocatable                   :: irec
+        integer(kind=ikind)                                              :: i, cnt
+
+        allocate(sprmat(size(matrix(:,1)),size(matrix(1,:))))
+        allocate(same(size(matrix(:,1))), iunifull(size(matrix(:,1))))
+        allocate(irec(size(matrix(:,1))))
+        allocate(rtotfull(size(total)))
+        
+        irec = 0
+        cnt = 0
+            
+        do i = 1, size(matrix(:,1))   
+            if (irec(i) == 0) then
+                cnt = cnt + 1
+                iunifull(cnt) = i
+                sprmat = spread(matrix(i,:), 1, size(matrix(:,i)))
+                same = sum(abs(matrix - sprmat), dim=2)
+                same = (-1)*same + 1
+                same = (abs(same) + same)/2
+                rtotfull(cnt) = sum(same*total, dim=1) 
+                irec = irec + same*cnt
+            endif
+        enddo
+
+        allocate(iuni(cnt))
+        allocate(rmat(cnt,size(matrix(1,:))))
+        allocate(rtot(cnt))
+        
+        iuni = iunifull(1:cnt)
+        rmat = matrix(iuni,:)
+        rtot = rtotfull(1:cnt)
+
+    END SUBROUTINE
+
+
+END MODULE uniquemodule
+
+
 
 MODULE membermodule
 
     implicit none 
 
     contains
+
 
     SUBROUTINE ismember(col,matrix,memval,colnum)
 
@@ -86,7 +181,8 @@ MODULE membermodule
 
     END SUBROUTINE
 
-END MODULE
+
+END MODULE membermodule
 
 
 
@@ -95,6 +191,7 @@ MODULE twordmreader
     implicit none
 
     contains
+
 
     SUBROUTINE reduce_density(matst,totalst,m1,m2,m3,m4,total2)
 
@@ -539,5 +636,5 @@ MODULE twordmreader
 
     end subroutine createtwordm
 
-END MODULE
+END MODULE twordmreader
 
