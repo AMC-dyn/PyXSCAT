@@ -10,7 +10,7 @@ end module types
 
 module integrals_ijkr
 
-    use twordms
+    use twordmreader
 
 
     implicit none 
@@ -1442,7 +1442,7 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
          real(kind=dp),  dimension(napos,napos,maxl*2+1,maxl+1,maxl+1) :: ddx,ddy,ddz
         real(kind=dp), dimension(napos,napos) :: px,py,pz
         real(kind=dp),  dimension(:,:,:), allocatable :: z1, z2
-        real(kind=dp),  dimension(:), allocatable :: total
+        real(kind=dp),  dimension(:), allocatable :: total,newtotal
         real(kind=dp),  dimension(nq,nipos,nipos) :: e12
         integer(kind=ikind), dimension(napos) :: ll
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
@@ -1451,18 +1451,13 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
 
         print*,confs(1,:)
         call createtwordm(confs,civecs,ndiff,ep2,mat,total)
+        call reduce_density(mat,total,m1,m2,m3,m4,newtotal)
 
-        allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
-        allocate(z1(size(mat(:,1)), nipos, nipos), z2(size(mat(:,1)), nipos, nipos))
+        allocate(z1(size(m1(:)), nipos, nipos), z2(size(m1(:)), nipos, nipos))
 
-        m1 = mat(:,1)
-        m2 = mat(:,2)
-        m3 = mat(:,3)
-        m4 = mat(:,4)
+        nmat=size(m1(:))
 
-        nmat=size(mat(:,4))
-
-        print*,nmat, size(total), total(1)
+        print*,nmat, size(newtotal), newtotal(1)
         call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
 
