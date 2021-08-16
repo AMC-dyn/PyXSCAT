@@ -1,7 +1,8 @@
 import numpy as np
 import molproinp_out as mp
 import ReorderGTOS as Rdgt
-import twordm as td
+import twordm_red as td
+import twordm as td2
 from factd import factd
 from pzerotable import pzerotablenew as pzerot
 # from MDcoeffs import md_table_gen as mtg
@@ -72,7 +73,7 @@ def main():
 
     # reading the 2-particle RDM from MOLPRO output
 
-    mat, total = td.twordmconst()  # state1 and state2 should be used here
+    ndiff, civs, ep2, confs = td.twordmconst()  # state1 and state2 should be used here
 
     # normalisation of the GTOs
     norma = np.power(np.divide(2, np.pi), 0.75)
@@ -122,10 +123,10 @@ def main():
     print('The number of primitive GTOs after reduction: ', str(ncap))
 
     # print("p0 first point:", p0matrix[:, 1, 0, 0])
-    m1 = np.asarray(mat[:, 0], dtype=np.int64) + 1
-    m2 = np.asarray(mat[:, 1], dtype=np.int64) + 1
-    m3 = np.asarray(mat[:, 2], dtype=np.int64) + 1
-    m4 = np.asarray(mat[:, 3], dtype=np.int64) + 1
+    # m1 = np.asarray(mat[:, 0], dtype=np.int64) + 1
+    # m2 = np.asarray(mat[:, 1], dtype=np.int64) + 1
+    # m3 = np.asarray(mat[:, 2], dtype=np.int64) + 1
+    # m4 = np.asarray(mat[:, 3], dtype=np.int64) + 1
 
     print(max(l))
     p0matrix = np.zeros(
@@ -136,7 +137,6 @@ def main():
                 p0matrix[:, i, j, k] = pzerot(i, j, k, q)
     # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
 
-    print(p0matrix[0, 12, 12, 12])
     listofdups1 = np.zeros((ncap, len(irep)))
     listofnumbers1 = np.zeros(ncap)
 
@@ -152,7 +152,7 @@ def main():
     # Dealing with the orbitals of a similar type together
     print(angpart)
     dummy, apos, arep = np.unique(angpart, return_index=True, return_inverse=True)  # Note: is "axis=0" correct?
-    print(apos,arep)
+    print(apos, arep)
     nnew = apos.size
     print('The number of GTOs after compression is: ', str(nnew))
 
@@ -181,11 +181,19 @@ def main():
 
     maxl = max(l)
     nq = np.size(q)
-    nmat = np.size(m1)
+
     nipos = np.size(ipos)
     print(nipos)
     print(apos)
     napos = ncap
+    confs2 = np.zeros((np.size(confs), len(confs[0])), dtype=np.int64)
+    counts = 0
+    for i in confs:
+        lst = []
+        lst = [*i.replace('a', '1').replace('b', '2')]
+        confs2[counts, :] = np.asarray(lst, dtype=np.int64)
+        counts = counts + 1
+    print(np.shape(confs2))
     # print(np.max(p0matrix))
     # px, py, pz, dx, dy, dz, z1, z2, e12, ll = integrals_ijkr.variables_total_3(maxl, ipos, nnn2, apos, nnew, ga,
     #                                                                          l, m, n,
@@ -201,10 +209,10 @@ def main():
     #                                         cutoffcentre, q, e12)
 
     resultado2 = integrals_ijkr.total_scattering_calculation(maxl, ipos, nipos, apos, napos,
-                                                             ga, l, m, n, xx, yy, zz, mmod, m1, m2, m3, m4, nmat, total,
+                                                             ga, l, m, n, xx, yy, zz, mmod,
                                                              q, nq, listofdups1, listofnumbers1, listofdups2,
                                                              listofnumbers2, p0matrix,
-                                                             cutoffz, cutoffmd, cutoffcentre)
+                                                             cutoffz, cutoffmd, cutoffcentre, confs2, civs, ndiff, ep2)
     print(resultado2)
 
     return 1

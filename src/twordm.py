@@ -44,6 +44,7 @@ def twordmconst():
                     'ab' * closed + NN[0].replace("0", "00").replace("a", "a0").replace("b", "0b").replace("2", "ab"))
                 if len(NN) != 1:
                     count += 1
+    #up to here in python
 
     twordm = np.zeros((int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2)))
     nc1 = 0

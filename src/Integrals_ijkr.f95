@@ -10,6 +10,7 @@ end module types
 
 module integrals_ijkr
 
+    use twordms
 
 
     implicit none 
@@ -464,7 +465,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
         print*,shape(z1), nmat
         z1=0.0_dp
         z2=0.0_dp
-
+        print*,z1(1,1,1),m1(1)
 
 
         temp1=0.0
@@ -1417,8 +1418,8 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
 
 
 subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat,total,q,nq,list1,listN1,list2,listN2,p0matrix, &
-        cutoffz,cutoffmd,cutoffcentre,result)
+        mmod,q,nq,list1,listN1,list2,listN2,p0matrix, &
+        cutoffz,cutoffmd,cutoffcentre,confs,civecs,ndiff,ep2,result)
 
 
     use types
@@ -1426,12 +1427,13 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
 
 
 
-        integer(kind=ikind), intent(in):: nipos, napos, nmat, nq, maxl
-        integer(kind=ikind), intent(in),dimension(:) :: l, m, n, apos, ipos, m1, m2, m3, m4
+        integer(kind=ikind), intent(in):: nipos, napos,  nq, maxl
+        integer(kind=ikind), intent(in),dimension(:) :: l, m, n, apos, ipos
         integer(kind=ikind), intent(in),dimension(:) :: listN1,listN2
-        integer(kind=ikind), intent(in),dimension(:,:) :: list1, list2
-        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, total,q
-        real(kind=dp), intent(in),dimension(:,:) :: mmod
+        integer(kind=ikind), intent(in),dimension(:,:) :: list1, list2, ep2, ndiff
+        integer(kind=ikind), dimension(:,:), intent(in):: confs
+        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
+        real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs
         real(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         real(kind=dp), intent(in) :: cutoffmd, cutoffz,cutoffcentre
 
@@ -1439,10 +1441,28 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
 
          real(kind=dp),  dimension(napos,napos,maxl*2+1,maxl+1,maxl+1) :: ddx,ddy,ddz
         real(kind=dp), dimension(napos,napos) :: px,py,pz
-        real(kind=dp),  dimension(nmat,nipos,nipos) :: z1, z2
+        real(kind=dp),  dimension(:,:,:), allocatable :: z1, z2
+        real(kind=dp),  dimension(:), allocatable :: total
         real(kind=dp),  dimension(nq,nipos,nipos) :: e12
         integer(kind=ikind), dimension(napos) :: ll
+        integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
+        integer(kind=ikind), dimension(:,:), allocatable :: mat
+        integer(kind=ikind):: nmat
 
+        print*,confs(1,:)
+        call createtwordm(confs,civecs,ndiff,ep2,mat,total)
+
+        allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
+        allocate(z1(size(mat(:,1)), nipos, nipos), z2(size(mat(:,1)), nipos, nipos))
+
+        m1 = mat(:,1)
+        m2 = mat(:,2)
+        m3 = mat(:,3)
+        m4 = mat(:,4)
+
+        nmat=size(mat(:,4))
+
+        print*,nmat, size(total), total(1)
         call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
 
