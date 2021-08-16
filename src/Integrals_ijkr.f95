@@ -1451,15 +1451,26 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
 
         print*,confs(1,:)
         call createtwordm(confs,civecs,ndiff,ep2,mat,total)
+
+
+!        allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
+!
+!
+!
+!        m1 = mat(:,1)
+!        m2 = mat(:,2)
+!        m3 = mat(:,3)
+!        m4 = mat(:,4)
         call reduce_density(mat,total,m1,m2,m3,m4,newtotal)
 
+        print*,'Reduced matrix'
         allocate(z1(size(m1(:)), nipos, nipos), z2(size(m1(:)), nipos, nipos))
 
         nmat=size(m1(:))
 
         print*,nmat, size(newtotal), newtotal(1)
         call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
+        mmod,m1,m2,m3,m4,nmat, newtotal,q,nq,list1,listN1,list2,listN2)
 
         print*,'In between variable and integration'
 

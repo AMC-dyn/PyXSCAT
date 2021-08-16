@@ -120,7 +120,8 @@ MODULE uniquemodule
         allocate(same(size(matrix(:,1))), iunifull(size(matrix(:,1))))
         allocate(irec(size(matrix(:,1))))
         allocate(rtotfull(size(total)))
-        
+
+        print*,size(matrix(:,1))
         irec = 0
         cnt = 0
             
@@ -132,7 +133,7 @@ MODULE uniquemodule
                 same = sum(abs(matrix - sprmat), dim=2)
                 same = (-1)*same + 1
                 same = (abs(same) + same)/2
-                rtotfull(cnt) = sum(same*total, dim=1) 
+                rtotfull(cnt) = sum(same*total)
                 irec = irec + same*cnt
             endif
         enddo
@@ -144,7 +145,7 @@ MODULE uniquemodule
         iuni = iunifull(1:cnt)
         rmat = matrix(iuni,:)
         rtot = rtotfull(1:cnt)
-
+        print*, sum(matrix-rmat)
     END SUBROUTINE
 
 
@@ -209,7 +210,7 @@ MODULE twordmreader
         logical                                                          :: memb
 
         integer(kind=ikind), dimension(:,:), allocatable                 :: newmat
-        integer(kind=ikind), dimension(:), allocatable      :: stotal,newtotal,ipos,irep
+        real(kind=dp), dimension(:), allocatable      :: stotal,newtotal
         integer(kind=ikind), dimension(:,:), allocatable    :: smat
         integer(kind=ikind)                                              :: mo1, mo2, mo3, mo4
         integer(kind=ikind), dimension(4)                                :: b
@@ -220,14 +221,16 @@ MODULE twordmreader
 
 
         allocate(newtotal(size(matst(:,1))),newmat(size(matst(:,1)), size(matst(1,:))))
+
+        n=maxval(matst)
         cnt = 0
         do i = 1, n
-
             do j = 1, n
                 do k = 1, n 
                     do l = 1, n
                         call ismember((/ i, j, k, l /), matst, memb, num)
                         if (memb) then
+
                             cnt = cnt + 1 
                             newtotal(cnt) = totalst(num)
                             newmat(cnt,:) = (/i, j, k, l /)
@@ -258,12 +261,13 @@ MODULE twordmreader
 !       in the following a few things have to be done; for example, the unique function
 !       is called (but we have that only in Python so far?)
 
+        print*,'size',size(smat(:,1))
 
-       call unique(smat, mat2, ipos, irep)
+       call unique_total(smat, stotal, mat2, total2 )
         
-        sdr = size(mat2, dim=1)
+        sdr = size(mat2(:,1))
 
-        allocate(m1(sdr), m2(sdr), m3(sdr), m4(sdr), total2(sdr))
+        allocate(m1(sdr), m2(sdr), m3(sdr), m4(sdr))
 
         !uniquetotal(smat,mat2,stotal,total2)
 
