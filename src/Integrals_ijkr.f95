@@ -1419,7 +1419,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll2,maxl, ipos,nipos,a
 
 subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
         mmod,q,nq,list1,listN1,list2,listN2,p0matrix, &
-        cutoffz,cutoffmd,cutoffcentre,confs,civecs,ndiff,ep2,result)
+        cutoffz,cutoffmd,cutoffcentre,confs,civecs,result)
 
 
     use types
@@ -1430,7 +1430,7 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
         integer(kind=ikind), intent(in):: nipos, napos,  nq, maxl
         integer(kind=ikind), intent(in),dimension(:) :: l, m, n, apos, ipos
         integer(kind=ikind), intent(in),dimension(:) :: listN1,listN2
-        integer(kind=ikind), intent(in),dimension(:,:) :: list1, list2, ep2, ndiff
+        integer(kind=ikind), intent(in),dimension(:,:) :: list1, list2
         integer(kind=ikind), dimension(:,:), intent(in):: confs
         real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
         real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs
@@ -1446,37 +1446,51 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
         real(kind=dp),  dimension(nq,nipos,nipos) :: e12
         integer(kind=ikind), dimension(napos) :: ll
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
-        integer(kind=ikind), dimension(:,:), allocatable :: mat
-        integer(kind=ikind):: nmat
-
-        print*,confs(1,:)
-        call createtwordm(confs,civecs,ndiff,ep2,mat,total)
+        integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
+        integer(kind=ikind):: nmat,i,j
+        real(kind=dp) :: start,time1,time2,time3,time4
 
 
-!        allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
+        call cpu_time(start)
+        call maxcoincidence(confs,ep3,ndiff2)
+        call cpu_time(time1)
+       ! allocate(ep3(size(confs(:,1)),size(confs(:,1))),ndiff2(size(confs(:,1)),size(confs(:,1))) )
+        print*,'Time maxcoincidence',time1-start
+
+
+        call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
+
+        call cpu_time(time2)
+         print*,'Time maxcoincidence',time2-time1
+
+
+        allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
 !
 !
 !
-!        m1 = mat(:,1)
-!        m2 = mat(:,2)
-!        m3 = mat(:,3)
-!        m4 = mat(:,4)
-        call reduce_density(mat,total,m1,m2,m3,m4,newtotal)
+        m1 = mat(:,1)
+        m2 = mat(:,2)
+        m3 = mat(:,3)
+        m4 = mat(:,4)
+        !call reduce_density(mat,total,m1,m2,m3,m4,newtotal)
 
         print*,'Reduced matrix'
-        allocate(z1(size(m1(:)), nipos, nipos), z2(size(m1(:)), nipos, nipos))
+        allocate(z1(size(m1), nipos, nipos), z2(size(m1), nipos, nipos))
 
-        nmat=size(m1(:))
+        nmat=size(m1)
 
-        print*,nmat, size(newtotal), newtotal(1)
+
         call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat, newtotal,q,nq,list1,listN1,list2,listN2)
+        mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
 
-        print*,'In between variable and integration'
+        call cpu_time(time3)
+        print*,'Time variables', time3-time2
 
         call integration(napos,px,py,pz,ll,p0matrix,ddx,ddy,ddz,z1,z2,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,result)
 
+        call cpu_time(time4)
 
+         print*,'Time calc', time4-time3
         end subroutine total_scattering_calculation
 
         end module integrals_ijkr

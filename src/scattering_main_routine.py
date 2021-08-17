@@ -73,8 +73,9 @@ def main():
 
     # reading the 2-particle RDM from MOLPRO output
 
-    ndiff, civs, ep2, confs = td.twordmconst()  # state1 and state2 should be used here
-
+    civs, confs = td.twordmconst()  # state1 and state2 should be used here
+    #dumm2,total2 = td2.twordmconst()
+    print( 'twordm constructed')
     # normalisation of the GTOs
     norma = np.power(np.divide(2, np.pi), 0.75)
     normb = np.zeros(l.size)
@@ -212,7 +213,7 @@ def main():
                                                              ga, l, m, n, xx, yy, zz, mmod,
                                                              q, nq, listofdups1, listofnumbers1, listofdups2,
                                                              listofnumbers2, p0matrix,
-                                                             cutoffz, cutoffmd, cutoffcentre, confs2, civs, ndiff, ep2)
+                                                             cutoffz, cutoffmd, cutoffcentre, confs2, civs)
     print(resultado2)
 
     return 1

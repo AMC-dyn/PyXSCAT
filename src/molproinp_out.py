@@ -7,7 +7,7 @@ import numpy as np
 
 
 def create_input():
-    if os.path.isfile('inputs/abinitio.dat'):
+    if os.path.isfile('../inputs/abinitio.dat'):
         print('reading abinitio input file')
     else:
         print('try to create your own input or change the name of the bloody file to the correct one, '

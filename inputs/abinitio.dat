@@ -1,10 +1,11 @@
 
 GEOMETRY
 Angstrom
-1
-Ne 0.000 0.00 0.00
+2
+O 0.0 0.0 1.2
+O 0.0 0.0 0.0
 RUN
-No
+Yes
 MLD
 ne.mld
 PUNCH
@@ -15,7 +16,7 @@ SYM
 OFF
 NONE
 BASIS
-aug-cc-pVDZ
+6-311G
 OCC
 9
 CLOSED

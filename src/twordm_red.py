@@ -31,9 +31,10 @@ def twordmconst():
                     closed = line.strip().split()
             else:
                 closed = 'none'
+    print('closed orbitals',closed)
     if 'none' in closed:
-        #closed = input('Specify the number of closed orbitals \n')
-        closed=2
+        # closed = input('Specify the number of closed orbitals \n')
+        closed = 0
     closed = int(closed)
     with open('molpro.pun', 'r') as fh:
         for line in fh:
@@ -47,35 +48,39 @@ def twordmconst():
                     count += 1
     # up to here in python
 
-    twordm = np.zeros((int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2)))
-    nc1 = 0
-    ep = 1
-    ep2 = np.ones((len(confs), len(confs)))
-    for c1 in confs:
-        nc2 = 0
-        for c2 in confs:
-
-            mat1 = [i for i in range(len(c1)) if c1[i] != "0"]
-            mat2 = [i for i in range(len(c1)) if c2[i] != "0"]
-
-            for i in range(len(mat1)):
-
-                if mat1[i] != mat2[i]:
-                    for j in range(len(mat2)):
-                        if mat1[i] == mat2[j]:
-                            ep2[nc1, nc2] = -ep2[nc1, nc2]
-
-            nc2 += 1
-        nc1 += 1
-
-    ndiff = np.ones((np.size(confs), np.size(confs)))
-    nc1 = 0
-    for c1 in confs:
-        nc2 = 0
-        for c2 in confs:
-            ndiff[nc1, nc2] = sum(1 for a, b in zip(c1, c2) if a != b)
-
-            nc2 = nc2 + 1
-        nc1 = nc1 + 1
-    print('number of differences', np.shape(ndiff))
-    return ndiff, civs, ep2, confs
+    # twordm = np.zeros((int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2)))
+    # nc1 = 0
+    # ep = 1
+    print('read complete with ', np.size(confs) * np.size(confs))
+    # ep2 = np.ones((len(confs), len(confs)))
+    # for c1 in confs:
+    #     nc2 = 0
+    #     for c2 in confs:
+    #
+    #         mat1 = [i for i in range(len(c1)) if c1[i] != "0"]
+    #         mat2 = [i for i in range(len(c1)) if c2[i] != "0"]
+    #
+    #         for i in range(len(mat1)):
+    #
+    #             if mat1[i] != mat2[i]:
+    #                 for j in range(len(mat2)):
+    #                     if mat1[i] == mat2[j]:
+    #                         ep2[nc1, nc2] = -ep2[nc1, nc2]
+    #
+    #         nc2 += 1
+    #     nc1 += 1
+    # #
+    # ndiff = np.ones((np.size(confs), np.size(confs)))
+    # nc1 = 0
+    # print('maybe this part takes forever')
+    #
+    # for c1 in confs:
+    #     nc2 = 0
+    #     for c2 in confs:
+    #         ndiff[nc1, nc2] = sum(1 for a, b in zip(c1, c2) if a != b)
+    #
+    #         nc2 = nc2 + 1
+    #     nc1 = nc1 + 1
+    # print('number of differences', np.shape(ndiff))
+    # print(ep2)
+    return civs, confs

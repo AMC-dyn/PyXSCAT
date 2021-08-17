@@ -114,18 +114,25 @@ MODULE uniquemodule
         real(kind=dp), dimension(:), allocatable                         :: rtotfull
         integer(kind=ikind), dimension(:), allocatable                   :: iuni
         integer(kind=ikind), dimension(:), allocatable                   :: irec
-        integer(kind=ikind)                                              :: i, cnt
+        integer(kind=ikind)                                              :: i, cnt, dim1, dim2
 
-        allocate(sprmat(size(matrix(:,1)),size(matrix(1,:))))
-        allocate(same(size(matrix(:,1))), iunifull(size(matrix(:,1))))
-        allocate(irec(size(matrix(:,1))))
-        allocate(rtotfull(size(total)))
 
-        print*,size(matrix(:,1))
+        dim1 = size(matrix(:,1))
+        dim2 = size(matrix(1,:))
+        print*,dim1,dim2
+        allocate(sprmat(dim1,dim2))
+        print*, 'first allocation'
+        allocate(same(dim1), iunifull(dim1))
+        print*,'second allocation'
+        allocate(irec(dim1))
+        print*,'third allocation'
+        allocate(rtotfull(dim1))
+        print*,'fourth allocation'
+        print*,dim1
         irec = 0
         cnt = 0
             
-        do i = 1, size(matrix(:,1))   
+        do i = 1, dim1
             if (irec(i) == 0) then
                 cnt = cnt + 1
                 iunifull(cnt) = i
@@ -135,6 +142,7 @@ MODULE uniquemodule
                 same = (abs(same) + same)/2
                 rtotfull(cnt) = sum(same*total)
                 irec = irec + same*cnt
+                print*, cnt
             endif
         enddo
 
@@ -145,7 +153,7 @@ MODULE uniquemodule
         iuni = iunifull(1:cnt)
         rmat = matrix(iuni,:)
         rtot = rtotfull(1:cnt)
-        print*, sum(matrix-rmat)
+        print*, 'reduced finished'
     END SUBROUTINE
 
 
@@ -220,50 +228,63 @@ MODULE twordmreader
         integer(kind=ikind), dimension(:), allocatable :: num1
 
 
-        allocate(newtotal(size(matst(:,1))),newmat(size(matst(:,1)), size(matst(1,:))))
+!        allocate(newtotal(size(matst(:,1))),newmat(size(matst(:,1)), size(matst(1,:))))
+!        newmat=0
+!        newtotal=0.0_dp
+!        n=maxval(matst)
+!        print*, n**4, size(matst(:,1))
+!        cnt = 0
+!        do i = 1, n
+!            do j = 1, n
+!                do k = 1, n
+!                    do l = 1, n
+!                        if (l==1  .and. k==9 .and. j==9 .and. i==8) then
+!                            print*, 'Thats the point we want', cnt, newmat(1,:)
+!                        end if
+!                        call ismember((/ i, j, k, l /), matst, memb, num)
+!                        if (memb) then
+!                            print*, 'memb var',cnt, memb
+!                            cnt = cnt + 1
+!                            newtotal(cnt) = totalst(num)
+!                            newmat(cnt,:) = (/i, j, k, l /)
+!                            print*,cnt,newmat(1,:), newtotal(1)
+!                        else
+!                            call ismember((/ j, i, l, k /), matst, memb, num)
+!                            if (memb) then
+!                                cnt = cnt + 1
+!                                newtotal(cnt) = totalst(num)
+!                                newmat(cnt,:) = (/ j, i, l, k /)
+!                                print*,'holaaaa',cnt
+!                            else
+!                                call ismember((/ l, k, j, i /), matst, memb, num)
+!                                if (memb) then
+!                                    cnt = cnt + 1
+!                                    newtotal(cnt) = totalst(num)
+!                                    newmat(cnt,:) = (/ l, k, j, i /)
+!                                    print*,'HOLAAAAA',cnt
+!                                endif
+!                            endif
+!
+!                        endif
+!                        if (l==1  .and. k==9 .and. j==9 .and. i==8) then
+!                            print*, 'Thats the point we wanted', cnt, newmat(1,:)
+!                        end if
+!                    enddo
+!                enddo
+!            enddo
+!        enddo
+!        print*,cnt
+!        allocate(stotal(cnt), smat(cnt,4))
+!        stotal = newtotal(1:cnt)
+!        smat = newmat(1:cnt,:)
+!
+!!       in the following a few things have to be done; for example, the unique function
+!!       is called (but we have that only in Python so far?)
+!
+!        print*,'size',size(smat(:,1))
+!        print*,newmat(1,:),smat(1,:)
 
-        n=maxval(matst)
-        cnt = 0
-        do i = 1, n
-            do j = 1, n
-                do k = 1, n 
-                    do l = 1, n
-                        call ismember((/ i, j, k, l /), matst, memb, num)
-                        if (memb) then
-
-                            cnt = cnt + 1 
-                            newtotal(cnt) = totalst(num)
-                            newmat(cnt,:) = (/i, j, k, l /)
-                        else
-                            call ismember((/ j, i, l, k /), matst, memb, num)
-                            if (memb) then
-                                cnt = cnt + 1
-                                newtotal(cnt) = totalst(num)
-                                newmat(cnt,:) = (/ j, i, l, k /)
-                            else
-                                call ismember((/ l, k, j, i /), matst, memb, num)
-                                if (memb) then
-                                    cnt = cnt + 1
-                                    newtotal(cnt) = totalst(num)
-                                    newmat(cnt,:) = (/ l, k, j, i /)
-                                endif
-                            endif
-                        endif
-                    enddo
-                enddo
-            enddo
-        enddo
-
-        allocate(stotal(cnt), smat(cnt,4))
-        stotal = newtotal(1:cnt)
-        smat = newmat(1:cnt,:)
-
-!       in the following a few things have to be done; for example, the unique function
-!       is called (but we have that only in Python so far?)
-
-        print*,'size',size(smat(:,1))
-
-       call unique_total(smat, stotal, mat2, total2 )
+        call unique_total(matst, totalst, mat2, total2 )
         
         sdr = size(mat2(:,1))
 
@@ -281,6 +302,66 @@ MODULE twordmreader
 
    
     END SUBROUTINE reduce_density
+
+    subroutine maxcoincidence(confs, ep2,ndiff)
+        use types
+        implicit none
+        integer(kind=ikind), intent(in), dimension(:,:) :: confs
+        integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
+        integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
+        integer(kind=ikind), dimension(:,:), allocatable :: mat1
+        integer(kind=ikind) :: i,j, c1,c2, count
+
+
+        allocate(ep2(size(confs(:,1)),size(confs(:,1))))
+        ep2=1
+        count=0
+        matdum=0
+        print*,'holaa'
+            do i=1,size(confs(:,1))
+                count=0
+                do j=1,size(confs(1,:))
+
+
+                    if (confs(i,j)/=0) then
+                        count=count+1
+                        matdum(i,count)=j
+                        end if
+                end do
+            end do
+           print*, 'matdum constructed'
+            allocate(mat1(size(confs(:,1)),count), ndiff(size(confs(:,1)),size(confs(:,1))))
+            ndiff=0
+            mat1=matdum(:,1:count)
+            print*, 'mat1 constructed'
+            do c1=1, size(confs(:,1))
+                do c2=c1+1,size(confs(:,1))
+                    do i=1,size(mat1(1,:))
+                        if  (mat1(c1,i) /= mat1(c2,i)) then
+
+
+                            do j=1,size(mat1(1,:))
+                                if (mat1(c1,i) /= mat1(c2,j)) then
+                                    ep2(c1,c2)=-ep2(c1,c2)
+                                    ep2(c2,c1)=ep2(c1,c2)
+
+                                end if
+                            end do
+                        end if
+                    end do
+
+                    do j=1,size(confs(1,:))
+                        if (confs(c1,j)/=confs(c2,j)) then
+                           ndiff(c1,c2)= ndiff(c1,c2) +1
+                           ndiff(c2,c1)= ndiff(c2,c1) +1
+                        end if
+                    end do
+
+                end do
+            end do
+
+    print*,ndiff(1,2)
+    end subroutine maxcoincidence
 
     subroutine createtwordm(confs,civs,ndiff,ep2,mat,total)
 
@@ -599,7 +680,7 @@ MODULE twordmreader
 
 
 
-    cutoff = 1E-10
+    cutoff = 1E-09
     count=0
     count2=1
 
@@ -634,7 +715,7 @@ MODULE twordmreader
         end if
     end do
 
-
+        print*, 'twordm calculated'
 
 
 

@@ -6,3 +6,29 @@ gprint,civector,orbitals,angles=-1,distance=-1
 
  gthresh,thrpun=0.0000001
  punch,molpro.pun,new
+basis= 6-311G
+symmetry,nosym;
+orient,noorient;
+angstrom;
+geomtype=xyz;
+geom={
+        2
+
+O 0.0 0.0 1.2
+O 0.0 0.0 0.0
+}
+{multi,failsafe;
+maxiter,40;
+config,det
+occ,9;
+closed,0;
+wf,16,1,0;
+state,1;
+pspace,10.0        
+orbital,2140.3;
+ORBITAL,IGNORE_ERROR;
+ciguess,2501.2 
+save,ci=2501.2}
+
+put,molden,molpro.mld
+---
