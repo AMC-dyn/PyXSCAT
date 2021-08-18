@@ -6,7 +6,7 @@ gprint,civector,orbitals,angles=-1,distance=-1
 
  gthresh,thrpun=0.0000001
  punch,molpro.pun,new
-basis= 6-311G
+basis= avtz
 symmetry,nosym;
 orient,noorient;
 angstrom;
