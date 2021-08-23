@@ -347,7 +347,8 @@ MODULE twordmreader
     END SUBROUTINE reduce_density
 
 
-     SUBROUTINE integral_ijkr_pzero(nq,lmax1,lmax2,lmax3,lmax4,p0mat,dx,dy,dz,i,j,k,r,zcontr,apos,cutoffz,cutoffmd,itgr)
+     SUBROUTINE integral_ijkr_pzero(nq,lmax1,lmax2,lmax3,lmax4,p0mat,dx,dy,dz,i,j,k,r,zcontr,zcontr2, &
+             apos,cutoffz,cutoffmd,itgr)
 
         use types
 
@@ -359,7 +360,7 @@ MODULE twordmreader
         REAL(kind=dp), INTENT(IN)                             :: cutoffz, cutoffmd
         REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: p0mat
         REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:,:)               :: dx, dy, dz
-        REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: zcontr
+        REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: zcontr,zcontr2
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: apos
         ! definition of output
         REAL(kind=dp), INTENT(OUT), DIMENSION(nq)             :: itgr
@@ -375,27 +376,30 @@ MODULE twordmreader
 !        REAL(kind=dp), DIMENSION(size(Z2(:,1,1)))                          :: zij2, zkr2
         REAL(kind=dp), DIMENSION(nq)                          :: f
 
-
-        posI=apos(i)
+        posI=1
+       ! posI=apos(i)
 
         itgr=0.0
         ! loop through all possible ways to get total angular momentum lmax1
         do l1 = 0, lmax1
             do m1 = 0, lmax1-l1
                 n1 = lmax1-l1-m1
-                posj = apos(j)
+                posj=1
+               ! posj = apos(j)
                 ! loop through all possible ways to get total angular momentum lmax2
                 do l2 = 0, lmax2
                     do m2 = 0, lmax2-l2
                         n2 = lmax2-l2-m2
 !                        zij1 = z1(:,posi,posj)
 !                        zij2 = z2(:,posi,posj)
-                        posk = apos(k)
+                        posk=1
+                        !posk = apos(k)
                         ! loop through all possible ways to get total angular momentum lmax3
                         do l3 = 0, lmax3
                             do m3 = 0, lmax3-l3
                                 n3 = lmax3-l3-m3
-                                posr = apos(r)
+                                posr=1
+                                !posr = apos(r)
                                 ! loop through all possible ways to get total angular momentum lmax4
                                 do l4 = 0, lmax4
                                     do m4 = 0, lmax4-l4
@@ -411,7 +415,7 @@ MODULE twordmreader
 !                                        !z11=dot_product(zij1,zkr2)/8
 !                                        z22=dot_product(zij2,zkr1)/8
 !                                        ztot=z11+z22
-                                       ztot=zcontr(posJ,posK,posR,posI)+zcontr(posR, posI, posJ,posK)
+                                       ztot=zcontr(posJ,posK,posR,posI)+zcontr2(posR,posI,posJ,posK)
 
                                         ! continue only if larger
                                         if (abs(ztot) < cutoffz) then
@@ -474,8 +478,9 @@ MODULE twordmreader
 
     END SUBROUTINE
 
-    subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx, dy, dz, i,j, k, r,zcontr, apos, cutoffz, &
-                cutoffmd,int_res)
+    subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx, dy, dz, i,j, k, r,&
+            zcontr, zcontr2, apos, &
+            cutoffz, cutoffmd,int_res)
 
         use types
         implicit none
@@ -485,7 +490,7 @@ MODULE twordmreader
         integer(kind=selected_int_kind(8)), intent(in)  :: lmax1,lmax2,lmax3,lmax4,i,j,k,r
         integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: apos
         real(kind=dp), intent(in)              :: cutoffz,cutoffmd, hx, hy, hz, h
-        real(kind=dp), intent(in), dimension(:,:,:,:) :: zcontr
+        real(kind=dp), intent(in), dimension(:,:,:,:) :: zcontr,zcontr2
         real(kind=dp), intent(in), dimension(:)   ::  mu
 
         real(kind=dp), intent(in),  dimension(:,:,:,:,:) :: dx,dy,dz
@@ -562,8 +567,8 @@ MODULE twordmreader
                 enddo
             enddo
         enddo
-        posi=apos(i)
-
+       ! posi=apos(i)
+        posi=1
         deallocate(a,b,c)
 
         h_saved=0.0_dp
@@ -571,7 +576,8 @@ MODULE twordmreader
         do l1=0,lmax1
             do m1=0,(lmax1-l1)
                 n1=lmax1-l1-m1
-                posj=apos(j)
+               ! posj=apos(j)
+                posj=1
         !loop through all possible ways to get total angular momentum lmax2
                 do l2=0,lmax2
                     do m2=0,(lmax2-l2)
@@ -581,11 +587,13 @@ MODULE twordmreader
 !                        zij(:)=z(:,posi,posj)
 !                        zij2(:)=z2(:,posi,posj)
 
-                        posk=apos(k)
+                       ! posk=apos(k)
+                        posk=1
                         do l3=0,lmax3
                             do m3=0,(lmax3-l3)
                                 n3=lmax3-l3-m3
-                                posr=apos(r)
+                                !posr=apos(r)
+                                posr=1
 
                         ! loop through all possible ways to get total angular momentum lmax4
                                 do l4=0,lmax4
@@ -598,7 +606,7 @@ MODULE twordmreader
 !                                        z11=dot_product(zij,zkr2)/8.0_DP
 !                                        z22=dot_product(zij2,zkr)/8.0_dp
 !                                        ztot=z11+z22
-                                        ztot=zcontr(posJ,posK,posR,posI)+zcontr(posR, posI, posJ,posK)
+                                        ztot=zcontr(posJ,posK,posR,posI)+zcontr2(posR,posI,posJ,posK)
                                         !ztot=sum(zij*zkr2+zij2*zkr)/8.0_dp
 
                                         if (abs(ztot)<cutoffz) then
@@ -1110,7 +1118,7 @@ MODULE twordmreader
 
     end subroutine createtwordm
 
-subroutine variables_total(px,py,pz,ddx,ddy,ddz,zcontr,e12,ll2,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
+subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,ll2,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
 
     use types
@@ -1135,7 +1143,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,zcontr,e12,ll2,maxl, ipos,nipos,
         real(kind=dp), dimension(:,:),allocatable :: zb
         real(kind=dp), dimension(nmat,nipos,nipos) ::  z2
         real(kind=dp), dimension(nipos,nipos) :: cmat
-        real(kind=dp), intent(out), dimension(nipos,nipos,nipos,nipos) :: zcontr
+        !real(kind=dp), intent(out), dimension(nipos,nipos,nipos,nipos) :: zcontr
 
         real(kind=dp), intent(out), dimension(nq,nipos,nipos) :: e12
 
@@ -1145,7 +1153,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,zcontr,e12,ll2,maxl, ipos,nipos,
         integer(kind=ikind) :: max4l, max2l, i, j, k, N1, N2, nn1, nn2,ii,jj,ls, ms, ns,count
         integer(kind=ikind), dimension(nipos) :: ll
         integer(kind=ikind), dimension(nmat) :: indexing1,indexing2
-        real(kind=dp), dimension(:,:,:), allocatable :: z11, z22
+        real(kind=dp), dimension(:,:,:),intent(out), allocatable :: z11, z22
 
         real(kind=dp) :: pi, gap,time1,time2,time3,time4
 
@@ -1235,24 +1243,24 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,zcontr,e12,ll2,maxl, ipos,nipos,
         ddx=0.0
         ddy=0.0
         ddz=0.0
-        zcontr=0.0_dp
-        cmat=0.0_dp
+       ! zcontr=0.0_dp
+      !  cmat=0.0_dp
 
-        call cpu_time(time1)
-        print*,'start dgemm'
-        do i = 1, nipos
-             do j = 1, nipos
-                 za=transpose(z11(:,:,i))
-                 zb=z22(:,:,j)
-                 call dgemm('n','n', nipos, nipos, size(totalfin), 1.0_dp/8.0_dp, za, &
-                &           nipos, zb, size(totalfin), 0.0_dp, cmat, nipos)
-
-
-                 zcontr(i,:,:,j) = cmat
-             enddo
-         enddo
-       call cpu_time(time2)
-       print*,'time dgemm',time2-time1
+!        call cpu_time(time1)
+!        print*,'start dgemm'
+!        do i = 1, nipos
+!             do j = 1, nipos
+!                 za=transpose(z11(:,:,i))
+!                 zb=z22(:,:,j)
+!                 call dgemm('n','n', nipos, nipos, size(totalfin), 1.0_dp/8.0_dp, za, &
+!                &           nipos, zb, size(totalfin), 0.0_dp, cmat, nipos)
+!
+!
+!                 zcontr(:,:,j,i) = cmat
+!             enddo
+!         enddo
+!       call cpu_time(time2)
+!       print*,'time dgemm',time2-time1
 !            call cpu_time(time3)
 !        print*,'start matmul'
 !        do i = 1, nipos
@@ -1267,23 +1275,26 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,zcontr,e12,ll2,maxl, ipos,nipos,
 !       call cpu_time(time4)
 !       print*,'time matmul',time4-time3
 !       print*,zcontr(1,2,3,4)
+
         call cpu_time(time3)
         print*,'start matmul2'
-        do i = 1, nipos
-             do j = 1, nipos
-                 !za=z1(:,:,i)
-                 za=transpose(z11(:,:,i))
-                 zb=z22(:,:,j)
-
-                 cmat=matmul(za,zb)
-                 zcontr(:,:,j,i) = cmat
-             enddo
-         enddo
-       zcontr=zcontr/8.0_dp
-       call cpu_time(time4)
-       print*,'time matmul2',time4-time3
-       print*,zcontr(2,3,4,1)
-
+!        zcontr=matmul(reshape(z11,shape(z11),order=[2,1,3]),z22)
+!        do i = 1, nipos
+!             do j = 1, nipos
+!                 !za=z1(:,:,i)
+!                 za=transpose(z11(:,:,i))
+!                 zb=z22(:,:,j)
+!
+!                 cmat=matmul(za,zb)
+!                 zcontr(:,:,j,i) = cmat
+!               !  zcontr(:,:,j,i)=zcontr(:,:,j,i)+zcontr(j,i,:,:)
+!             enddo
+!         enddo
+!       zcontr=zcontr/8.0_dp
+!       call cpu_time(time4)
+!       print*,'time matmul2',time4-time3
+!       print*,zcontr(2,3,4,1)
+      ! zcontr=zcontr+reshape(zcontr,shape(zcontr),order=[3,4,1,2])
 
         call fill_md_table(dx,l,xx,ga)
         call fill_md_table(dy,m,yy,ga)

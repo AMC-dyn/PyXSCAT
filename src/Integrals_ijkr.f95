@@ -248,7 +248,7 @@ module integrals_ijkr
 
     END SUBROUTINE P_LMN
 
-    subroutine integration(ncap,px,py,pz,ll,p0matrix,dx,dy,dz,zcontr,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+    subroutine integration(ncap,px,py,pz,ll,p0matrix,dx,dy,dz,z1,z2,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
 
         use types
 
@@ -261,24 +261,38 @@ module integrals_ijkr
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:) :: dx,dy,dz
         REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
-        real(kind=dp), intent(in), dimension(:,:,:,:)::zcontr
+        real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
+        real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
         REAL(kind=dp), intent(in), dimension(:) :: q
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
         
         
         REAL(kind=dp), dimension(size(q)) :: f
+        integer(kind=ikind), dimension(:,:), allocatable :: posits
+        real(kind=dp),dimension(:,:), allocatable :: za,zb,cmat
+        integer(kind=ikind),dimension(:), allocatable ::posi,posj,posk,posr
         REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
         real(kind=dp) :: hx,hy,hz,h
-        integer(kind=ikind) :: nq,i,j,k,r
-        
-        
+        integer(kind=ikind) :: nq,i,j,k,r,count,napos,ii,jj
+
+        napos=size(apos)
+        allocate(posits(napos,(maxval(ll)+1)*(maxval(ll)+2)/2))
+        do i=1,napos
+            do j=0,(maxval(ll)+1)*(maxval(ll)+2)/2-1
+            posits(i,j+1)=apos(i)+j
+            end do
+        end do
+        print*,'posits created'
+
+
         
         
         nq= size(q)
         tsi=0.0_dp
 
-        !First big loop 
+        !First big loop
+        count=0
         do i=1,ncap
             do j=i+1,ncap
                 do k=i+1,ncap
@@ -287,28 +301,61 @@ module integrals_ijkr
                         hy = py(k, r) - py(i, j)
                         hz = pz(k, r) - pz(i, j)
                         h = sqrt((hx * hx + hy * hy + hz * hz))
+
+                        allocate(posI((ll(i)+1)*(ll(i)+2)/2),posJ((ll(j)+1)*(ll(j)+2)/2) &
+                                ,posK((ll(k)+1)*(ll(k)+2)/2),posR((ll(r)+1)*(ll(r)+2)/2))
+
+
+                        posI=posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
+                        posJ=posits(j,1:(ll(j)+1)*(ll(j)+2)/2)
+                        posK=posits(k,1:(ll(k)+1)*(ll(k)+2)/2)
+                        posR=posits(r,1:(ll(r)+1)*(ll(r)+2)/2)
+
+
+                        allocate(zcontrred(size(posj),size(posk),size(posr),size(posi)),za(size(z1(:,1,1)),size(posj)),&
+                                zb(size(z2(:,1,1)),size(posk)), cmat(size(posj),size(posk)), &
+                                zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+
+                          do ii = 1, size(posi)
+                            do jj = 1,size(posr)
+                                za=transpose(z1(:,posj,posi(ii)))
+                                zb=z2(:,posk,posr(jj))
+
+                                cmat=matmul(za,zb)
+                                zcontrred(:,:,jj,ii)=cmat
+                                zcontrred2(jj,ii,:,:)=cmat
+
+                            enddo
+                          enddo
+
+                        zcontrred=zcontrred/8.0
+                        zcontrred2=zcontrred2/8.0
                         if (h < cutoffcentre) then
 
                             call integral_ijkr_pzero(nq, ll(i), ll(j), ll(k), ll(r), p0matrix, dx, dy, &
                                     dz, i, j, k, r, &
-                                    zcontr, apos, cutoffz, cutoffmd, f)
+                                    zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
 
                         else
 
                             call tot_integral_k_ijkr(q, ll(i), ll(j), ll(k), ll(r), hx, hy, hz, h, dx, &
                                     dy, dz, &
                                     i, j, k, r, &
-                                    zcontr, apos, cutoffz, cutoffmd, f)
+                                    zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
 
 
 
                         end if
                         tsi = tsi + 8.000 * f * e12(:, i, j) * e12(:, k, r)
+                        count=count+1
+                        deallocate(posI,posJ,posK,posR,za,zb,cmat)
+                        deallocate(zcontrred, zcontrred2)
+
                     end do
                 end do
             end do
         end do
-
+        print*,'la rata '
         do i=1,ncap
             do j=i+1,ncap
                 do r=i+1,ncap
@@ -316,21 +363,48 @@ module integrals_ijkr
                     hy = py(i, r) - py(i, j)
                     hz = pz(i, r) - pz(i, j)
                     h = sqrt((hx * hx + hy * hy + hz * hz))
+                    allocate(posI((ll(i)+1)*(ll(i)+2)/2),posJ((ll(j)+1)*(ll(j)+2)/2) &
+                            ,posR((ll(r)+1)*(ll(r)+2)/2))
+                        posI=posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
+                        posJ=posits(j,1:(ll(j)+1)*(ll(j)+2)/2)
+                        posR=posits(r,1:(ll(r)+1)*(ll(r)+2)/2)
+
+                     allocate(zcontrred(size(posj),size(posi),size(posr),size(posi)),za(size(z1(:,1,1)),size(posj)),&
+                                zb(size(z2(:,1,1)),size(posi)), cmat(size(posj),size(posi)), &
+                             zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+
+                          do ii = 1, size(posi)
+                            do jj = 1,size(posr)
+                                za=transpose(z1(:,posj,posi(ii)))
+                                zb=z2(:,posi,posr(jj))
+
+                                cmat=matmul(za,zb)
+                                zcontrred(:,:,jj,ii)=cmat
+                                zcontrred2(jj,ii,:,:)=cmat
+                            enddo
+                          enddo
+
+                        zcontrred=zcontrred/8.0
+                        zcontrred2=zcontrred2/8.0
+
                     if (h < cutoffcentre) then
                         call integral_ijkr_pzero(nq, ll(i), ll(j), ll(i), ll(r), p0matrix, dx, dy, &
                                 dz, i, j, i, r, &
-                               zcontr, apos, cutoffz, cutoffmd, f)
+                               zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
                     else
 
                         call tot_integral_k_ijkr(q, ll(i), ll(j), ll(i), ll(r), hx, hy, hz, h, dx, &
                                 dy, dz, &
                                 i, j, i, r, &
-                                zcontr, apos, cutoffz, cutoffmd, f)
+                                zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
 
 
 
                     end if
                     tsi = tsi + 4.000 * f * e12(:, i, j) * e12(:, i, r)
+                    count=count+1
+                    deallocate(posI,posJ,posR,za,zb,cmat)
+                    deallocate(zcontrred, zcontrred2)
                 end do
             end do
 
@@ -343,21 +417,48 @@ module integrals_ijkr
                     hy = py(k, r) - py(i, i)
                     hz = pz(k, r) - pz(i, i)
                     h = sqrt((hx * hx + hy * hy + hz * hz))
+
+                    allocate(posI((ll(i)+1)*(ll(i)+2)/2),posK((ll(k)+1)*(ll(k)+2)/2) &
+                            ,posR((ll(r)+1)*(ll(r)+2)/2))
+                    posI=posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
+                    posK=posits(k,1:(ll(k)+1)*(ll(k)+2)/2)
+                    posR=posits(r,1:(ll(r)+1)*(ll(r)+2)/2)
+
+                     allocate(zcontrred(size(posi),size(posk),size(posr),size(posi)),za(size(z1(:,1,1)),size(posi)),&
+                                zb(size(z2(:,1,1)),size(posk)), cmat(size(posi),size(posk)), &
+                                zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+
+                          do ii = 1, size(posi)
+                            do jj = 1,size(posr)
+                                za=transpose(z1(:,posi,posi(ii)))
+                                zb=z2(:,posk,posr(jj))
+
+                                cmat=matmul(za,zb)
+                                zcontrred(:,:,jj,ii)=cmat
+                                zcontrred2(jj,ii,:,:)=cmat
+                            enddo
+                          enddo
+                    zcontrred=zcontrred/8.0
+                    zcontrred2=zcontrred2/8.0
+
                     if (h < cutoffcentre) then
                         call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(r), p0matrix, dx, dy, &
                                 dz, i, i, k, r, &
-                                zcontr, apos, cutoffz, cutoffmd, f)
+                                zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
                     else
 
                         call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(r), hx, hy, hz, h, dx, &
                                 dy, dz, &
                                 i, i, k, r, &
-                                zcontr, apos, cutoffz, cutoffmd, f)
+                                zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
 
 
 
                     end if
                     tsi = tsi+ 4.000 * f * e12(:, i, i) * e12(:, k, r)
+                    count=count+1
+                    deallocate(posI,posK,posR,za,zb,cmat)
+                    deallocate(zcontrred, zcontrred2)
                 end do
             end do
         end do
@@ -370,29 +471,83 @@ module integrals_ijkr
                 hy = py(k, k) - py(i, i)
                 hz = pz(k, k) - pz(i, i)
                 h = sqrt((hx * hx + hy * hy + hz * hz))
+
+                allocate(posI((ll(i)+1)*(ll(i)+2)/2),posK((ll(k)+1)*(ll(k)+2)/2))
+                posI=posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
+
+                posK=posits(k,1:(ll(k)+1)*(ll(k)+2)/2)
+
+
+                 allocate(zcontrred(size(posi),size(posk),size(posk),size(posi)),za(size(z1(:,1,1)),size(posi)),&
+                                zb(size(z2(:,1,1)),size(posk)), cmat(size(posi),size(posk)), &
+                           zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+
+                          do ii = 1, size(posi)
+                            do jj = 1,size(posk)
+                                za=transpose(z1(:,posi,posi(ii)))
+                                zb=z2(:,posk,posk(jj))
+
+                                cmat=matmul(za,zb)
+                                zcontrred(:,:,jj,ii)=cmat
+                                zcontrred2(jj,ii,:,:)=cmat
+
+                            enddo
+                          enddo
+                  zcontrred=zcontrred/8.0
+                  zcontrred2=zcontrred2/8.0
+
                 if (h < cutoffcentre) then
                     call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(k), p0matrix, dx, dy, &
                             dz, i, i, k, k, &
-                            zcontr, apos, cutoffz, cutoffmd, f)
+                            zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
                 else
 
                     call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(k), hx, hy, hz, h, dx, &
                             dy, dz, &
                             i, i, k, k, &
-                            zcontr, apos, cutoffz, cutoffmd, f)
+                            zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
                 end if
                 tsi = tsi+ 2.000 * f * e12(:, i, i) * e12(:, k, k)
+                deallocate(posI,posK,za,zb,cmat)
+                deallocate(zcontrred, zcontrred2)
             end do
         end do
+
+
+
+
         do i=1,ncap
+            allocate(posI((ll(i)+1)*(ll(i)+2)/2))
+            posI=posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
+
+
+             allocate(zcontrred(size(posi),size(posi),size(posi),size(posi)),za(size(z1(:,1,1)),size(posi)),&
+                                zb(size(z2(:,1,1)),size(posi)), cmat(size(posi),size(posi)), &
+                     zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+
+                          do ii = 1, size(posi)
+                            do jj = 1,size(posi)
+                                za=transpose(z1(:,posi,posi(ii)))
+                                zb=z2(:,posi,posi(jj))
+
+                                cmat=matmul(za,zb)
+                                zcontrred(:,:,jj,ii)=cmat
+                                zcontrred2(jj,ii,:,:)=cmat
+                            enddo
+                          enddo
+               zcontrred=zcontrred/8.0
+               zcontrred2=zcontrred2/8.0
+
             call integral_ijkr_pzero(nq, ll(i), ll(i), ll(i), ll(i), p0matrix, dx, dy, dz, i, i, i, i, &
-            zcontr, apos, cutoffz, cutoffmd,f)
+            zcontrred,  zcontrred2, apos, cutoffz, cutoffmd,f)
 
             tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
-
+            count=count+1
+            deallocate(posI,za,zb,cmat)
+            deallocate(zcontrred, zcontrred2)
         end do
 
-    print*, maxval(tsi)
+    print*, count
 
     end subroutine integration
 
@@ -415,6 +570,7 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
         integer(kind=ikind), dimension(:,:), intent(in):: confs
         real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
         real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs
+        real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
         real(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         real(kind=dp), intent(in) :: cutoffmd, cutoffz,cutoffcentre
 
@@ -462,13 +618,13 @@ subroutine total_scattering_calculation(maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,
         nmat=size(m1)
 
 
-        call variables_total(px,py,pz,ddx,ddy,ddz,zcontr,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
+        call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,ll,maxl, ipos,nipos,apos,napos,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq,list1,listN1,list2,listN2)
 
         call cpu_time(time3)
         print*,'Time variables', time3-time2
-        print*,shape(ddx),shape(ddy),shape(ddz)
-        call integration(napos,px,py,pz,ll,p0matrix,ddx,ddy,ddz,zcontr,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,result)
+
+        call integration(napos,px,py,pz,ll,p0matrix,ddx,ddy,ddz,z1,z2,apos,cutoffz,cutoffmd, cutoffcentre,q,e12,result)
 
         call cpu_time(time4)
 
