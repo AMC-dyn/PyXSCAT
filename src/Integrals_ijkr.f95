@@ -275,6 +275,7 @@ module integrals_ijkr
         REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
         real(kind=dp) :: hx,hy,hz,h
         integer(kind=ikind) :: nq,i,j,k,r,count,napos,ii,jj
+        integer(kind=ikind) :: spi, spj, spk, spr, szo
 
         napos=size(apos)
         allocate(posits(napos,(maxval(ll)+1)*(maxval(ll)+2)/2))
@@ -286,7 +287,7 @@ module integrals_ijkr
         print*,'posits created'
 
 
-        
+        szo = size(z1(:,1,1))        
         
         nq= size(q)
         tsi=0.0_dp
@@ -306,30 +307,35 @@ module integrals_ijkr
                                 ,posK((ll(k)+1)*(ll(k)+2)/2),posR((ll(r)+1)*(ll(r)+2)/2))
 
 
-                        posI=posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
-                        posJ=posits(j,1:(ll(j)+1)*(ll(j)+2)/2)
-                        posK=posits(k,1:(ll(k)+1)*(ll(k)+2)/2)
-                        posR=posits(r,1:(ll(r)+1)*(ll(r)+2)/2)
+                        posI = posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
+                        posJ = posits(j,1:(ll(j)+1)*(ll(j)+2)/2)
+                        posK = posits(k,1:(ll(k)+1)*(ll(k)+2)/2)
+                        posR = posits(r,1:(ll(r)+1)*(ll(r)+2)/2)
+                        
+                        spi = size(posI)
+                        spj = size(posJ)
+                        spk = size(posK)
+                        spr = size(posR)
 
+                        allocate(zcontrred(spj, spk, spr, spi), za(szo, spj), zb(szo, spk), &
+                       &         cmat(spj, spk), zcontrred2(spr, spi, spj, spk))
 
-                        allocate(zcontrred(size(posj),size(posk),size(posr),size(posi)),za(size(z1(:,1,1)),size(posj)),&
-                                zb(size(z2(:,1,1)),size(posk)), cmat(size(posj),size(posk)), &
-                                zcontrred2(size(posr),size(posi),size(posj),size(posk)))
-
-                          do ii = 1, size(posi)
-                            do jj = 1,size(posr)
-                                za=transpose(z1(:,posj,posi(ii)))
-                                zb=z2(:,posk,posr(jj))
-
-                                cmat=matmul(za,zb)
-                                zcontrred(:,:,jj,ii)=cmat
-                                zcontrred2(jj,ii,:,:)=cmat
-
+                          do ii = 1, spi
+                            do jj = 1, spr
+!                                za = transpose(z1(:,posj,posi(ii)))
+                                za = z1(:,posj,posi(ii))
+                                zb = z2(:,posk,posr(jj))
+!                                cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
+                               &           szo, zb, szo, 0.0_dp, cmat, spj)
+                                zcontrred(:,:,jj,ii) = cmat
+                                zcontrred2(jj,ii,:,:) = cmat
                             enddo
                           enddo
 
-                        zcontrred=zcontrred/8.0
-                        zcontrred2=zcontrred2/8.0
+!                        zcontrred=zcontrred/8.0
+!                        zcontrred2=zcontrred2/8.0
+
                         if (h < cutoffcentre) then
 
                             call integral_ijkr_pzero(nq, ll(i), ll(j), ll(k), ll(r), p0matrix, dx, dy, &
@@ -369,23 +375,28 @@ module integrals_ijkr
                         posJ=posits(j,1:(ll(j)+1)*(ll(j)+2)/2)
                         posR=posits(r,1:(ll(r)+1)*(ll(r)+2)/2)
 
-                     allocate(zcontrred(size(posj),size(posi),size(posr),size(posi)),za(size(z1(:,1,1)),size(posj)),&
-                                zb(size(z2(:,1,1)),size(posi)), cmat(size(posj),size(posi)), &
-                             zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+                        spi = size(posI)
+                        spj = size(posJ)
+                        spr = size(posR)
 
-                          do ii = 1, size(posi)
-                            do jj = 1,size(posr)
-                                za=transpose(z1(:,posj,posi(ii)))
-                                zb=z2(:,posi,posr(jj))
+                        allocate(zcontrred(spj, spi, spr, spi), za(szo, spj), zb(szo, spi), &
+                       &         cmat(spj, spi), zcontrred2(spr, spi, spj, spi))
 
-                                cmat=matmul(za,zb)
-                                zcontrred(:,:,jj,ii)=cmat
-                                zcontrred2(jj,ii,:,:)=cmat
+                          do ii = 1, spi
+                            do jj = 1, spr
+!                                za = transpose(z1(:,posj,posi(ii)))
+                                za = z1(:,posj,posi(ii))
+                                zb = z2(:,posi,posr(jj))
+!                                cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
+                               &           szo, zb, szo, 0.0_dp, cmat, spj)
+                                zcontrred(:,:,jj,ii) = cmat
+                                zcontrred2(jj,ii,:,:) = cmat
                             enddo
                           enddo
 
-                        zcontrred=zcontrred/8.0
-                        zcontrred2=zcontrred2/8.0
+!                        zcontrred=zcontrred/8.0
+!                        zcontrred2=zcontrred2/8.0
 
                     if (h < cutoffcentre) then
                         call integral_ijkr_pzero(nq, ll(i), ll(j), ll(i), ll(r), p0matrix, dx, dy, &
@@ -424,22 +435,28 @@ module integrals_ijkr
                     posK=posits(k,1:(ll(k)+1)*(ll(k)+2)/2)
                     posR=posits(r,1:(ll(r)+1)*(ll(r)+2)/2)
 
-                     allocate(zcontrred(size(posi),size(posk),size(posr),size(posi)),za(size(z1(:,1,1)),size(posi)),&
-                                zb(size(z2(:,1,1)),size(posk)), cmat(size(posi),size(posk)), &
-                                zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+                    spi = size(posI)
+                    spk = size(posK)
+                    spr = size(posR)
 
-                          do ii = 1, size(posi)
-                            do jj = 1,size(posr)
-                                za=transpose(z1(:,posi,posi(ii)))
-                                zb=z2(:,posk,posr(jj))
+                    allocate(zcontrred(spi, spk, spr, spi), za(szo, spi), zb(szo, spk), &
+                   &         cmat(spi, spk), zcontrred2(spr, spi, spi, spk))
 
-                                cmat=matmul(za,zb)
-                                zcontrred(:,:,jj,ii)=cmat
-                                zcontrred2(jj,ii,:,:)=cmat
-                            enddo
-                          enddo
-                    zcontrred=zcontrred/8.0
-                    zcontrred2=zcontrred2/8.0
+                    do ii = 1, spi
+                        do jj = 1, spr
+!                            za = transpose(z1(:,posi,posi(ii)))
+                            za = z1(:,posi,posi(ii))
+                            zb = z2(:,posk,posr(jj))
+!                            cmat = matmul(za,zb)
+                            call  dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                           &           szo, zb, szo, 0.0_dp, cmat, spi)
+                            zcontrred(:,:,jj,ii) = cmat
+                            zcontrred2(jj,ii,:,:) = cmat
+                        enddo
+                    enddo
+
+!                    zcontrred=zcontrred/8.0
+!                    zcontrred2=zcontrred2/8.0
 
                     if (h < cutoffcentre) then
                         call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(r), p0matrix, dx, dy, &
@@ -477,24 +494,27 @@ module integrals_ijkr
 
                 posK=posits(k,1:(ll(k)+1)*(ll(k)+2)/2)
 
+                spi = size(posI)
+                spk = size(posK)
 
-                 allocate(zcontrred(size(posi),size(posk),size(posk),size(posi)),za(size(z1(:,1,1)),size(posi)),&
-                                zb(size(z2(:,1,1)),size(posk)), cmat(size(posi),size(posk)), &
-                           zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+                allocate(zcontrred(spi, spk, spk, spi), za(szo, spi), zb(szo, spk), &
+               &         cmat(spi, spk), zcontrred2(spk, spi, spi, spk))
 
-                          do ii = 1, size(posi)
-                            do jj = 1,size(posk)
-                                za=transpose(z1(:,posi,posi(ii)))
-                                zb=z2(:,posk,posk(jj))
+                do ii = 1, spi
+                    do jj = 1, spk
+!                        za = transpose(z1(:,posi,posi(ii)))
+                        za = z1(:,posi,posi(ii))
+                        zb = z2(:,posk,posk(jj))
+!                        cmat = matmul(za,zb)
+                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                       &           szo, zb, szo, 0.0_dp, cmat, spi)
+                        zcontrred(:,:,jj,ii) = cmat
+                        zcontrred2(jj,ii,:,:) = cmat
+                    enddo
+                enddo
 
-                                cmat=matmul(za,zb)
-                                zcontrred(:,:,jj,ii)=cmat
-                                zcontrred2(jj,ii,:,:)=cmat
-
-                            enddo
-                          enddo
-                  zcontrred=zcontrred/8.0
-                  zcontrred2=zcontrred2/8.0
+!                zcontrred=zcontrred/8.0
+!                zcontrred2=zcontrred2/8.0
 
                 if (h < cutoffcentre) then
                     call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(k), p0matrix, dx, dy, &
@@ -521,22 +541,26 @@ module integrals_ijkr
             posI=posits(i,1:(ll(i)+1)*(ll(i)+2)/2)
 
 
-             allocate(zcontrred(size(posi),size(posi),size(posi),size(posi)),za(size(z1(:,1,1)),size(posi)),&
-                                zb(size(z2(:,1,1)),size(posi)), cmat(size(posi),size(posi)), &
-                     zcontrred2(size(posr),size(posi),size(posj),size(posk)))
+            spi = size(posI)
 
-                          do ii = 1, size(posi)
-                            do jj = 1,size(posi)
-                                za=transpose(z1(:,posi,posi(ii)))
-                                zb=z2(:,posi,posi(jj))
+            allocate(zcontrred(spi, spi, spi, spi), za(szo, spi), zb(szo, spi), &
+           &         cmat(spi, spi), zcontrred2(spi, spi, spi, spi))
 
-                                cmat=matmul(za,zb)
-                                zcontrred(:,:,jj,ii)=cmat
-                                zcontrred2(jj,ii,:,:)=cmat
-                            enddo
-                          enddo
-               zcontrred=zcontrred/8.0
-               zcontrred2=zcontrred2/8.0
+            do ii = 1, spi
+                do jj = 1, spi
+!                    za = transpose(z1(:,posi,posi(ii)))
+                    za = z1(:,posi,posi(ii))
+                    zb = z2(:,posi,posi(jj))
+!                    cmat = matmul(za,zb)
+                    call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
+                   &           szo, zb, szo, 0.0_dp, cmat, spi)
+                    zcontrred(:,:,jj,ii) = cmat
+                    zcontrred2(jj,ii,:,:) = cmat
+                enddo
+            enddo
+
+!            zcontrred=zcontrred/8.0
+!            zcontrred2=zcontrred2/8.0
 
             call integral_ijkr_pzero(nq, ll(i), ll(i), ll(i), ll(i), p0matrix, dx, dy, dz, i, i, i, i, &
             zcontrred,  zcontrred2, apos, cutoffz, cutoffmd,f)
