@@ -259,6 +259,7 @@ module integrals_ijkr
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: ll,apos
         
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:) :: dx,dy,dz
+        real(kind=dp),dimension(:,:,:), allocatable :: dx1red,dy1red,dz1red,dx2red,dy2red,dz2red
         REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
@@ -336,17 +337,28 @@ module integrals_ijkr
 !                        zcontrred=zcontrred/8.0
 !                        zcontrred2=zcontrred2/8.0
 
+                        allocate(dx1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1),dy1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1), &
+                                dz1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1))
+                        allocate(dx2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1),dy2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1), &
+                                dz2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1))
+
+                        dx1red=dx(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
+                        dy1red=dy(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
+                        dz1red=dz(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
+                        dx2red=dx(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
+                        dy2red=dy(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
+                        dz2red=dz(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
+
                         if (h < cutoffcentre) then
 
-                            call integral_ijkr_pzero(nq, ll(i), ll(j), ll(k), ll(r), p0matrix, dx, dy, &
-                                    dz, i, j, k, r, &
+                            call integral_ijkr_pzero(nq, ll(i), ll(j), ll(k), ll(r), p0matrix, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, j, k, r, &
                                     zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
 
                         else
 
-                            call tot_integral_k_ijkr(q, ll(i), ll(j), ll(k), ll(r), hx, hy, hz, h, dx, &
-                                    dy, dz, &
-                                    i, j, k, r, &
+                            call tot_integral_k_ijkr(q, ll(i), ll(j), ll(k), ll(r), hx, hy, hz, h, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, j, k, r, &
                                     zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
 
 
@@ -356,6 +368,8 @@ module integrals_ijkr
                         count=count+1
                         deallocate(posI,posJ,posK,posR,za,zb,cmat)
                         deallocate(zcontrred, zcontrred2)
+                        deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
 
                     end do
                 end do
@@ -395,18 +409,29 @@ module integrals_ijkr
                             enddo
                           enddo
 
+                    allocate(dx1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1),dy1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1),&
+                            dz1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1))
+                    allocate(dx2red(ll(i)+ll(r)+1,ll(r)+1,ll(i)+1),dy2red(ll(i)+ll(r)+1,ll(r)+1,ll(i)+1),&
+                            dz2red(ll(i)+ll(r)+1,ll(r)+1,ll(i)+1))
+
+                    dx1red=dx(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
+                    dy1red=dy(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
+                    dz1red=dz(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
+                    dx2red=dx(:(ll(i)+ll(r)+1),:ll(r)+1,:ll(i)+1,r,i)
+                    dy2red=dy(:(ll(i)+ll(r)+1),:ll(r)+1,:ll(i)+1,r,i)
+                    dz2red=dz(:(ll(i)+ll(r)+1),:ll(r)+1,:ll(i)+1,r,i)
+                    
 !                        zcontrred=zcontrred/8.0
 !                        zcontrred2=zcontrred2/8.0
 
                     if (h < cutoffcentre) then
-                        call integral_ijkr_pzero(nq, ll(i), ll(j), ll(i), ll(r), p0matrix, dx, dy, &
-                                dz, i, j, i, r, &
+                        call integral_ijkr_pzero(nq, ll(i), ll(j), ll(i), ll(r), p0matrix, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, j, i, r, &
                                zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
                     else
 
-                        call tot_integral_k_ijkr(q, ll(i), ll(j), ll(i), ll(r), hx, hy, hz, h, dx, &
-                                dy, dz, &
-                                i, j, i, r, &
+                        call tot_integral_k_ijkr(q, ll(i), ll(j), ll(i), ll(r), hx, hy, hz, h, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, j, i, r, &
                                 zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
 
 
@@ -416,6 +441,8 @@ module integrals_ijkr
                     count=count+1
                     deallocate(posI,posJ,posR,za,zb,cmat)
                     deallocate(zcontrred, zcontrred2)
+                    deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
                 end do
             end do
 
@@ -454,20 +481,31 @@ module integrals_ijkr
                             zcontrred2(jj,ii,:,:) = cmat
                         enddo
                     enddo
+                    
+                    allocate(dx1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
+                                dz1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
+                    allocate(dx2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1),dy2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1), &
+                                dz2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1))
+
+                    dx1red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+                    dy1red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+                    dz1red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+                    dx2red=dx(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
+                    dy2red=dy(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
+                    dz2red=dz(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
 
 !                    zcontrred=zcontrred/8.0
 !                    zcontrred2=zcontrred2/8.0
 
                     if (h < cutoffcentre) then
-                        call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(r), p0matrix, dx, dy, &
-                                dz, i, i, k, r, &
-                                zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
+                        call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(r), p0matrix, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, i, k, r, &
+                                    zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
                     else
 
-                        call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(r), hx, hy, hz, h, dx, &
-                                dy, dz, &
-                                i, i, k, r, &
-                                zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
+                        call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(r), hx, hy, hz, h, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, i, k, r, &
+                                    zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
 
 
 
@@ -476,6 +514,8 @@ module integrals_ijkr
                     count=count+1
                     deallocate(posI,posK,posR,za,zb,cmat)
                     deallocate(zcontrred, zcontrred2)
+                    deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
                 end do
             end do
         end do
@@ -512,24 +552,37 @@ module integrals_ijkr
                         zcontrred2(jj,ii,:,:) = cmat
                     enddo
                 enddo
+                
+                allocate(dx1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
+                                dz1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
+                allocate(dx2red(ll(k)+ll(k)+1,ll(k)+1,ll(k)+1),dy2red(ll(k)+ll(k)+1,ll(k)+1,ll(k)+1), &
+                                dz2red(ll(k)+ll(k)+1,ll(k)+1,ll(k)+1))
+
+                dx1red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+                dy1red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+                dz1red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+                dx2red=dx(:(ll(k)+ll(k)+1),:ll(k)+1,:ll(k)+1,k,k)
+                dy2red=dy(:(ll(k)+ll(k)+1),:ll(k)+1,:ll(k)+1,k,k)
+                dz2red=dz(:(ll(k)+ll(k)+1),:ll(k)+1,:ll(k)+1,k,k)
 
 !                zcontrred=zcontrred/8.0
 !                zcontrred2=zcontrred2/8.0
 
                 if (h < cutoffcentre) then
-                    call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(k), p0matrix, dx, dy, &
-                            dz, i, i, k, k, &
-                            zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
+                    call integral_ijkr_pzero(nq, ll(i), ll(i), ll(k), ll(k), p0matrix, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, i, k, k, &
+                                    zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
                 else
 
-                    call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(k), hx, hy, hz, h, dx, &
-                            dy, dz, &
-                            i, i, k, k, &
-                            zcontrred,  zcontrred2, apos, cutoffz, cutoffmd, f)
+                    call tot_integral_k_ijkr(q, ll(i), ll(i), ll(k), ll(k), hx, hy, hz, h, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, i, k, k, &
+                                    zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
                 end if
                 tsi = tsi+ 2.000 * f * e12(:, i, i) * e12(:, k, k)
                 deallocate(posI,posK,za,zb,cmat)
                 deallocate(zcontrred, zcontrred2)
+                deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
             end do
         end do
 
@@ -558,17 +611,32 @@ module integrals_ijkr
                     zcontrred2(jj,ii,:,:) = cmat
                 enddo
             enddo
+            
+            allocate(dx1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
+                                dz1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
+            allocate(dx2red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy2red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
+                                dz2red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
+
+            dx1red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+            dy1red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+            dz1red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+            dx2red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+            dy2red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+            dz2red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
 
 !            zcontrred=zcontrred/8.0
 !            zcontrred2=zcontrred2/8.0
 
-            call integral_ijkr_pzero(nq, ll(i), ll(i), ll(i), ll(i), p0matrix, dx, dy, dz, i, i, i, i, &
-            zcontrred,  zcontrred2, apos, cutoffz, cutoffmd,f)
+            call integral_ijkr_pzero(nq, ll(i), ll(i), ll(i), ll(i), p0matrix, dx1red, dy1red, &
+                                    dz1red,dx2red,dy2red,dz2red, i, i, i, i, &
+                                    zcontrred, zcontrred2, apos, cutoffz, cutoffmd, f)
 
             tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
             count=count+1
             deallocate(posI,za,zb,cmat)
             deallocate(zcontrred, zcontrred2)
+            deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
         end do
 
     print*, count

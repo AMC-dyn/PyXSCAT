@@ -347,7 +347,7 @@ MODULE twordmreader
     END SUBROUTINE reduce_density
 
 
-     SUBROUTINE integral_ijkr_pzero(nq,lmax1,lmax2,lmax3,lmax4,p0mat,dx,dy,dz,i,j,k,r,zcontr,zcontr2, &
+     SUBROUTINE integral_ijkr_pzero(nq,lmax1,lmax2,lmax3,lmax4,p0mat,dx1,dy1,dz1, dx2,dy2,dz2,i,j,k,r,zcontr,zcontr2, &
              apos,cutoffz,cutoffmd,itgr)
 
         use types
@@ -359,7 +359,7 @@ MODULE twordmreader
         INTEGER(kind=ikind), INTENT(IN)                       :: nq, lmax1, lmax2, lmax3, lmax4, i, j, k, r
         REAL(kind=dp), INTENT(IN)                             :: cutoffz, cutoffmd
         REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: p0mat
-        REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:,:)               :: dx, dy, dz
+        real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
         REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: zcontr,zcontr2
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: apos
         ! definition of output
@@ -424,31 +424,31 @@ MODULE twordmreader
                                         end if
                                         ! the 6-dimensional sum over MD coefficents
                                         do l = 0, l1+l2
-                                            mdl = dx(l+1,l2+1,l1+1,j,i) * ztot
+                                            mdl = dx1(l+1,l2+1,l1+1) * ztot
 
                                             if (mdl == 0) cycle
                                             do m = 0, m1+m2
-                                                mdm = dy(m+1,m2+1,m1+1,j,i) * mdl
+                                                mdm = dy1(m+1,m2+1,m1+1) * mdl
 
                                                 if (mdm == 0) cycle
                                                 do n = 0, n1+n2
                                                     h1 = (-1)**(l+m+n)
-                                                    mdn = dz(n+1,n2+1,n1+1,j,i) * mdm * h1
+                                                    mdn = dz1(n+1,n2+1,n1+1) * mdm * h1
 
                                                     if (mdn == 0) cycle
                                                     do lp = 0, l3+l4
 
 
 
-                                                        mdlp = dx(lp+1,l4+1,l3+1,r,k) * mdn
+                                                        mdlp = dx2(lp+1,l4+1,l3+1) * mdn
 
                                                         if (mdlp == 0) cycle
                                                         do mp = 0, m3+m4
-                                                            mdmp = dy(mp+1,m4+1,m3+1,r,k) * mdlp
+                                                            mdmp = dy2(mp+1,m4+1,m3+1) * mdlp
 
                                                             if (mdmp == 0) cycle
                                                             do np = 0, n3+n4
-                                                                prodd = dz(np+1,n4+1,n3+1,r,k) * mdmp
+                                                                prodd = dz2(np+1,n4+1,n3+1) * mdmp
 
                                                                 ! cutoff after md
                                                                 if (abs(prodd) < cutoffmd) cycle
@@ -478,7 +478,7 @@ MODULE twordmreader
 
     END SUBROUTINE
 
-    subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx, dy, dz, i,j, k, r,&
+    subroutine tot_integral_k_ijkr(mu,lmax1,lmax2,lmax3,lmax4,hx,hy,hz,h,dx1, dy1, dz1,dx2,dy2,dz2, i,j, k, r,&
             zcontr, zcontr2, apos, &
             cutoffz, cutoffmd,int_res)
 
@@ -493,7 +493,7 @@ MODULE twordmreader
         real(kind=dp), intent(in), dimension(:,:,:,:) :: zcontr,zcontr2
         real(kind=dp), intent(in), dimension(:)   ::  mu
 
-        real(kind=dp), intent(in),  dimension(:,:,:,:,:) :: dx,dy,dz
+        real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
         !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
 
 
@@ -509,16 +509,8 @@ MODULE twordmreader
         real(kind=dp), dimension(:), allocatable :: h_saved, pmu, h_sum, h_0, h_1, h_r, muoh,zij, zij2, zkr, zkr2
 
         real(kind=dp), intent(out), dimension(size(mu)) :: int_res
+        real(kind=dp), allocatable,dimension(:) :: l1vec,l2vec,suml1l2
 
-
-
-
-!        dxx=>dx(i,j,:,:,:)
-!        dyy=>dy(i,j,:,:,:)
-!        dzz=>dz(i,j,:,:,:)
-!        dxx2=>dx(k,r,:,:,:)
-!        dyy2=>dy(k,r,:,:,:)
-!        dzz2=>dz(k,r,:,:,:)
 
         llmax=lmax1+lmax2+lmax3+lmax4
 
@@ -614,35 +606,35 @@ MODULE twordmreader
                                             cycle
                                         endif
 
-
+!
                                         do l=0,(l1+l2)
-                                            mdl=dx(l+1,l2+1,l1+1,j,i)*ztot
+                                            mdl=dx1(l+1,l2+1,l1+1)*ztot
 
                                             if (mdl==0.0_dp) cycle
 
 
                                             do m=0,(m1+m2)
-                                                mdm=dy(m+1,m2+1,m1+1,j,i)*mdl
+                                                mdm=dy1(m+1,m2+1,m1+1)*mdl
                                                 if (mdm==0.0_dp) cycle
 
                                                 do n=0,(n1+n2)
                                                     h1=(-1)**(l+m+n)
-                                                    mdn=dz(n+1,n2+1,n1+1,j,i)*mdm*h1
+                                                    mdn=dz1(n+1,n2+1,n1+1)*mdm*h1
                                                     if (mdn==0.0_dp) cycle
 
                                                     do lp=0,(l3+l4)
-                                                        mdlp=dx(lp+1,l4+1,l3+1,r,k)*mdn
+                                                        mdlp=dx2(lp+1,l4+1,l3+1)*mdn
                                                         if (mdlp==0.0_dp) cycle
 
 
                                                         ll2=l+lp+1
                                                         do mp=0,(m3+m4)
-                                                            mdmp=dy(mp+1,m4+1,m3+1,r,k)*mdlp
+                                                            mdmp=dy2(mp+1,m4+1,m3+1)*mdlp
                                                             if (mdmp==0.0_dp) cycle
 
                                                             mm2=m+mp+1
                                                             do np=0,(n3+n4)
-                                                                prodd=dz(np+1,n4+1,n3+1,r,k)*mdmp
+                                                                prodd=dz2(np+1,n4+1,n3+1)*mdmp
                                                                 if (abs(prodd)<cutoffmd) cycle
 
                                                                 nn2=n+np+1
@@ -1861,6 +1853,28 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,ll2,maxl, ipos,nipos
   END DO
     END SUBROUTINE Bubble_Sort
 
+
+          function kron(A,B) result(C)
+
+        use types
+       IMPLICIT NONE
+       real(kind=dp), dimension (:), intent(in)  :: A, B
+       real(kind=dp), dimension (:), allocatable :: C
+       integer(kind=ikind) :: i = 0, j = 0, k = 0, l = 0, n = 0, m = 0
+
+
+
+       allocate(C(size(A)*size(B)))
+       C = 0.0_dp
+
+       do i = 1,size(A)
+
+         n=(i-1)*size(B) + 1
+         m=n+size(B) - 1
+         C(n:m) = A(i)*B
+       enddo
+
+      end function kron
 
 END MODULE twordmreader
 
