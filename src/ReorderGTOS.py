@@ -48,6 +48,22 @@ def reorder(l, m, n, ga, ci, M, angpart):
             ord_vec[counter + 8] = duplicates_ang[4]
             ord_vec[counter + 9] = duplicates_ang[0]
             counter = counter + 10
+        elif num == 15:
+            ord_vec[counter] = duplicates_ang[2]
+            ord_vec[counter + 1] = duplicates_ang[7]
+            ord_vec[counter + 2] = duplicates_ang[8]
+            ord_vec[counter + 3] = duplicates_ang[1]
+            ord_vec[counter + 4] = duplicates_ang[6]
+            ord_vec[counter + 5] = duplicates_ang[9]
+            ord_vec[counter + 6] = duplicates_ang[3]
+            ord_vec[counter + 7] = duplicates_ang[5]
+            ord_vec[counter + 8] = duplicates_ang[4]
+            ord_vec[counter + 9] = duplicates_ang[0]
+            ord_vec[counter + 10] = duplicates_ang[9]
+            ord_vec[counter + 11] = duplicates_ang[3]
+            ord_vec[counter + 12] = duplicates_ang[5]
+            ord_vec[counter + 13] = duplicates_ang[4]
+            ord_vec[counter + 14] = duplicates_ang[0]
 
     ord_vec = np.array(ord_vec, dtype=np.int16)
 

@@ -217,6 +217,7 @@ def outputreading(x, y, z):
     PORB = False
     DORB = False
     FORB = False
+    GORB = False
     orbs = False
     realnum = []
     typ = []
@@ -274,6 +275,10 @@ def outputreading(x, y, z):
                     elif type == 'f':
                         orbs = True
                         FORB = True
+                        ccc = 0
+                    elif type == 'g':
+                        orbs = True
+                        GORB = True
                         ccc = 0
                     else:
                         print('This orbital type is not programmed yet')
@@ -570,6 +575,210 @@ def outputreading(x, y, z):
                             orbs = False
                             ccc = 0
                             cc += 10
+
+                    elif GORB and orbs:
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 1)
+                        typ.append(type)
+                        angpart.append(rr)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(4)
+                        mang.append(0)
+                        nang.append(0)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 2)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        angpart.append(rr)
+                        lang.append(0)
+                        mang.append(4)
+                        nang.append(0)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 3)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(0)
+                        nang.append(4)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 4)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(3)
+                        mang.append(1)
+                        nang.append(0)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 5)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(3)
+                        mang.append(0)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 6)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(3)
+                        nang.append(0)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 7)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(3)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 8)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(0)
+                        nang.append(3)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 9)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(1)
+                        nang.append(3)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 10)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(2)
+                        mang.append(2)
+                        nang.append(0)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 11)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(2)
+                        mang.append(0)
+                        nang.append(2)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 12)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(0)
+                        mang.append(2)
+                        nang.append(2)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 13)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(2)
+                        mang.append(1)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 14)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(2)
+                        nang.append(1)
+                        angpart.append(rr)
+
+                        xx.append(x[int(at) - 1])
+                        yy.append(y[int(at) - 1])
+                        zz.append(z[int(at) - 1])
+                        realnum.append(cc + 15)
+                        typ.append(type)
+                        ga.append(float(s1[0].replace('D', 'E')))
+                        ci.append(float(s1[1].replace('D', 'E')))
+                        atoms.append(at)
+                        lang.append(1)
+                        mang.append(1)
+                        nang.append(2)
+                        angpart.append(rr)
+
+                        ccc += 1
+                        rr += 1
+                        if ccc == ncont:
+                            GORB = False
+                            orbs = False
+                            ccc = 0
+                            cc += 15
 
             if MO and '[MO]' not in lines and len(lines) != 0 and len(lines.strip().split()) > 0:
 
