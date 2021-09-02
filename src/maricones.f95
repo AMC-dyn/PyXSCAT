@@ -267,61 +267,7 @@ MODULE twordmreader
         integer(kind=ikind), dimension(:), allocatable :: num1
 
 
-!        allocate(newtotal(size(matst(:,1))),newmat(size(matst(:,1)), size(matst(1,:))))
-!        newmat=0
-!        newtotal=0.0_dp
-!        n=maxval(matst)
-!        print*, n**4, size(matst(:,1))
-!        cnt = 0
-!        do i = 1, n
-!            do j = 1, n
-!                do k = 1, n
-!                    do l = 1, n
-!                        if (l==1  .and. k==9 .and. j==9 .and. i==8) then
-!                            print*, 'Thats the point we want', cnt, newmat(1,:)
-!                        end if
-!                        call ismember((/ i, j, k, l /), matst, memb, num)
-!                        if (memb) then
-!                            print*, 'memb var',cnt, memb
-!                            cnt = cnt + 1
-!                            newtotal(cnt) = totalst(num)
-!                            newmat(cnt,:) = (/i, j, k, l /)
-!                            print*,cnt,newmat(1,:), newtotal(1)
-!                        else
-!                            call ismember((/ j, i, l, k /), matst, memb, num)
-!                            if (memb) then
-!                                cnt = cnt + 1
-!                                newtotal(cnt) = totalst(num)
-!                                newmat(cnt,:) = (/ j, i, l, k /)
-!                                print*,'holaaaa',cnt
-!                            else
-!                                call ismember((/ l, k, j, i /), matst, memb, num)
-!                                if (memb) then
-!                                    cnt = cnt + 1
-!                                    newtotal(cnt) = totalst(num)
-!                                    newmat(cnt,:) = (/ l, k, j, i /)
-!                                    print*,'HOLAAAAA',cnt
-!                                endif
-!                            endif
-!
-!                        endif
-!                        if (l==1  .and. k==9 .and. j==9 .and. i==8) then
-!                            print*, 'Thats the point we wanted', cnt, newmat(1,:)
-!                        end if
-!                    enddo
-!                enddo
-!            enddo
-!        enddo
-!        print*,cnt
-!        allocate(stotal(cnt), smat(cnt,4))
-!        stotal = newtotal(1:cnt)
-!        smat = newmat(1:cnt,:)
-!
-!!       in the following a few things have to be done; for example, the unique function
-!!       is called (but we have that only in Python so far?)
-!
-!        print*,'size',size(smat(:,1))
-!        print*,newmat(1,:),smat(1,:)
+
 
         call unique_total(matst, totalst, mat2, total2 )
         
@@ -329,15 +275,13 @@ MODULE twordmreader
 
         allocate(m1(sdr), m2(sdr), m3(sdr), m4(sdr))
 
-        !uniquetotal(smat,mat2,stotal,total2)
-
 
         m1 = mat2(:,1)
         m2 = mat2(:,2)
         m3 = mat2(:,3)
         m4 = mat2(:,4)
         
-        !newmat = (/ transpose(m1), transpose(m2), transpose(m3), transpose(m4) /)
+
 
    
     END SUBROUTINE reduce_density
@@ -388,11 +332,7 @@ MODULE twordmreader
                 posr=1
                     do r = gs(gr), gs(gr) + gc(gr) - 1
                         ztot=zcontr(posJ,posK,posR,posI)+zcontr2(posR,posI,posJ,posK)
-!                        ztot = sum( total &
-!                           *( ( mo(i,m1)*mo(j,m2) + mo(i,m2)*mo(j,m1) ) &
-!                            * ( mo(k,m3)*mo(r,m4) + mo(k,m4)*mo(r,m3) ) &
-!                            + ( mo(i,m3)*mo(j,m4) + mo(i,m4)*mo(j,m3) ) &
-!                            * ( mo(k,m1)*mo(r,m2) + mo(k,m2)*mo(r,m1) ) ))/8.0
+!
 
                         ! continue only if larger
                         if (abs(ztot) < cutoff1) then
@@ -450,102 +390,6 @@ MODULE twordmreader
         posi=posi+1
         end do
 
-
-!        do l1 = 0, lmax1
-!            do m1 = 0, lmax1-l1
-!                n1 = lmax1-l1-m1
-!                posj=1
-!               ! posj = apos(j)
-!                ! loop through all possible ways to get total angular momentum lmax2
-!                do l2 = 0, lmax2
-!                    do m2 = 0, lmax2-l2
-!                        n2 = lmax2-l2-m2
-!!                        zij1 = z1(:,posi,posj)
-!!                        zij2 = z2(:,posi,posj)
-!                        posk=1
-!                        !posk = apos(k)
-!                        ! loop through all possible ways to get total angular momentum lmax3
-!                        do l3 = 0, lmax3
-!                            do m3 = 0, lmax3-l3
-!                                n3 = lmax3-l3-m3
-!                                posr=1
-!                                !posr = apos(r)
-!                                ! loop through all possible ways to get total angular momentum lmax4
-!                                do l4 = 0, lmax4
-!                                    do m4 = 0, lmax4-l4
-!                                        n4 = lmax4-l4-m4
-!
-!!                                        zkr1 = z1(:,posk,posr)
-!!                                        zkr2 = z2(:,posk,posr)
-!
-!                                        ! total prefactor
-!
-!                                       ! ztot = sum(zij1*zkr2 + zij2*zkr1) / 8
-!!                                        z11=ddot(size(zij1),zij1,1,zkr2,1)
-!!                                        !z11=dot_product(zij1,zkr2)/8
-!!                                        z22=dot_product(zij2,zkr1)/8
-!!                                        ztot=z11+z22
-!                                       ztot=zcontr(posJ,posK,posR,posI)+zcontr2(posR,posI,posJ,posK)
-!
-!                                        ! continue only if larger
-!                                        if (abs(ztot) < cutoffz) then
-!                                            posr = posr+1
-!                                            cycle
-!                                        end if
-!                                        ! the 6-dimensional sum over MD coefficents
-!                                        do l = 0, l1+l2
-!                                            mdl = dx1(l+1,l2+1,l1+1) * ztot
-!
-!                                            if (mdl == 0) cycle
-!                                            do m = 0, m1+m2
-!                                                mdm = dy1(m+1,m2+1,m1+1) * mdl
-!
-!                                                if (mdm == 0) cycle
-!                                                do n = 0, n1+n2
-!                                                    h1 = (-1)**(l+m+n)
-!                                                    mdn = dz1(n+1,n2+1,n1+1) * mdm * h1
-!
-!                                                    if (mdn == 0) cycle
-!                                                    do lp = 0, l3+l4
-!
-!
-!
-!                                                        mdlp = dx2(lp+1,l4+1,l3+1) * mdn
-!
-!                                                        if (mdlp == 0) cycle
-!                                                        do mp = 0, m3+m4
-!                                                            mdmp = dy2(mp+1,m4+1,m3+1) * mdlp
-!
-!                                                            if (mdmp == 0) cycle
-!                                                            do np = 0, n3+n4
-!                                                                prodd = dz2(np+1,n4+1,n3+1) * mdmp
-!
-!                                                                ! cutoff after md
-!                                                                if (abs(prodd) < cutoffmd) cycle
-!
-!                                                                ! add the contribution to the total
-!
-!                                                                f = p0mat(:,l+lp+1,m+mp+1,n+np+1)
-!                                                                itgr = itgr + prodd*f
-!                                                            end do
-!                                                        end do
-!                                                    end do
-!                                                end do
-!                                            end do
-!                                        end do
-!                                        posr = posr+1
-!                                    end do
-!                                end do
-!                                posk = posk+1
-!                            end do
-!                        end do
-!                        posj = posj+1
-!                    end do
-!                end do
-!                posi = posi+1
-!            end do
-!        end do
-
     END SUBROUTINE
 
     subroutine tot_integral_k_ijkr(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
@@ -600,11 +444,6 @@ MODULE twordmreader
             stop
         end if
 
-!        allocate(zij(size(Z(:,1,1))), zij2(size(Z(:,1,1))), zkr(size(Z(:,1,1))), zkr2(size(Z(:,1,1))))
-!        zij=0.0_dp
-!        zij2=0.0_dp
-!        zkr=0.0_dp
-!        zkr2=0.0_dp
 
 
         call Hermite_like_coeffs(a, LLmax, Hx)
@@ -647,13 +486,7 @@ MODULE twordmreader
                     do r = group_start(gr), group_start(gr) + group_count(gr) - 1
 
                         ztot=zcontr(posJ,posK,posR,posI)+zcontr2(posR,posI,posJ,posK)
-!                        ztot = sum( total &
-!                           *( ( mo(i,m1)*mo(j,m2) + mo(i,m2)*mo(j,m1) ) &
-!                            * ( mo(k,m3)*mo(r,m4) + mo(k,m4)*mo(r,m3) ) &
-!                            + ( mo(i,m3)*mo(j,m4) + mo(i,m4)*mo(j,m3) ) &
-!                            * ( mo(k,m1)*mo(r,m2) + mo(k,m2)*mo(r,m1) ) ))/8.0
-
-
+!
                         ! continue only if larger
                         if (abs(ztot) < cutoff1) then
                                 posr=posr+1
@@ -712,134 +545,6 @@ MODULE twordmreader
 
         CALL BesselSum(F, mu, H, LLmax, h_saved)
 
-
-
-!        do l1=0,lmax1
-!            do m1=0,(lmax1-l1)
-!                n1=lmax1-l1-m1
-!               ! posj=apos(j)
-!                posj=1
-!        !loop through all possible ways to get total angular momentum lmax2
-!                do l2=0,lmax2
-!                    do m2=0,(lmax2-l2)
-!                        n2=lmax2-l2-m2
-!
-!!
-!!                        zij(:)=z(:,posi,posj)
-!!                        zij2(:)=z2(:,posi,posj)
-!
-!                       ! posk=apos(k)
-!                        posk=1
-!                        do l3=0,lmax3
-!                            do m3=0,(lmax3-l3)
-!                                n3=lmax3-l3-m3
-!                                !posr=apos(r)
-!                                posr=1
-!
-!                        ! loop through all possible ways to get total angular momentum lmax4
-!                                do l4=0,lmax4
-!                                    do m4=0,(lmax4-l4)
-!                                        n4=lmax4-l4-m4
-!
-!!                                        zkr=z(:,posk,posr)
-!!                                        zkr2=z2(:,posk,posr)
-!!                                ! total prefactor
-!!                                        z11=dot_product(zij,zkr2)/8.0_DP
-!!                                        z22=dot_product(zij2,zkr)/8.0_dp
-!!                                        ztot=z11+z22
-!                                        ztot=zcontr(posJ,posK,posR,posI)+zcontr2(posR,posI,posJ,posK)
-!                                        !ztot=sum(zij*zkr2+zij2*zkr)/8.0_dp
-!
-!                                        if (abs(ztot)<cutoffz) then
-!                                            posr=posr+1
-!                                            cycle
-!                                        endif
-!
-!!
-!                                        do l=0,(l1+l2)
-!                                            mdl=dx1(l+1,l2+1,l1+1)*ztot
-!
-!                                            if (mdl==0.0_dp) cycle
-!
-!
-!                                            do m=0,(m1+m2)
-!                                                mdm=dy1(m+1,m2+1,m1+1)*mdl
-!                                                if (mdm==0.0_dp) cycle
-!
-!                                                do n=0,(n1+n2)
-!                                                    h1=(-1)**(l+m+n)
-!                                                    mdn=dz1(n+1,n2+1,n1+1)*mdm*h1
-!                                                    if (mdn==0.0_dp) cycle
-!
-!                                                    do lp=0,(l3+l4)
-!                                                        mdlp=dx2(lp+1,l4+1,l3+1)*mdn
-!                                                        if (mdlp==0.0_dp) cycle
-!
-!
-!                                                        ll2=l+lp+1
-!                                                        do mp=0,(m3+m4)
-!                                                            mdmp=dy2(mp+1,m4+1,m3+1)*mdlp
-!                                                            if (mdmp==0.0_dp) cycle
-!
-!                                                            mm2=m+mp+1
-!                                                            do np=0,(n3+n4)
-!                                                                prodd=dz2(np+1,n4+1,n3+1)*mdmp
-!                                                                if (abs(prodd)<cutoffmd) cycle
-!
-!                                                                nn2=n+np+1
-!
-!                                                                h_saved=h_saved+h_pre2(:,ll2,mm2,nn2)*prodd
-!
-!
-!                                                            enddo
-!                                                        enddo
-!                                                    enddo
-!                                                enddo
-!                                            enddo
-!                                        enddo
-!                                        posr=posr+1
-!                                    enddo
-!                                enddo
-!                                posk=posk+1
-!                            enddo
-!                        enddo
-!                        posj=posj+1
-!                    enddo
-!                enddo
-!                posi=posi+1
-!            enddo
-!        enddo
-!
-
-
-!        allocate(pmu(size(mu)), muoh(size(mu)), h_0(size(mu)),h_1(size(mu)), h_r(size(mu)))
-!        pmu=h*mu
-!
-!
-!        h_0=dsin(pmu)/pmu
-!        coeff=h_saved(1)
-!        h_sum=h_0*coeff
-!
-!        if (llmax==1) then
-!            h_1=(dsin(pmu)/pmu**2.0_dp-dcos(pmu)/pmu)*mu/h
-!            coeff=h_saved(2)
-!            h_sum=h_sum+coeff*h_1
-!        elseif (llmax>1) then
-!            muoh=mu/h
-!            h_1=(dsin(pmu)/pmu**2.0_dp-dcos(pmu)/pmu)*muoh
-!            coeff=h_saved(2)
-!            h_sum=h_sum+coeff*h_1
-!            do ra=2,llmax
-!                coeff=h_saved(ra+1)
-!                h_r= ((2.0d0*ra-1.0d0)/(pmu)*h_1-h_0*muoh)*muoh
-!                h_sum=h_sum+h_r*coeff
-!                h_0=h_1
-!                h_1=h_r
-!            enddo
-!        endif
-!
-!        int_res=h_sum
-!        deallocate(pmu, muoh, h_0,h_1, h_r)
     end subroutine
 
 
@@ -1425,18 +1130,8 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
 
             enddo
         enddo
-!        do  ii=1,ngto
-!            do jj=1,ngto
-!                 temp1 = totalfin * (mmod(m11, ii) * mmod(m22, jj) + mmod(m11, jj) * mmod(m22, ii))
-!                 temp2 = mmod(m33, ii) * mmod(m44, jj) + mmod(m33, jj) * mmod(m44, ii)
-!
-!                        z11(:,ii, jj) = temp1
-!                        z22(:, ii, jj) = temp2
-!
-!            enddo
-!        enddo
 
-        print*,'z does not fail'
+
 
         gap=0.0
         dx=0.0
@@ -1452,7 +1147,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
 
 
         call cpu_time(time3)
-        print*,'start matmul2'
+
 
 
         call fill_md_table(dx,l,xx,ga)
@@ -1980,9 +1675,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
                     D(i,j,7,4,4)=a*D(i,j,6,4,3)
 
             else
-                    ! do this in a loop: for L=1:l1+l2+1
-                    !D(i,j,1,5,5)= MD(1,5, 5, PA, PB, gaP)
-                    !D(i,j,2,5,5)= MD(2,5, 5, PA, PB, gaP)
+
                     print*, "case not programmed yet: l1/2= " , l1, l2
                     stop
             end if

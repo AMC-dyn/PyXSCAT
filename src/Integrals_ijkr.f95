@@ -367,14 +367,14 @@ module integrals_ijkr
 
                           do ii = 1, spi
                             do jj = 1, spr
-!                                za = transpose(z1(:,posj,posi(ii)))
-                                za = transpose(z1(:,posj,posi(ii)))
+                                za = z1(:,posj,posi(ii))
+                              !  za = transpose(z1(:,posj,posi(ii)))
                                 zb = z2(:,posk,posr(jj))
-                                cmat = matmul(za,zb)
-!                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
-!                               &           szo, zb, szo, 0.0_dp, cmat, spj)
-                                zcontrred(:,:,jj,ii) = cmat/8.0
-                                zcontrred2(jj,ii,:,:) = cmat/8.0
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
+                              &           szo, zb, szo, 0.0_dp, cmat, spj)
+                                zcontrred(:,:,jj,ii) = cmat
+                                zcontrred2(jj,ii,:,:) = cmat
                             enddo
                           enddo
 
@@ -458,14 +458,14 @@ module integrals_ijkr
 
                           do ii = 1, spi
                             do jj = 1, spr
-                               za = transpose(z1(:,posj,posi(ii)))
-                               ! za = z1(:,posj,posi(ii))
+                              ! za = transpose(z1(:,posj,posi(ii)))
+                                za = z1(:,posj,posi(ii))
                                 zb = z2(:,posi,posr(jj))
-                               cmat = matmul(za,zb)
-                               ! call dgemm('t','n', spj, spi, szo, 1.0_dp, za, &
-                               !&           szo, zb, szo, 0.0_dp, cmat, spj)
-                                zcontrred(:,:,jj,ii) = cmat/8.0
-                                zcontrred2(jj,ii,:,:) = cmat/8.0
+                               !cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
+                               &           szo, zb, szo, 0.0_dp, cmat, spj)
+                                zcontrred(:,:,jj,ii) = cmat
+                                zcontrred2(jj,ii,:,:) = cmat
                             enddo
                           enddo
 
@@ -543,14 +543,14 @@ module integrals_ijkr
 
                     do ii = 1, spi
                         do jj = 1, spr
-                            za = transpose(z1(:,posi,posi(ii)))
-                         !   za = z1(:,posi,posi(ii))
+                          !  za = transpose(z1(:,posi,posi(ii)))
+                            za = z1(:,posi,posi(ii))
                             zb = z2(:,posk,posr(jj))
-                            cmat = matmul(za,zb)
-!                            call  dgemm('t','n', spi, spk, szo, 1.0_dp_dp, za, &
-!                           &           szo, zb, szo, 0.0_dp, cmat, spi)
-                            zcontrred(:,:,jj,ii) = cmat/8.0
-                            zcontrred2(jj,ii,:,:) = cmat/8.0
+                           ! cmat = matmul(za,zb)
+                            call  dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                           &           szo, zb, szo, 0.0_dp, cmat, spi)
+                            zcontrred(:,:,jj,ii) = cmat
+                            zcontrred2(jj,ii,:,:) = cmat
                         enddo
                     enddo
 
@@ -627,14 +627,14 @@ module integrals_ijkr
 
                 do ii = 1, spi
                     do jj = 1, spk
-                        za = transpose(z1(:,posi,posi(ii)))
-                      !  za = z1(:,posi,posi(ii))
+                       ! za = transpose(z1(:,posi,posi(ii)))
+                        za = z1(:,posi,posi(ii))
                         zb = z2(:,posk,posk(jj))
-                        cmat = matmul(za,zb)
-!                        call dgemm('t','n', spi, spk, szo, 1.0_dp_dp, za, &
-!                       &           szo, zb, szo, 0.0_dp, cmat, spi)
-                        zcontrred(:,:,jj,ii) = cmat/8.0
-                        zcontrred2(jj,ii,:,:) = cmat/8.0
+!                        cmat = matmul(za,zb)
+                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                       &           szo, zb, szo, 0.0_dp, cmat, spi)
+                        zcontrred(:,:,jj,ii) = cmat
+                        zcontrred2(jj,ii,:,:) = cmat
                     enddo
                 enddo
                 
@@ -696,14 +696,14 @@ module integrals_ijkr
 
             do ii = 1, spi
                 do jj = 1, spi
-                    za = transpose(z1(:,posi,posi(ii)))
-                 !  za = z1(:,posi,posi(ii))
+                  !  za = transpose(z1(:,posi,posi(ii)))
+                    za = z1(:,posi,posi(ii))
                     zb = z2(:,posi,posi(jj))
-                    cmat = matmul(za,zb)
-!                    call dgemm('t','n', spi, spi, szo, 1.0_dp_dp, za, &
-!                   &           szo, zb, szo, 0.0_dp, cmat, spi)
-                    zcontrred(:,:,jj,ii) = cmat/8.0
-                    zcontrred2(jj,ii,:,:) = cmat/8.0
+                   ! cmat = matmul(za,zb)
+                    call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
+                   &           szo, zb, szo, 0.0_dp, cmat, spi)
+                    zcontrred(:,:,jj,ii) = cmat
+                    zcontrred2(jj,ii,:,:) = cmat
                 enddo
             enddo
 
@@ -751,6 +751,7 @@ subroutine total_scattering_calculation(maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
 
 
     use types
+    use onerdm
     implicit none
 
 
@@ -769,12 +770,13 @@ subroutine total_scattering_calculation(maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
          real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
         real(kind=dp), dimension(ng,ng) :: px,py,pz
         real(kind=dp),  dimension(:,:,:,:), allocatable :: zcontr
+        real(kind=dp),  dimension(:,:), allocatable :: onerdm_matrix
         real(kind=dp),  dimension(:), allocatable :: total,newtotal
         real(kind=dp),  dimension(nq,ngto,ngto) :: e12
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
-        integer(kind=ikind):: nmat,i,j
+        integer(kind=ikind):: nmat,i,j,nmomax
         real(kind=dp) :: start,time1,time2,time3,time4
 
 
@@ -784,7 +786,7 @@ subroutine total_scattering_calculation(maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
        ! allocate(ep3(size(confs(:,1)),size(confs(:,1))),ndiff2(size(confs(:,1)),size(confs(:,1))) )
         print*,'Time maxcoincidence',time1-start
 
-
+        call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
         call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
 
         call cpu_time(time2)
