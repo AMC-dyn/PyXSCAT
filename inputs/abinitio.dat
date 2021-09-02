@@ -2,10 +2,10 @@
 GEOMETRY
 Angstrom
 2
-O 0.0 0.0 1.2
-O 0.0 0.0 0.0
+H 0.0 0.0 1.4
+H 0.0 0.0 0.0
 RUN
-No
+Yes
 MLD
 ne.mld
 PUNCH
@@ -16,19 +16,19 @@ SYM
 OFF
 NONE
 BASIS
-avtz
+avdz
 OCC
-9
+3
 CLOSED
 0
 COM
 True
 NEL
-16
+2
 MULTIPLICITY
 Singlet
 NSTATES
-1
+2
 STATESYM
 1
 XSCATSTATES

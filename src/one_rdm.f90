@@ -120,7 +120,8 @@ END MODULE types
     nc1=1
     nc2=1
     ep=1
-    allocate(onerdm(size(confs(1,:))/2, size(confs(1,:))/2))
+    allocate(onerdm(maxnmo,maxnmo))
+    onerdm=0.0_dp
     do c1=1,size(confs(:,1))
         do c2=1,size(confs(:,1))
 
@@ -147,8 +148,8 @@ END MODULE types
                 enddo
 
 
-                    sorb = diffs2
-                    qorb = diffs1
+                    sorb = diffs1
+                    qorb = diffs2
 
 
                     eg = 1.00
@@ -156,14 +157,12 @@ END MODULE types
 
                         onerdm(sorb , qorb ) = onerdm(sorb , qorb ) + &
                                 civs(c1,1) * civs(c2,1) * ep
-
-                        onerdm(qorb , sorb ) = onerdm(qorb , sorb ) + &
-                                civs(c1,1) * civs(c2,1) * ep
+                        print*,  civs(c1,1) * civs(c2,1) * ep, sorb,qorb,c1,c2
 
 
 
 
-            elseif (ndiff(c1,c2) == 0) then
+            elseif (ndiff1== 0) then
 
                 ep = 1
 
@@ -171,7 +170,9 @@ END MODULE types
                     if (confs(c1,i1)/=0) then
 
                         sorb=nint((i1) / 2.0_dp + 0.1)
-                        onerdm( sorb , sorb)  = onerdm(sorb , sorb)+ civs(c1,1) * civs(c1,1) * ep
+                        print*,sorb,civs(c1,1) * civs(c1,1) * ep, onerdm(sorb,sorb)
+                        onerdm( sorb , sorb)  = onerdm(sorb , sorb) + civs(c1,1) * civs(c1,1) * ep
+                        print*, onerdm(sorb,sorb)
 
                     end if
                     enddo
@@ -183,11 +184,11 @@ END MODULE types
 
     end do
     count=0.0
-    do i=1,size(onerdm(:,1))
-        count=count+ onerdm(i,i)
 
+    do i=1,size(onerdm(:,1))
+       print*, onerdm(i,:)
     end do
-    print*,count
+    print*,count,size(onerdm(:,1))
 
     print*, 'onerdm calculated'
 

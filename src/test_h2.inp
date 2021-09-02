@@ -1,0 +1,40 @@
+***,hydrogen
+file,2,ref2.wfu,new
+punch,test_h2.punch
+ gprint,basis,orbitals,civector
+ gthresh,thrpun=0.0000001
+ orient,mass
+ symmetry,nosym
+ Angstrom
+ geometry={
+ 2
+ H 0. 0. 1.4
+ H 0.0 0.0 0.0 }
+ basis=aug-cc-pVDZ
+
+
+
+
+
+ c=0
+
+
+ hf
+  {multi,failsafe;
+  maxit,40
+  config,det
+  closed,0
+  occ,3
+  wf,3,1,1
+  state,2
+  natorb,2141.2
+  start,2141.2
+  }
+
+! {mrci;core;state,1;print,den=2;}
+
+
+  {put,molden,h2_1_all_p.mld,old}
+
+
+
