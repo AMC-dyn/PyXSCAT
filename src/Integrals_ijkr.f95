@@ -330,12 +330,12 @@ module integrals_ijkr
         nq= size(q)
 
         print*,OMP_get_num_threads()
-        call omp_set_num_threads(8)
+        call omp_set_num_threads(16)
         print*,OMP_get_num_threads()
         !First big loop
 
         tsi=0.0_dp
-        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+       !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
 
@@ -385,9 +385,9 @@ module integrals_ijkr
                                 zcontrred2(jj,ii,:,:) = cmat
                             enddo
                           enddo
-                          if (i==1 .and. j==2 .and. k==2 .and. r==4) then
-                              print*, zcontrred,zcontrred2
-                        end if
+
+
+
                          deallocate(posI,posJ,posK,posR,za,zb,cmat)
 !                        zcontrred=zcontrred/8.0
 !                        zcontrred2=zcontrred2/8.0
@@ -783,7 +783,7 @@ module integrals_ijkr
 
 
 
-subroutine total_scattering_calculation(maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
+subroutine total_scattering_calculation(mattry,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
         mmod,q,nq, group,&
         cutoffz,cutoffmd,cutoffcentre,confs,civecs,result)
 
@@ -797,6 +797,7 @@ subroutine total_scattering_calculation(maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
         integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl
         integer(kind=ikind), intent(in),dimension(:) :: l, m, n,group
         integer(kind=ikind), dimension(:,:), intent(in):: confs
+        integer(kind=ikind), dimension(:,:), intent(in):: mattry
         real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
         real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs
         real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
@@ -824,7 +825,7 @@ subroutine total_scattering_calculation(maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
        ! allocate(ep3(size(confs(:,1)),size(confs(:,1))),ndiff2(size(confs(:,1)),size(confs(:,1))) )
         print*,'Time maxcoincidence',time1-start
 
-        call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
+       ! call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
         call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
 
         call cpu_time(time2)
@@ -839,6 +840,8 @@ subroutine total_scattering_calculation(maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
         m2 = mat(:,2)
         m3 = mat(:,3)
         m4 = mat(:,4)
+
+        print*,sum(mattry(:,1)+1-mat(:,1))
         !call reduce_density(mat,total,m1,m2,m3,m4,newtotal)
         P0matrix = 0
         CALL set_P0(P0matrix, 4*maxval(l), q)

@@ -30,11 +30,11 @@ def twordmconst():
                 if read and not line.startswith('CLOSED'):
                     closed = line.strip().split()
             else:
-                closed = 'none'
+                closed = 30
     print('closed orbitals',closed)
-    if 'none' in closed:
-        # closed = input('Specify the number of closed orbitals \n')
-        closed = 0
+    # if 'none' in closed:
+    #     # closed = input('Specify the number of closed orbitals \n')
+    #     closed = 0
     closed = int(closed)
     with open('molpro.pun', 'r') as fh:
         for line in fh:

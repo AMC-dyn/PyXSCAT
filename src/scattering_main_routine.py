@@ -1,6 +1,7 @@
 import numpy as np
 import molproinp_out as mp
 import twordm_red as td
+import twordm as td2
 from integrals_wrapper import integrals_ijkr
 import time
 import molden_reader_nikola as mldreader
@@ -32,7 +33,7 @@ def main():
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 9
+    Nmo_max = 35
 
     gtos = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
@@ -53,13 +54,14 @@ def main():
     m = np.asarray(m)
     n = np.asarray(n)
     ga = np.asarray(ga)
+    mmod=np.asarray(mmod, dtype=np.float64)
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
     # condit = input("Do you want to continue Y/N?")
     x = True
     if x:
         # cut off epsilon; if H < epsilon, use P0 cases
-        cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
+        cutoffcentre = 0.001  # suggested: cutoffcentre = 0.01;
         # the cutoff for the Z integral
         cutoffz = 1e-9  # suggested: cutoffz = 1E-9;
         # the cutoff for the product of the MD coefficients
@@ -77,6 +79,7 @@ def main():
     # reading the 2-particle RDM from MOLPRO output
 
     civs, confs = td.twordmconst()  # state1 and state2 should be used here
+    mattry,total= td2.twordmconst()
 
     print('twordm constructed')
 
@@ -114,7 +117,7 @@ def main():
     print(np.size(group))
     print('time for readers in python', tic2 - tic1, 's')
 
-    resultado2 = integrals_ijkr.total_scattering_calculation(maxl, Ngto, ng,
+    resultado2 = integrals_ijkr.total_scattering_calculation(mattry,maxl, Ngto, ng,
                                                              ga, l, m, n, xx, yy, zz, mmod,
                                                              q, nq,
                                                              group,

@@ -956,7 +956,7 @@ MODULE twordmreader
 
                         if (i1/=i2) then
 
-                            if (confs(c1,i1) /= 0 .and. confs(c1,i2) /= 0) then
+                            if (confs(c1,i1) /= 0 .and. confs(c2,i2) /= 0) then
 
                                 sorb = nint(i1 / 2.0_dp + 0.1)
                                 qorb = nint(i2 / 2.0_dp + 0.1)
@@ -991,13 +991,14 @@ MODULE twordmreader
 
 
 
-    cutoff = 1E-09
+    cutoff = 1E-15
     count=0
     count2=1
 
     allocate(logicaltwordms(norbs**4))
     allocate(totaldum(norbs**4), matdum(norbs**4,4))
     logicaltwordms(:)=.False.
+    open (unit = 15, file = 'twordm_fortran.dat')
     do p=1,norbs
         do q=1,norbs
             do r=1,norbs
@@ -1007,6 +1008,7 @@ MODULE twordmreader
                     if (abs(twordm(p,q,r,s))>=cutoff) then
                         count=count+1
                         logicaltwordms(count2)=.True.
+                        write(15,*) p, s, q, r, twordm(p,q,r,s)
 
                     end if
                     count2=count2+1
@@ -1014,7 +1016,7 @@ MODULE twordmreader
             end do
         end do
     end do
-
+    close(15)
 
     allocate(mat(count, 4), total(count))
     count=1
@@ -1022,6 +1024,7 @@ MODULE twordmreader
         if (logicaltwordms(i)) then
             mat(count,:)=matdum(i,:)
             total(count)=totaldum(i)
+            print*,total(count)
             count=count+1
         end if
     end do
@@ -1076,6 +1079,8 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         integer(kind=ikind),dimension(nmat,4) :: mat1
         integer(kind=ikind),dimension(:,:),allocatable :: matfin
         real(kind=dp),dimension(:), allocatable :: totalfin
+        real(kind=dp)   :: obwohl
+        integer(kind=ikind) :: counter
 
         pi = acos(-1.0000)
         max4l=maxval(l)*4
@@ -1095,6 +1100,8 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         end do
 
         call unique_total(mat1,total,matfin,totalfin)
+        !matfin=mat1
+        !totalfin=total
         allocate(m11(size(totalfin)),m22(size(totalfin)),m33(size(totalfin)),m44(size(totalfin)))
         allocate(z11(size(totalfin),ngto,ngto), z22(size(totalfin),ngto,ngto), &
                temp1(size(totalfin)),temp2(size(totalfin)))
@@ -1114,7 +1121,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         temp2=0.0
         print*,ngto,shape(z11),shape(z22),shape(mmod)
 
-
+        counter=0
          do  ii=1,ngto
 
             do jj=1,ngto
@@ -1126,12 +1133,22 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
                         z11(:,ii, jj) =  temp1
                         z22(:, ii, jj) = temp2
 
+                        if (sum(abs(temp1-temp2))<1E-10) then
+                            counter=counter+1
+                        end if
+
 
 
             enddo
         enddo
 
 
+        obwohl = sum(abs(z11-z22))
+        if (counter==ngto**2) then
+            print*, 'Las gustones con las muchachas'
+            else
+            print*, 'Los gustones de los resultados, muchas',sum(totalfin*mmod(m11,2))
+        end if
 
         gap=0.0
         dx=0.0
