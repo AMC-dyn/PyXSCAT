@@ -5,9 +5,9 @@ Angstrom
 H 0.0 0.0 1.4
 H 0.0 0.0 0.0
 RUN
-Yes
+No
 MLD
-ne.mld
+molpro.mld
 PUNCH
 molpro.pun
 METHOD

@@ -374,10 +374,20 @@ module integrals_ijkr
                                 call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
                               &           szo, zb, szo, 0.0_dp, cmat, spj)
                                 zcontrred(:,:,jj,ii) = cmat
+
+                                za = z2(:,posj,posi(ii))
+                              !  za = transpose(z1(:,posj,posi(ii)))
+                                zb = z1(:,posk,posr(jj))
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
+                              &           szo, zb, szo, 0.0_dp, cmat, spj)
+
                                 zcontrred2(jj,ii,:,:) = cmat
                             enddo
                           enddo
-
+                          if (i==1 .and. j==2 .and. k==2 .and. r==4) then
+                              print*, zcontrred,zcontrred2
+                        end if
                          deallocate(posI,posJ,posK,posR,za,zb,cmat)
 !                        zcontrred=zcontrred/8.0
 !                        zcontrred2=zcontrred2/8.0
@@ -465,6 +475,13 @@ module integrals_ijkr
                                 call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
                                &           szo, zb, szo, 0.0_dp, cmat, spj)
                                 zcontrred(:,:,jj,ii) = cmat
+                                  za = z2(:,posj,posi(ii))
+                              !  za = transpose(z1(:,posj,posi(ii)))
+                                zb = z1(:,posi,posr(jj))
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
+                              &           szo, zb, szo, 0.0_dp, cmat, spj)
+
                                 zcontrred2(jj,ii,:,:) = cmat
                             enddo
                           enddo
@@ -550,7 +567,14 @@ module integrals_ijkr
                             call  dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
                            &           szo, zb, szo, 0.0_dp, cmat, spi)
                             zcontrred(:,:,jj,ii) = cmat
-                            zcontrred2(jj,ii,:,:) = cmat
+                             za = z2(:,posi,posi(ii))
+                              !  za = transpose(z1(:,posj,posi(ii)))
+                                zb = z1(:,posk,posr(jj))
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                              &           szo, zb, szo, 0.0_dp, cmat, spi)
+
+                                zcontrred2(jj,ii,:,:) = cmat
                         enddo
                     enddo
 
@@ -610,13 +634,13 @@ module integrals_ijkr
                 hz = pz(k, k) - pz(i, i)
                 h = sqrt((hx * hx + hy * hy + hz * hz))
 
-                                allocate(posI(size(posits(i,:group_count(i)))), &
-                                posK(size(posits(k,:group_count(k)))))
+                allocate(posI(size(posits(i,:group_count(i)))), &
+                        posK(size(posits(k,:group_count(k)))))
 
 
-                        posI = posits(i,:group_count(i))
+                posI = posits(i,:group_count(i))
 
-                        posK = posits(k,:group_count(k))
+                posK = posits(k,:group_count(k))
 
 
                 spi = size(posI)
@@ -634,6 +658,13 @@ module integrals_ijkr
                         call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
                        &           szo, zb, szo, 0.0_dp, cmat, spi)
                         zcontrred(:,:,jj,ii) = cmat
+                        za = z2(:,posi,posi(ii))
+                              !  za = transpose(z1(:,posj,posi(ii)))
+                        zb = z1(:,posk,posk(jj))
+                               ! cmat = matmul(za,zb)
+                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                              &           szo, zb, szo, 0.0_dp, cmat, spi)
+
                         zcontrred2(jj,ii,:,:) = cmat
                     enddo
                 enddo
@@ -703,7 +734,14 @@ module integrals_ijkr
                     call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
                    &           szo, zb, szo, 0.0_dp, cmat, spi)
                     zcontrred(:,:,jj,ii) = cmat
-                    zcontrred2(jj,ii,:,:) = cmat
+                     za = z2(:,posi,posi(ii))
+                              !  za = transpose(z1(:,posj,posi(ii)))
+                                zb = z1(:,posi,posi(jj))
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
+                              &           szo, zb, szo, 0.0_dp, cmat, spi)
+
+                                zcontrred2(jj,ii,:,:) = cmat
                 enddo
             enddo
 
