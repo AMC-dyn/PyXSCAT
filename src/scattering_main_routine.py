@@ -2,7 +2,7 @@ import numpy as np
 import molproinp_out as mp
 import twordm_red as td
 import twordm as td2
-from integrals_wrapper import integrals_ijkr
+from integrals_wrapper import main_calculation
 import time
 import molden_reader_nikola as mldreader
 
@@ -39,7 +39,6 @@ def main():
 
     print(np.size(gtos.ga))
 
-
     xx = gtos.x
     yy = gtos.y
     zz = gtos.z
@@ -54,7 +53,7 @@ def main():
     m = np.asarray(m)
     n = np.asarray(n)
     ga = np.asarray(ga)
-    mmod=np.asarray(mmod, dtype=np.float64)
+    mmod = np.asarray(mmod, dtype=np.float64)
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
     # condit = input("Do you want to continue Y/N?")
@@ -79,14 +78,9 @@ def main():
     # reading the 2-particle RDM from MOLPRO output
 
     civs, confs = td.twordmconst()  # state1 and state2 should be used here
-    mattry,total= td2.twordmconst()
+    mattry, total = td2.twordmconst()
 
     print('twordm constructed')
-
-
-
-
-
 
     # total number of primitive GTOs
     ncap = l.size
@@ -117,11 +111,11 @@ def main():
     print(np.size(group))
     print('time for readers in python', tic2 - tic1, 's')
 
-    resultado2 = integrals_ijkr.total_scattering_calculation(mattry,maxl, Ngto, ng,
-                                                             ga, l, m, n, xx, yy, zz, mmod,
-                                                             q, nq,
-                                                             group,
-                                                             cutoffz, cutoffmd, cutoffcentre, confs2, civs)
+    resultado2 = main_calculation.total_scattering_calculation(1, 1, 1, maxl, Ngto, ng,
+                                                               ga, l, m, n, xx, yy, zz, mmod,
+                                                               q, nq,
+                                                               group,
+                                                               cutoffz, cutoffmd, cutoffcentre, confs2, civs)
     print(resultado2)
 
     return 1
@@ -132,4 +126,3 @@ tic2 = time.time()
 re = main()
 toc = time.time()
 print(toc - tic2)
-

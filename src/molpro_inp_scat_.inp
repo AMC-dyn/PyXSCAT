@@ -5,30 +5,27 @@ gprint,civector,orbitals,angles=-1,distance=-1
  gthresh,energy=1.0d-7,gradient=1.0d-2
 
  gthresh,thrpun=0.000000001
- punch,molpro.pun,new
-basis= avdz
+ punch,ne.pun,new
+basis= aug-cc-pvtz
 symmetry,nosym;
 orient,noorient;
 angstrom;
 geomtype=xyz;
 geom={
-        2
-
-H 0.0 0.0 1.4
-H 0.0 0.0 0.0
+Ne
 }
 {multi,failsafe;
 maxiter,40;
 config,det
-occ,3;
+occ,8;
 closed,0;
-wf,2,1,0;
-state,2;
+wf,10,1,0;
+state,1;
 pspace,10.0        
 orbital,2140.3;
 ORBITAL,IGNORE_ERROR;
 ciguess,2501.2 
 save,ci=2501.2}
 
-put,molden,molpro.mld
+put,molden,ne.mld
 ---

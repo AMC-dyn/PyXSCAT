@@ -9,6 +9,7 @@ END MODULE types
 
 
    module onerdm
+       use twordms
        contains
 
 
@@ -30,65 +31,65 @@ END MODULE types
          end subroutine
 
 
-     subroutine maxcoincidence(confs, ep2,ndiff)
-        use types
-        implicit none
-        integer(kind=ikind), intent(in), dimension(:,:) :: confs
-        integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
-        integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
-        integer(kind=ikind), dimension(:,:), allocatable :: mat1
-        integer(kind=ikind) :: i,j, c1,c2, count
-
-
-        allocate(ep2(size(confs(:,1)),size(confs(:,1))))
-        ep2=1
-        count=0
-        matdum=0
-        print*,'holaa'
-            do i=1,size(confs(:,1))
-                count=0
-                do j=1,size(confs(1,:))
-
-
-                    if (confs(i,j)/=0) then
-                        count=count+1
-                        matdum(i,count)=j
-                        end if
-                end do
-            end do
-           print*, 'matdum constructed'
-            allocate(mat1(size(confs(:,1)),count), ndiff(size(confs(:,1)),size(confs(:,1))))
-            ndiff=0
-            mat1=matdum(:,1:count)
-            print*, 'mat1 constructed'
-            do c1=1, size(confs(:,1))
-                do c2=c1+1,size(confs(:,1))
-                    do i=1,size(mat1(1,:))
-                        if  (mat1(c1,i) /= mat1(c2,i)) then
-
-
-                            do j=1,size(mat1(1,:))
-                                if (mat1(c1,i) /= mat1(c2,j)) then
-                                    ep2(c1,c2)=-ep2(c1,c2)
-                                    ep2(c2,c1)=ep2(c1,c2)
-
-                                end if
-                            end do
-                        end if
-                    end do
-
-                    do j=1,size(confs(1,:))
-                        if (confs(c1,j)/=confs(c2,j)) then
-                           ndiff(c1,c2)= ndiff(c1,c2) +1
-                           ndiff(c2,c1)= ndiff(c2,c1) +1
-                        end if
-                    end do
-
-                end do
-            end do
-
-    print*,ndiff(1,2)
-    end subroutine maxcoincidence
+!     subroutine maxcoincidence(confs, ep2,ndiff)
+!        use types
+!        implicit none
+!        integer(kind=ikind), intent(in), dimension(:,:) :: confs
+!        integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
+!        integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
+!        integer(kind=ikind), dimension(:,:), allocatable :: mat1
+!        integer(kind=ikind) :: i,j, c1,c2, count
+!
+!
+!        allocate(ep2(size(confs(:,1)),size(confs(:,1))))
+!        ep2=1
+!        count=0
+!        matdum=0
+!        print*,'holaa'
+!            do i=1,size(confs(:,1))
+!                count=0
+!                do j=1,size(confs(1,:))
+!
+!
+!                    if (confs(i,j)/=0) then
+!                        count=count+1
+!                        matdum(i,count)=j
+!                        end if
+!                end do
+!            end do
+!           print*, 'matdum constructed'
+!            allocate(mat1(size(confs(:,1)),count), ndiff(size(confs(:,1)),size(confs(:,1))))
+!            ndiff=0
+!            mat1=matdum(:,1:count)
+!            print*, 'mat1 constructed'
+!            do c1=1, size(confs(:,1))
+!                do c2=c1+1,size(confs(:,1))
+!                    do i=1,size(mat1(1,:))
+!                        if  (mat1(c1,i) /= mat1(c2,i)) then
+!
+!
+!                            do j=1,size(mat1(1,:))
+!                                if (mat1(c1,i) /= mat1(c2,j)) then
+!                                    ep2(c1,c2)=-ep2(c1,c2)
+!                                    ep2(c2,c1)=ep2(c1,c2)
+!
+!                                end if
+!                            end do
+!                        end if
+!                    end do
+!
+!                    do j=1,size(confs(1,:))
+!                        if (confs(c1,j)/=confs(c2,j)) then
+!                           ndiff(c1,c2)= ndiff(c1,c2) +1
+!                           ndiff(c2,c1)= ndiff(c2,c1) +1
+!                        end if
+!                    end do
+!
+!                end do
+!            end do
+!
+!    print*,ndiff(1,2)
+!    end subroutine maxcoincidence
 
 
     subroutine createonerdm(confs,civs,ndiff,ep2,onerdm,maxnmo)
@@ -184,11 +185,11 @@ END MODULE types
 
     end do
     count=0.0
-
+    open(file='onerdm.dat', unit=15)
     do i=1,size(onerdm(:,1))
-       print*, onerdm(i,:)
+       write(15,*) onerdm(i,:)
     end do
-    print*,count,size(onerdm(:,1))
+    close(15)
 
     print*, 'onerdm calculated'
 

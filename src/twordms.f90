@@ -1,8 +1,68 @@
-Module twordms
+module twordms
     implicit none
     contains
 
 
+
+subroutine maxcoincidence(confs, ep2,ndiff)
+        use types
+        implicit none
+        integer(kind=ikind), intent(in), dimension(:,:) :: confs
+        integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
+        integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
+        integer(kind=ikind), dimension(:,:), allocatable :: mat1
+        integer(kind=ikind) :: i,j, c1,c2, count
+
+
+        allocate(ep2(size(confs(:,1)),size(confs(:,1))))
+        ep2=1
+        count=0
+        matdum=0
+        print*,'holaa'
+            do i=1,size(confs(:,1))
+                count=0
+                do j=1,size(confs(1,:))
+
+
+                    if (confs(i,j)/=0) then
+                        count=count+1
+                        matdum(i,count)=j
+                        end if
+                end do
+            end do
+           print*, 'matdum constructed'
+            allocate(mat1(size(confs(:,1)),count), ndiff(size(confs(:,1)),size(confs(:,1))))
+            ndiff=0
+            mat1=matdum(:,1:count)
+            print*, 'mat1 constructed'
+            do c1=1, size(confs(:,1))
+                do c2=c1+1,size(confs(:,1))
+                    do i=1,size(mat1(1,:))
+                        if  (mat1(c1,i) /= mat1(c2,i)) then
+
+
+                            do j=1,size(mat1(1,:))
+                                if (mat1(c1,i) /= mat1(c2,j)) then
+                                    ep2(c1,c2)=-ep2(c1,c2)
+                                    ep2(c2,c1)=ep2(c1,c2)
+
+                                end if
+                            end do
+                        end if
+                    end do
+
+                    do j=1,size(confs(1,:))
+                        if (confs(c1,j)/=confs(c2,j)) then
+                           ndiff(c1,c2)= ndiff(c1,c2) +1
+                           ndiff(c2,c1)= ndiff(c2,c1) +1
+                        end if
+                    end do
+
+                end do
+            end do
+
+    print*,ndiff(1,2)
+    end subroutine maxcoincidence
 
     subroutine createtwordm(confs,civs,ndiff,ep2,mat,total)
 
@@ -11,7 +71,7 @@ Module twordms
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
 
-   integer(kind=ikind), intent(in),dimension(:,:) :: confs
+    integer(kind=ikind), intent(in),dimension(:,:) :: confs
     integer(kind=ikind), intent(in), dimension(:,:) :: ep2, ndiff
     real(kind=dp), intent(in), dimension(:,:) :: civs
     real(kind=dp), intent(out), dimension(:), allocatable :: total
@@ -286,7 +346,7 @@ Module twordms
 
                         if (i1/=i2) then
 
-                            if (confs(c1,i1) /= 0 .and. confs(c1,i2) /= 0) then
+                            if (confs(c1,i1) /= 0 .and. confs(c2,i2) /= 0) then
 
                                 sorb = nint(i1 / 2.0_dp + 0.1)
                                 qorb = nint(i2 / 2.0_dp + 0.1)
@@ -321,13 +381,14 @@ Module twordms
 
 
 
-    cutoff = 1E-10
+    cutoff = 1E-15
     count=0
     count2=1
 
     allocate(logicaltwordms(norbs**4))
     allocate(totaldum(norbs**4), matdum(norbs**4,4))
     logicaltwordms(:)=.False.
+    open (unit = 15, file = 'twordm_fortran.dat')
     do p=1,norbs
         do q=1,norbs
             do r=1,norbs
@@ -337,6 +398,7 @@ Module twordms
                     if (abs(twordm(p,q,r,s))>=cutoff) then
                         count=count+1
                         logicaltwordms(count2)=.True.
+                        write(15,*) p, s, q, r, twordm(p,q,r,s)
 
                     end if
                     count2=count2+1
@@ -344,7 +406,7 @@ Module twordms
             end do
         end do
     end do
-
+    close(15)
 
     allocate(mat(count, 4), total(count))
     count=1
@@ -352,13 +414,14 @@ Module twordms
         if (logicaltwordms(i)) then
             mat(count,:)=matdum(i,:)
             total(count)=totaldum(i)
+            print*,total(count)
             count=count+1
         end if
     end do
 
-
+        print*, 'twordm calculated'
 
 
 
     end subroutine createtwordm
-end module twordms
+    end module twordms

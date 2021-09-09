@@ -8,9 +8,12 @@ module types
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
 end module types
 
-module integrals_ijkr
+module main_calculation
 
-    use twordmreader
+    use variables
+    use twordms
+    use onerdm
+    use integrals
 
 
     implicit none 
@@ -277,17 +280,138 @@ module integrals_ijkr
     END SUBROUTINE P_LMN
 
 
-    subroutine integration(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_start,group_count,group, &
+
+
+
+subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
+        mmod,q,nq, group,&
+        cutoffz,cutoffmd,cutoffcentre,confs,civecs,result)
+
+
+    use types
+    use onerdm
+    use twordms
+    use variables
+    implicit none
+
+
+
+        integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl,type, state1,state2
+        integer(kind=ikind), intent(in),dimension(:) :: l, m, n,group
+        integer(kind=ikind), dimension(:,:), intent(in):: confs
+
+        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
+        real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs
+        real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
+        real(kind=dp),dimension(ngto,ngto):: z
+
+        real(kind=dp), intent(in) :: cutoffmd, cutoffz,cutoffcentre
+
+        real(kind=dp), intent(out), dimension(nq):: result
+        REAL(kind=dp), DIMENSION(size(q),4*maxval(l)+1,4*maxval(l)+1,4*maxval(l)+1) :: P0matrix
+         real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
+        real(kind=dp), dimension(ng,ng) :: px,py,pz
+        real(kind=dp),  dimension(:,:,:,:), allocatable :: zcontr
+        real(kind=dp),  dimension(:,:), allocatable :: onerdm_matrix
+        real(kind=dp),  dimension(:), allocatable :: total,newtotal
+        real(kind=dp),  dimension(nq,ngto,ngto) :: e12
+        INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
+        integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
+        integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
+        integer(kind=ikind):: nmat,i,j,nmomax
+        real(kind=dp) :: start,time1,time2,time3,time4,co
+
+
+        call cpu_time(start)
+
+        call cpu_time(time1)
+       ! allocate(ep3(size(confs(:,1)),size(confs(:,1))),ndiff2(size(confs(:,1)),size(confs(:,1))) )
+        print*,'Time maxcoincidence',time1-start
+        do i = 1, Ng
+            do j = 1, Ngto
+                if (group(j) == i) then
+                    group_start(i) = j
+                    group_count(i) = count(group==i)
+                    exit
+                end if
+            end do
+        end do
+
+       ! call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
+        if (type==1) then
+            call cpu_time(time2)
+            P0matrix = 0
+            CALL set_P0(P0matrix, 4*maxval(l), q)
+            call maxcoincidence(confs,ep3,ndiff2)
+            call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
+            allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
+             m1 = mat(:,1)
+             m2 = mat(:,2)
+             m3 = mat(:,3)
+             m4 = mat(:,4)
+             nmat=size(m1)
+
+
+            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+        mmod,m1,m2,m3,m4,nmat, total,q,nq)
+
+            call cpu_time(time3)
+        print*,'Time variables', time3-time2
+
+            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+                cutoffz,cutoffmd, cutoffcentre,q,e12,result)
+
+        else if (type==2) then
+               P0matrix = 0
+            CALL set_P0(P0matrix, 4*maxval(l), q)
+            call maxcoincidence(confs,ep3,ndiff2)
+            call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
+               print*,'maxnmo',nmomax
+               co=0
+               do i=1,nmomax
+                   co=co+onerdm_matrix(i,i)
+               end do
+               print*,'trace',co
+            call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+        mmod,onerdm_matrix,nmomax,q,nq)
+            call elastic_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+                cutoffz,cutoffmd, cutoffcentre,q,e12,result)
+
+
+        end if
+
+
+
+
+
+!
+!
+!
+
+
+        !call reduce_density(mat,total,m1,m2,m3,m4,newtotal)
+
+
+       ! allocate(zcontr(ng,ng,ng,ng))
+        !allocate(z1(size(m1), nipos, nipos), z2(size(m1), nipos, nipos))
+
+
+
+        end subroutine total_scattering_calculation
+
+
+
+    subroutine tot_integration(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
 
         use types
         use omp_lib
         implicit none
 
-        
+
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
-        
+
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1,dx2,dy2,dz2
         REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
@@ -297,8 +421,8 @@ module integrals_ijkr
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
         REAL(kind=dp), intent(in), dimension(:) :: q
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
-        
-        
+
+
         REAL(kind=dp), dimension(size(q)) :: f
         integer(kind=ikind), dimension(:,:), allocatable :: posits
         real(kind=dp),dimension(:,:), allocatable :: za,zb,cmat
@@ -325,8 +449,8 @@ module integrals_ijkr
         print*,size(group_start),sum(group_count)
 
 
-        szo = size(z1(:,1,1))        
-        
+        szo = size(z1(:,1,1))
+
         nq= size(q)
 
         print*,OMP_get_num_threads()
@@ -389,14 +513,6 @@ module integrals_ijkr
 
 
                          deallocate(posI,posJ,posK,posR,za,zb,cmat)
-!                        zcontrred=zcontrred/8.0
-!                        zcontrred2=zcontrred2/8.0
-
-!                        allocate(dx1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1),dy1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1), &
-!                                dz1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1))
-!                        allocate(dx2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1),dy2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1), &
-!                                dz2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1))
-
                          dx1=>dx(:,:,:,j,i)
                          dy1=>dy(:,:,:,j,i)
                          dz1=>dz(:,:,:,j,i)
@@ -406,7 +522,7 @@ module integrals_ijkr
 
                         if (h < cutoffcentre) then
 
-                            call integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                            call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, k, r, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
 
@@ -486,28 +602,17 @@ module integrals_ijkr
                             enddo
                           enddo
 
-!                    allocate(dx1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1),dy1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1),&
-!                            dz1red(ll(i)+ll(j)+1,ll(j)+1,ll(i)+1))
-!                    allocate(dx2red(ll(i)+ll(r)+1,ll(r)+1,ll(i)+1),dy2red(ll(i)+ll(r)+1,ll(r)+1,ll(i)+1),&
-!                            dz2red(ll(i)+ll(r)+1,ll(r)+1,ll(i)+1))
 !
-!                    dx1red=>dx(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
-!                    dy1red=>dy(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
-!                    dz1red=>dz(:(ll(i)+ll(j)+1),:ll(j)+1,:ll(i)+1,j,i)
-!                    dx2red=>dx(:(ll(i)+ll(r)+1),:ll(r)+1,:ll(i)+1,r,i)
-!                    dy2red=>dy(:(ll(i)+ll(r)+1),:ll(r)+1,:ll(i)+1,r,i)
-!                    dz2red=>dz(:(ll(i)+ll(r)+1),:ll(r)+1,:ll(i)+1,r,i)
                     dx1=>dx(:,:,:,j,i)
                     dy1=>dy(:,:,:,j,i)
                     dz1=>dz(:,:,:,j,i)
                     dx2=>dx(:,:,:,r,i)
                     dy2=>dy(:,:,:,r,i)
                     dz2=>dz(:,:,:,r,i)
-!                        zcontrred=zcontrred/8.0
-!                        zcontrred2=zcontrred2/8.0
+
 
                     if (h < cutoffcentre) then
-                        call integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                        call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, i, r, &
                                zcontrred,  zcontrred2,  cutoffz, cutoffmd,f)
                     else
@@ -578,17 +683,7 @@ module integrals_ijkr
                         enddo
                     enddo
 
-!                    allocate(dx1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
-!                                dz1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
-!                    allocate(dx2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1),dy2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1), &
-!                                dz2red(ll(k)+ll(r)+1,ll(r)+1,ll(k)+1))
-!
-!                    dx1red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!                    dy1red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!                    dz1red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!                    dx2red=dx(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
-!                    dy2red=dy(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
-!                    dz2red=dz(:(ll(k)+ll(r)+1),:ll(r)+1,:ll(k)+1,r,k)
+
                     dx1=>dx(:,:,:,i,i)
                     dy1=>dy(:,:,:,i,i)
                     dz1=>dz(:,:,:,i,i)
@@ -599,7 +694,7 @@ module integrals_ijkr
 !                    zcontrred2=zcontrred2
 
                     if (h < cutoffcentre) then
-                        call integral_ijkr_pzero(nq,l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                        call tot_integral_ijkr_pzero(nq,l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, i, k, r, &
                                     zcontrred, zcontrred2, cutoffz, cutoffmd, f)
                     else
@@ -668,29 +763,18 @@ module integrals_ijkr
                         zcontrred2(jj,ii,:,:) = cmat
                     enddo
                 enddo
-                
-!                allocate(dx1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
-!                                dz1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
-!                allocate(dx2red(ll(k)+ll(k)+1,ll(k)+1,ll(k)+1),dy2red(ll(k)+ll(k)+1,ll(k)+1,ll(k)+1), &
-!                                dz2red(ll(k)+ll(k)+1,ll(k)+1,ll(k)+1))
 
-!                dx1red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!                dy1red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!                dz1red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!                dx2red=dx(:(ll(k)+ll(k)+1),:ll(k)+1,:ll(k)+1,k,k)
-!                dy2red=dy(:(ll(k)+ll(k)+1),:ll(k)+1,:ll(k)+1,k,k)
-!                dz2red=dz(:(ll(k)+ll(k)+1),:ll(k)+1,:ll(k)+1,k,k)
+
                 dx1=>dx(:,:,:,i,i)
                 dy1=>dy(:,:,:,i,i)
                 dz1=>dz(:,:,:,i,i)
                 dx2=>dx(:,:,:,k,k)
                 dy2=>dy(:,:,:,k,k)
                 dz2=>dz(:,:,:,k,k)
-!                zcontrred=zcontrred
-!                zcontrred2=zcontrred2
+
 
                 if (h < cutoffcentre) then
-                    call integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                    call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, i, k, k, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd, f)
                 else
@@ -745,17 +829,364 @@ module integrals_ijkr
                 enddo
             enddo
 
-!            allocate(dx1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
-!                                dz1red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
-!            allocate(dx2red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1),dy2red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1), &
-!                                dz2red(ll(i)+ll(i)+1,ll(i)+1,ll(i)+1))
+            dx1=>dx(:,:,:,i,i)
+            dy1=>dy(:,:,:,i,i)
+            dz1=>dz(:,:,:,i,i)
+            dx2=>dx(:,:,:,i,i)
+            dy2=>dy(:,:,:,i,i)
+            dz2=>dz(:,:,:,i,i)
+!            zcontrred=zcontrred/8.0
+!            zcontrred2=zcontrred2/8.0
 
-!            dx1red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!            dy1red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!            dz1red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!            dx2red=dx(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!            dy2red=dy(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
-!            dz2red=dz(:(ll(i)+ll(i)+1),:ll(i)+1,:ll(i)+1,i,i)
+            call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, i, i, &
+                                    zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
+
+            tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
+            count=count+1
+            deallocate(posI,za,zb,cmat)
+            deallocate(zcontrred, zcontrred2)
+
+
+        end do
+        !$OMP END parallel DO
+    print*, count
+
+    end subroutine tot_integration
+
+    subroutine elastic_integration(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z,group_start,group_count,group, &
+            cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+
+        use types
+        use omp_lib
+        implicit none
+
+
+        INTEGER(kind=ikind), INTENT(IN) :: ncap
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+
+        REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
+        real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1,dx2,dy2,dz2
+        REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
+        REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
+        real(kind=dp), intent(in), dimension(:,:)::z
+
+        REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
+        REAL(kind=dp), intent(in), dimension(:) :: q
+        REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
+
+
+        REAL(kind=dp), dimension(size(q)) :: f
+        integer(kind=ikind), dimension(:,:), allocatable :: posits
+        real(kind=dp),dimension(:,:), allocatable :: za,zb
+        integer(kind=ikind),dimension(:), allocatable ::posi,posj,posk,posr
+        REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
+        real(kind=dp) :: hx,hy,hz,h
+        integer(kind=ikind),dimension(size(l)) :: ll
+        integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj
+        integer(kind=ikind) :: spi, spj, spk, spr,nt
+
+        ng=maxval(group)
+        ll=l+m+n
+        allocate(posits(ng,maxval(group_count)))
+        posits=1
+        count=1
+        do i=1,ncap
+            count=1
+            do j=group_start(i),group_start(i)+group_count(i)-1
+               posits(i,count)=j
+                count=count+1
+            end do
+        end do
+        print*,'posits created'
+        print*,size(group_start),sum(group_count)
+
+
+
+
+        nq= size(q)
+
+        print*,OMP_get_num_threads()
+        call omp_set_num_threads(16)
+        print*,OMP_get_num_threads()
+        !First big loop
+
+        tsi=0.0_dp
+       !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,za,zb), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi)
+
+        do i=1,ncap
+            do j=i+1,ncap
+                do k=i+1,ncap
+                    do r=k+1,ncap
+                        hx = px(k, r) - px(i, j)
+                        hy = py(k, r) - py(i, j)
+                        hz = pz(k, r) - pz(i, j)
+                        h = (hx * hx + hy * hy + hz * hz)**0.5
+
+                        allocate(posI(size(posits(i,:group_count(i)))),posJ(size(posits(j,:group_count(j)))) &
+                                ,posK(size(posits(k,:group_count(k)))),posR(size(posits(r,:group_count(r)))))
+
+
+                        posI = posits(i,:group_count(i))
+                        posJ = posits(j,:group_count(j))
+                        posK = posits(k,:group_count(k))
+                        posR = posits(r,:group_count(r))
+
+                        spi = size(posI)
+                        spj = size(posJ)
+                        spk = size(posK)
+                        spr = size(posR)
+
+                        allocate(zb(spi, spj), &
+                       &         za(spk,spr))
+
+                         za=z(posI,posJ)
+                         zb=z(posK,posR)
+
+                         deallocate(posI,posJ,posK,posR)
+                         dx1=>dx(:,:,:,j,i)
+                         dy1=>dy(:,:,:,j,i)
+                         dz1=>dz(:,:,:,j,i)
+                         dx2=>dx(:,:,:,r,k)
+                         dy2=>dy(:,:,:,r,k)
+                         dz2=>dz(:,:,:,r,k)
+
+                        if (h < cutoffcentre) then
+
+                            call integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, j, k, r, &
+                                    za,zb,  cutoffz, cutoffmd,f)
+
+
+
+                        else
+
+                            call integral_k_ijkr(q,l,m,n,group_start, group_count, hx, hy, hz, h,dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, j, k, r, &
+                                    za,zb,  cutoffz, cutoffmd,f)
+
+
+
+
+
+                        end if
+                        tsi = tsi + 8.000 * f * e12(:, i, j) * e12(:, k, r)
+
+
+                        deallocate(za,zb)
+               !        deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+
+                    end do
+                end do
+            end do
+        end do
+
+       !$OMP END parallel DO
+
+
+        print*,'la rata ', tsi(1)
+
+        !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,za,zb), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+        !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start,z) REDUCTION(+:tsi)
+        do i=1,ncap
+            do j=i+1,ncap
+                do r=i+1,ncap
+
+                    hx = px(i, r) - px(i, j)
+                    hy = py(i, r) - py(i, j)
+                    hz = pz(i, r) - pz(i, j)
+                    h = sqrt((hx * hx + hy * hy + hz * hz))
+                    allocate(posI(size(posits(i,:group_count(i)))),posJ(size(posits(j,:group_count(j)))) &
+                               ,posR(size(posits(r,:group_count(r)))))
+
+
+                        posI = posits(i,:group_count(i))
+                        posJ = posits(j,:group_count(j))
+
+                        posR = posits(r,:group_count(r))
+
+                        spi = size(posI)
+                        spj = size(posJ)
+                        spr = size(posR)
+
+                        allocate(za(spi, spj), zb(spi, spr))
+
+                        za=z(posI,posJ)
+                        zb=z(posI,posR)
+                        deallocate(posI,posJ,posR)
+                    dx1=>dx(:,:,:,j,i)
+                    dy1=>dy(:,:,:,j,i)
+                    dz1=>dz(:,:,:,j,i)
+                    dx2=>dx(:,:,:,r,i)
+                    dy2=>dy(:,:,:,r,i)
+                    dz2=>dz(:,:,:,r,i)
+
+
+                    if (h < cutoffcentre) then
+                        call integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, j, i, r, &
+                               za,zb,  cutoffz, cutoffmd,f)
+                    else
+
+                        call  integral_k_ijkr(q, l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, j, i, r, &
+                                za,zb,  cutoffz, cutoffmd,f)
+
+
+
+                    end if
+                    tsi = tsi + 4.000 * f * e12(:, i, j) * e12(:, i, r)
+                    count=count+1
+
+                    deallocate(za,zb)
+                  !   deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+                end do
+            end do
+
+        end do
+    !$OMP END parallel DO
+        print*,'up to second'
+      !$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,za,zb), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+        !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start,z) REDUCTION(+:tsi)
+        do i=1,ncap
+            do k=1,ncap
+                do r=k+1,ncap
+                    hx = px(k, r) - px(i, i)
+                    hy = py(k, r) - py(i, i)
+                    hz = pz(k, r) - pz(i, i)
+                    h = sqrt((hx * hx + hy * hy + hz * hz))
+
+                    allocate(posI(size(posits(i,:group_count(i)))) &
+                                ,posK(size(posits(k,:group_count(k)))),posR(size(posits(r,:group_count(r)))))
+
+
+                        posI = posits(i,:group_count(i))
+
+                        posK = posits(k,:group_count(k))
+                        posR = posits(r,:group_count(r))
+
+                    spi = size(posI)
+                    spk = size(posK)
+                    spr = size(posR)
+
+                    allocate(za(spi,spi), zb(spk,spr))
+
+                    za=z(posi,posi)
+                    zb=z(posk,posr)
+
+                    dx1=>dx(:,:,:,i,i)
+                    dy1=>dy(:,:,:,i,i)
+                    dz1=>dz(:,:,:,i,i)
+                    dx2=>dx(:,:,:,r,k)
+                    dy2=>dy(:,:,:,r,k)
+                    dz2=>dz(:,:,:,r,k)
+!                    zcontrred=zcontrred
+!                    zcontrred2=zcontrred2
+
+                    if (h < cutoffcentre) then
+                        call integral_ijkr_pzero(nq,l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, r, &
+                                    za,zb, cutoffz, cutoffmd, f)
+                    else
+
+                        call  integral_k_ijkr(q, l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, r, &
+                                    za,zb,  cutoffz, cutoffmd, f)
+
+
+
+                    end if
+                    tsi = tsi+ 4.000 * f * e12(:, i, i) * e12(:, k, r)
+                    count=count+1
+                    deallocate(posI,posK,posR,za,zb)
+
+               !     deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+                end do
+            end do
+        end do
+
+        !$OMP END parallel DO
+
+          !$OMP PARALLEL do private(posI,posK,spi,spk,za,zb), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+          !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
+        do i=1,ncap
+            do k=i+1,ncap
+
+                hx = px(k, k) - px(i, i)
+                hy = py(k, k) - py(i, i)
+                hz = pz(k, k) - pz(i, i)
+                h = sqrt((hx * hx + hy * hy + hz * hz))
+
+                allocate(posI(size(posits(i,:group_count(i)))), &
+                        posK(size(posits(k,:group_count(k)))))
+
+
+                posI = posits(i,:group_count(i))
+
+                posK = posits(k,:group_count(k))
+
+
+                spi = size(posI)
+                spk = size(posK)
+
+                allocate(za(spk,spk), zb(spk,spk))
+
+               za=z(posi,posi)
+                zb=z(posk,posk)
+
+                dx1=>dx(:,:,:,i,i)
+                dy1=>dy(:,:,:,i,i)
+                dz1=>dz(:,:,:,i,i)
+                dx2=>dx(:,:,:,k,k)
+                dy2=>dy(:,:,:,k,k)
+                dz2=>dz(:,:,:,k,k)
+
+
+                if (h < cutoffcentre) then
+                    call integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, k, &
+                                    za,zb,  cutoffz, cutoffmd, f)
+                else
+
+                    call  integral_k_ijkr(q,l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, k, &
+                                    za,zb,  cutoffz, cutoffmd, f)
+                end if
+                tsi = tsi+ 2.000 * f * e12(:, i, i) * e12(:, k, k)
+                deallocate(posI,posK,za,zb)
+
+               ! deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+            end do
+        end do
+
+
+        !$OMP END parallel DO
+        !$OMP PARALLEL do private(posI,spi,za,zb), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,ll, p0matrix), &
+          !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
+        do i=1,ncap
+                              allocate(posI(size(posits(i,:group_count(i)))))
+
+
+                        posI = posits(i,:group_count(i))
+
+
+
+            spi = size(posI)
+
+            allocate( za(spi, spi), zb(spi, spi))
+
+            za=z(posi,posi)
+            zb=z(posi,posi)
             dx1=>dx(:,:,:,i,i)
             dy1=>dy(:,:,:,i,i)
             dz1=>dz(:,:,:,i,i)
@@ -767,115 +1198,18 @@ module integrals_ijkr
 
             call integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, i, i, i, &
-                                    zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
+                                    za,zb,  cutoffz, cutoffmd,f)
 
             tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
             count=count+1
-            deallocate(posI,za,zb,cmat)
-            deallocate(zcontrred, zcontrred2)
-           ! deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+            deallocate(posI,za,zb)
+
+
 
         end do
         !$OMP END parallel DO
-    print*, count
-
-    end subroutine integration
 
 
+    end subroutine elastic_integration
 
-subroutine total_scattering_calculation(mattry,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
-        mmod,q,nq, group,&
-        cutoffz,cutoffmd,cutoffcentre,confs,civecs,result)
-
-
-    use types
-    use onerdm
-    implicit none
-
-
-
-        integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl
-        integer(kind=ikind), intent(in),dimension(:) :: l, m, n,group
-        integer(kind=ikind), dimension(:,:), intent(in):: confs
-        integer(kind=ikind), dimension(:,:), intent(in):: mattry
-        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
-        real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs
-        real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
-
-        real(kind=dp), intent(in) :: cutoffmd, cutoffz,cutoffcentre
-
-        real(kind=dp), intent(out), dimension(nq):: result
-        REAL(kind=dp), DIMENSION(size(q),4*maxval(l)+1,4*maxval(l)+1,4*maxval(l)+1) :: P0matrix
-         real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
-        real(kind=dp), dimension(ng,ng) :: px,py,pz
-        real(kind=dp),  dimension(:,:,:,:), allocatable :: zcontr
-        real(kind=dp),  dimension(:,:), allocatable :: onerdm_matrix
-        real(kind=dp),  dimension(:), allocatable :: total,newtotal
-        real(kind=dp),  dimension(nq,ngto,ngto) :: e12
-        INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
-        integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
-        integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
-        integer(kind=ikind):: nmat,i,j,nmomax
-        real(kind=dp) :: start,time1,time2,time3,time4
-
-
-        call cpu_time(start)
-        call maxcoincidence(confs,ep3,ndiff2)
-        call cpu_time(time1)
-       ! allocate(ep3(size(confs(:,1)),size(confs(:,1))),ndiff2(size(confs(:,1)),size(confs(:,1))) )
-        print*,'Time maxcoincidence',time1-start
-
-       ! call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
-        call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
-
-        call cpu_time(time2)
-         print*,'Time maxcoincidence',time2-time1
-
-
-        allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
-!
-!
-!
-        m1 = mat(:,1)
-        m2 = mat(:,2)
-        m3 = mat(:,3)
-        m4 = mat(:,4)
-
-        print*,sum(mattry(:,1)+1-mat(:,1))
-        !call reduce_density(mat,total,m1,m2,m3,m4,newtotal)
-        P0matrix = 0
-        CALL set_P0(P0matrix, 4*maxval(l), q)
-
-        print*,'Reduced matrix'
-       ! allocate(zcontr(ng,ng,ng,ng))
-        !allocate(z1(size(m1), nipos, nipos), z2(size(m1), nipos, nipos))
-
-        nmat=size(m1)
-
-        do i = 1, Ng
-            do j = 1, Ngto
-                if (group(j) == i) then
-                    group_start(i) = j
-                    group_count(i) = count(group==i)
-                    exit
-                end if
-            end do
-        end do
-
-
-        call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat, total,q,nq)
-
-        call cpu_time(time3)
-        print*,'Time variables', time3-time2
-
-        call integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
-                cutoffz,cutoffmd, cutoffcentre,q,e12,result)
-
-        call cpu_time(time4)
-
-         print*,'Time calc', time4-time3
-
-        end subroutine total_scattering_calculation
-
-        end module integrals_ijkr
+        end module main_calculation
