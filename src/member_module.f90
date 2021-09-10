@@ -2,12 +2,13 @@ MODULE membermodule
 
     implicit none
 
+
     contains
 
 
     SUBROUTINE ismember(col,matrix,memval,colnum)
 
-        use types
+
 
         integer(kind=ikind), intent(in), dimension(4)        :: col
         integer(kind=ikind), intent(in), dimension(:,:)      :: matrix

@@ -2,7 +2,7 @@ import numpy as np
 import molproinp_out as mp
 import twordm_red as td
 import twordm as td2
-from integrals_wrapper import main_calculation
+from integrals_wrapper import main_calculation_mod as main_calculation
 import time
 import molden_reader_nikola as mldreader
 
@@ -27,14 +27,16 @@ def main():
     # We need to make the molpro execution voluntary, otherwise the punch file and the molden file
     # are copied into molpro.pun and molpro.mld
     inputime1 = time.time()
-    x, y, z = mp.create_input()
+    mp.create_input()
     inputime2 = time.time()
 
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 35
-
+    Nmo_max = 8
+    civs, confs = td.twordmconst()  # state1 and state2 should be used here
+    Nmo_max=len(confs[:][0])/2
+    print('Max_nmos,', Nmo_max)
     gtos = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
     print(np.size(gtos.ga))
@@ -60,9 +62,9 @@ def main():
     x = True
     if x:
         # cut off epsilon; if H < epsilon, use P0 cases
-        cutoffcentre = 0.001  # suggested: cutoffcentre = 0.01;
+        cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
         # the cutoff for the Z integral
-        cutoffz = 1e-9  # suggested: cutoffz = 1E-9;
+        cutoffz = 1e-30 # suggested: cutoffz = 1E-9;
         # the cutoff for the product of the MD coefficients
         cutoffmd = 1e-30  # suggested: cutoffmd = 1E-20;
     else:
@@ -77,8 +79,8 @@ def main():
 
     # reading the 2-particle RDM from MOLPRO output
 
-    civs, confs = td.twordmconst()  # state1 and state2 should be used here
-    mattry, total = td2.twordmconst()
+
+   # mattry, total = td2.twordmconst()
 
     print('twordm constructed')
 
@@ -109,6 +111,7 @@ def main():
 
     tic2 = time.time()
     print(np.size(group))
+    print('Angular momenta red', ng)
     print('time for readers in python', tic2 - tic1, 's')
 
     resultado2 = main_calculation.total_scattering_calculation(1, 1, 1, maxl, Ngto, ng,

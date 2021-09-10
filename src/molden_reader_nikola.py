@@ -230,7 +230,7 @@ def _read_contractions(file):
             contraction_counter += len(ang)
     else:
         print("Something went wrong! Can't find [MO]")
-
+    print('size GTOS',np.size(GTOs))
     return GTOs
 
 

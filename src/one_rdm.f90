@@ -1,12 +1,3 @@
-  MODULE types
-
-        implicit none
-
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-
-END MODULE types
-
 
    module onerdm
        use twordms
@@ -14,7 +5,8 @@ END MODULE types
 
 
      subroutine onerdm_creat(confs,civs,onerdm,maxnmo)
-         use types
+            INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
          integer(kind=ikind), intent(in), dimension(:,:) :: confs
          real(kind=dp), intent(in), dimension(:,:) :: civs
          real (kind=dp), intent(out), dimension(:,:), allocatable :: onerdm

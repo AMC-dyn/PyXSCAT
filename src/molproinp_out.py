@@ -206,7 +206,7 @@ put,molden,molpro.mld
             print('more than 1000 secs')
             break
     print('Molpro input created, proceeding to read the variables from the molden and output files')
-    return x, y, z
+    return
 
 
 # Starting the reading part, boring and annoying to program but very necessary....or not...;p

@@ -1,12 +1,15 @@
 module twordms
     implicit none
+
     contains
 
 
 
 subroutine maxcoincidence(confs, ep2,ndiff)
-        use types
+
         implicit none
+                INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         integer(kind=ikind), intent(in), dimension(:,:) :: confs
         integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
         integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
@@ -381,7 +384,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
 
 
-    cutoff = 1E-15
+    cutoff = 1E-30
     count=0
     count2=1
 
@@ -410,7 +413,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
     allocate(mat(count, 4), total(count))
     count=1
-    do i=1,count2
+    do i=1,count2-1
         if (logicaltwordms(i)) then
             mat(count,:)=matdum(i,:)
             total(count)=totaldum(i)
