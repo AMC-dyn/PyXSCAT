@@ -5,6 +5,7 @@ import twordm as td2
 from integrals_wrapper import main_calculation_mod as main_calculation
 import time
 import molden_reader_nikola as mldreader
+import scipy.io as sci
 
 
 # Rotational averaged  caclulation of total scattering
@@ -72,7 +73,7 @@ def main():
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
         cutoffz = input("Input the cutoff for the Z integral")
     # reshape q to a column vector
-    q = np.linspace(0.000001, 3, 100)
+    q = np.linspace(0.000001, 10, 100)
     # set q t0 E-10 if q = 0
     if q[0] < 1E-10:
         q[0] = 1E-10
@@ -114,18 +115,19 @@ def main():
     print('Angular momenta red', ng)
     print('time for readers in python', tic2 - tic1, 's')
 
-    resultado2 = main_calculation.total_scattering_calculation(1, 1, 1, maxl, Ngto, ng,
+    resultado2 = main_calculation.total_scattering_calculation(2, 1, 1, maxl, Ngto, ng,
                                                                ga, l, m, n, xx, yy, zz, mmod,
                                                                q, nq,
                                                                group,
                                                                cutoffz, cutoffmd, cutoffcentre, confs2, civs)
     print(resultado2)
 
-    return 1
+    return resultado2,q
 
 
 tic2 = time.time()
 
-re = main()
+res,q = main()
 toc = time.time()
+sci.savemat('result.mat',{'q':q, 'I':res})
 print(toc - tic2)

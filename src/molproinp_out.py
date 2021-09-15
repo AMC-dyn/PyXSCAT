@@ -99,7 +99,7 @@ def create_input():
                 if lines.startswith('MULT'):
                     MULTIPLICITY = True
                 if OCCUPATION and not lines.startswith('OCC'):
-                    occ = str(lines.strip().split())[2]
+                    occ = str(lines.strip().split())[2:-2]
 
                     occ = int(occ)
                     OCCUPATION = False
@@ -108,7 +108,7 @@ def create_input():
                 if CLOSED and not lines.startswith('CLOSED'):
                     closed = str(lines.strip().split())
 
-                    closed = closed[2]
+                    closed = closed[2:-2]
                     CLOSED = False
                 if lines.startswith('BASIS'):
                     BASISlog = True
@@ -195,11 +195,11 @@ put,molden,molpro.mld
         f.write('''---''')
 
     os.system(
-        'E:/Molpro/bin/molpro.exe -d . -s molpro_inp_scat_.inp')  # running molpro, change it for any run in a different computer
+        'molpro -s molpro_inp_scat_.inp')  # running molpro, change it for any run in a different computer
     time_counter = 0  #
     time_to_wait = 100
     while not os.path.exists(
-            'molpro.pun'):  # Dodgy way to wait for the punch file to be created, must be other way more elegant
+            'molpro.mld'):  # Dodgy way to wait for the punch file to be created, must be other way more elegant
         time.sleep(1)
         time_counter += 1
         if time_counter > time_to_wait:
