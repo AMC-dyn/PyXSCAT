@@ -6,7 +6,7 @@ Program Coherent_scattering
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER,PARAMETER :: nq=25
 
-        integer(kind=ikind) ::natoms,i,j,count
+        integer(kind=ikind) ::natoms,i,j,count,ab
 
         real(kind=dp),dimension(:),allocatable:: bond
 
@@ -67,17 +67,27 @@ Program Coherent_scattering
         count=0
         do i=1,natoms
             do j=i+1,natoms
+                count=count+1
                 bond(count)=norm2((/x(i),y(i),z(i)/)-(/x(j),y(j),z(j)/))
                 vbond(:,count)=(/x(i),y(i),z(i)/)-(/x(j),y(j),z(j)/)
                 multaff1(:,count)= aff1(:,i)*aff1(:,j)
                 multaff2(:,count)= aff2(:,i)*aff2(:,j)
                 multiffi1(:,count)= iff1(:,i)*iff1(:,j)
                 multiff2(:,count)= iff2(:,i)*iff2(:,j)
-                count=count+1
+
             end do
         end do
 
+        do i=1,nq
+            do j=1,nq
+                do ang=1,180
+                    do ab=1,count
 
+                    end do
+
+                end do
+            end do
+    end do
 
 
 
