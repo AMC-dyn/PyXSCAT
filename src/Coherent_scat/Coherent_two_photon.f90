@@ -6,11 +6,11 @@ Program Coherent_scattering
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER,PARAMETER :: nq=25
 
-        integer(kind=ikind) ::natoms,i,j,count,ab
+        integer(kind=ikind) ::natoms,i,j,count,ab,ang,cd
 
         real(kind=dp),dimension(:),allocatable:: bond
 
-        real(kind=dp),dimension(:,:),allocatable::vbond,multaff1,multaff2
+        real(kind=dp),dimension(:,:),allocatable::vbond,multaff1,multaff2,multiff1,multiff2
         real(kind=dp), dimension(nq):: q1,q2
         character(len=10),dimension(:), allocatable ::atoms
         real(kind=dp),dimension(:),allocatable :: x,y,z
@@ -18,23 +18,23 @@ Program Coherent_scattering
         real(kind=dp),dimension(:),allocatable ::ff
         character(len=10),dimension(151):: atoms_table
         character(len=10),dimension(55) :: atoms_table_2
-        real(kind=dp),dimension(12):: q_table_2
-        real(kind=dp),dimension(55,12):: iff
+        real(kind=dp),dimension(13):: q_table_2
+        real(kind=dp),dimension(55,13):: iff
         real(kind=dp),dimension(nq) :: iff_fin
         real(kind=dp),dimension(:,:), allocatable :: iff_interp
         real(kind=dp), dimension(4,151) :: a,b
         real(kind=dp),  dimension(151):: c
-        real(kind=dp), dimension(nq) :: q12p, q12m,f1,f2,s1,s2
+        real(kind=dp), dimension(nq) :: f1,f2
         real(kind=dp),dimension(180) :: angleq
         real(kind=dp),dimension(nq,nq,180) :: sigma
-        real(kind=dp) :: anglebond
+        real(kind=dp) :: anglebond,pi,q12p,q12m,tt
 
 
-
-        call linspace(0.00001_dp,4.0_dp,nq,q1)
-        call linspace(0.00001_dp,4.0_dp,nq,q2)
+        pi=dacos(-1.00_dp)
+        call linspace(0.000001_dp,4.0_dp,nq,q1)
+        call linspace(0.000001_dp,4.0_dp,nq,q2)
         call linspace(0.00001_dp,pi,180,angleq)
-
+        print*,q1(1),q2(1)
         open(unit=16,file="mol.xyz")
         read(16,*)natoms
 
@@ -60,29 +60,84 @@ Program Coherent_scattering
 
         end do
         close(16)
-        f1=sum(abs(aff1)**2.0_dp,dim=2)
-        f2=sum(abs(aff2)**2.0_dp,dim=2)
-        s1=sum(iff1,dim=2)
-        s2=sum(iff2,dim=2)
+        f1=0.0_dp
+        f2=0.0_dp
         count=0
         do i=1,natoms
+            f1=f1+abs(aff1(:,i))**2+iff1(:,i)
+            f2=f2+abs(aff2(:,i))**2+iff2(:,i)
             do j=i+1,natoms
                 count=count+1
                 bond(count)=norm2((/x(i),y(i),z(i)/)-(/x(j),y(j),z(j)/))
                 vbond(:,count)=(/x(i),y(i),z(i)/)-(/x(j),y(j),z(j)/)
                 multaff1(:,count)= aff1(:,i)*aff1(:,j)
                 multaff2(:,count)= aff2(:,i)*aff2(:,j)
-                multiffi1(:,count)= iff1(:,i)*iff1(:,j)
+                multiff1(:,count)= iff1(:,i)*iff1(:,j)
                 multiff2(:,count)= iff2(:,i)*iff2(:,j)
 
             end do
         end do
+        sigma=0.0_dp
 
+
+
+        print*,"TTRA result"
+
+       ! print*,'form_factors squared',f1(1),f2(1)
         do i=1,nq
             do j=1,nq
                 do ang=1,180
-                    do ab=1,count
+                    q12p=sqrt(q1(i)**2+q2(j)**2+2*q1(i)*q2(j)*cos(angleq(ang)))
+                    q12m=sqrt(q1(i)**2+q2(j)**2-2*q1(i)*q2(j)*cos(angleq(ang)))
+                    print*,sigma(1,1,1),f1(i)
+                    sigma(i,j,ang)=f1(i)*f2(j)
+                   if (i==1 .and. j==1 .and. ang==1) then
+                        print*,'sigma before',sigma(1,1,1)
 
+                    end if
+
+                    do ab=1,count
+                        sigma(i,j,ang)=sigma(i,j,ang)+2*multaff1(i,ab)*multaff2(j,ab)*(sinc(q12p*bond(ab)) &
+                        +sinc(q12m*bond(ab)))
+                         if (i==1 .and. j==1 .and. ang==1) then
+                                print*,'sigma before',sigma(1,1,1),'bonds',bond(ab)
+
+                        end if
+                        sigma(i,j,ang)=sigma(i,j,ang)+2*(f2(j)*multaff1(i,ab)*sinc(q1(i)*bond(ab)) &
+                        + f1(i) * multaff2(j,ab) * sinc(q2(j)*bond(ab)))
+                        if (i==1 .and. j==1 .and. ang==1) then
+                                print*,'sigma before',sigma(1,1,1),'bonds',bond(ab)
+
+                        end if
+
+                        do cd=ab+1,count
+                            anglebond=dot_product(vbond(:,ab),vbond(:,cd))/(bond(ab)*bond(cd))
+                            if (isnan(anglebond)) then
+                                print*,'hola'
+                            end if
+                            tt=TTRA(bond(ab),bond(cd),q1(i),q2(j),anglebond,angleq(ang))
+
+
+                            sigma(i,j,ang)=sigma(i,j,ang)+(4*multaff1(i,ab)*multaff2(j,cd)*tt)
+                             if (i==1 .and. j==1 .and. ang==1) then
+                                print*,'ttra',tt,sigma(1,1,1),ab,cd
+
+                            end if
+
+
+                            anglebond=dot_product(vbond(:,cd),vbond(:,ab))/(bond(ab)*bond(cd))
+                            if (isnan(anglebond)) then
+                                print*,'hola'
+                            end if
+                            tt=TTRA(bond(cd),bond(ab),q1(i),q2(j),anglebond,angleq(ang))
+
+
+                            sigma(i,j,ang)=sigma(i,j,ang)+(4*multaff1(i,cd)*multaff2(j,ab)*tt)
+                            if (i==1 .and. j==1 .and. ang==1) then
+                                print*,'ttra',tt,sigma(1,1,1),cd,ab
+
+                            end if
+                        end do
                     end do
 
                 end do
@@ -90,7 +145,7 @@ Program Coherent_scattering
     end do
 
 
-
+print*,sigma(10,10,10)
 
 
 
