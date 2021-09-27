@@ -4,7 +4,7 @@ Program Coherent_scattering
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-        INTEGER,PARAMETER :: nq=25
+        INTEGER,PARAMETER :: nq=100
 
         integer(kind=ikind) ::natoms,i,j,count,ab,ang,cd
 
@@ -34,7 +34,7 @@ Program Coherent_scattering
         call linspace(0.000001_dp,4.0_dp,nq,q1)
         call linspace(0.000001_dp,4.0_dp,nq,q2)
         call linspace(0.00001_dp,pi,180,angleq)
-        print*,q1(1),q2(1)
+
         open(unit=16,file="mol.xyz")
         read(16,*)natoms
 
@@ -85,14 +85,15 @@ Program Coherent_scattering
 
        ! print*,'form_factors squared',f1(1),f2(1)
         do i=1,nq
+               print*,100.00_dp-(100.00_dp*float(nq-i)/float(nq)), '%'
             do j=1,nq
                 do ang=1,180
                     q12p=sqrt(q1(i)**2+q2(j)**2+2*q1(i)*q2(j)*cos(angleq(ang)))
                     q12m=sqrt(q1(i)**2+q2(j)**2-2*q1(i)*q2(j)*cos(angleq(ang)))
-                    print*,sigma(1,1,1),f1(i)
+
                     sigma(i,j,ang)=f1(i)*f2(j)
                    if (i==1 .and. j==1 .and. ang==1) then
-                        print*,'sigma before',sigma(1,1,1)
+
 
                     end if
 
@@ -100,41 +101,42 @@ Program Coherent_scattering
                         sigma(i,j,ang)=sigma(i,j,ang)+2*multaff1(i,ab)*multaff2(j,ab)*(sinc(q12p*bond(ab)) &
                         +sinc(q12m*bond(ab)))
                          if (i==1 .and. j==1 .and. ang==1) then
-                                print*,'sigma before',sigma(1,1,1),'bonds',bond(ab)
+
 
                         end if
                         sigma(i,j,ang)=sigma(i,j,ang)+2*(f2(j)*multaff1(i,ab)*sinc(q1(i)*bond(ab)) &
                         + f1(i) * multaff2(j,ab) * sinc(q2(j)*bond(ab)))
                         if (i==1 .and. j==1 .and. ang==1) then
-                                print*,'sigma before',sigma(1,1,1),'bonds',bond(ab)
+
 
                         end if
 
                         do cd=ab+1,count
+
                             anglebond=dot_product(vbond(:,ab),vbond(:,cd))/(bond(ab)*bond(cd))
                             if (isnan(anglebond)) then
-                                print*,'hola'
+
                             end if
                             tt=TTRA(bond(ab),bond(cd),q1(i),q2(j),anglebond,angleq(ang))
 
 
                             sigma(i,j,ang)=sigma(i,j,ang)+(4*multaff1(i,ab)*multaff2(j,cd)*tt)
                              if (i==1 .and. j==1 .and. ang==1) then
-                                print*,'ttra',tt,sigma(1,1,1),ab,cd
+
 
                             end if
 
 
                             anglebond=dot_product(vbond(:,cd),vbond(:,ab))/(bond(ab)*bond(cd))
                             if (isnan(anglebond)) then
-                                print*,'hola'
+
                             end if
                             tt=TTRA(bond(cd),bond(ab),q1(i),q2(j),anglebond,angleq(ang))
 
 
                             sigma(i,j,ang)=sigma(i,j,ang)+(4*multaff1(i,cd)*multaff2(j,ab)*tt)
                             if (i==1 .and. j==1 .and. ang==1) then
-                                print*,'ttra',tt,sigma(1,1,1),cd,ab
+
 
                             end if
                         end do
