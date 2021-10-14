@@ -115,19 +115,21 @@ def main():
     print('Angular momenta red', ng)
     print('time for readers in python', tic2 - tic1, 's')
 
-    resultado2 = main_calculation.total_scattering_calculation(2, 1, 1, maxl, Ngto, ng,
+    q_alig, resultado2 = main_calculation.total_scattering_calculation(4, 1, 1, maxl, Ngto, ng,
                                                                ga, l, m, n, xx, yy, zz, mmod,
                                                                q, nq,
                                                                group,
                                                                cutoffz, cutoffmd, cutoffcentre, confs2, civs)
+
+
     print(resultado2)
 
-    return resultado2,q
+    return resultado2,q,q_alig
 
 
 tic2 = time.time()
 
-res,q = main()
+res,q,q_alig = main()
 toc = time.time()
-sci.savemat('result.mat',{'q':q, 'I':res})
+sci.savemat('result_aligned.mat',{'q':q_alig, 'I':res})
 print(toc - tic2)
