@@ -44,11 +44,10 @@ class PrimitiveGTO:
         self.y = None
         self.z = None
 
-
     def print_gto(self):
         """Print GTO."""
         temp = (self.atom_idx, self.contraction, self.group, self.ga, self.c,
-                                self.l, self.m, self.n)
+                self.l, self.m, self.n)
         print("%2d %2d %2d %8.2f %8.2f %2d %2d %2d" % temp)
 
     def norm(self):
@@ -56,9 +55,9 @@ class PrimitiveGTO:
         normA = (2 / math.pi) ** 0.75
         normB = 2 ** (self.l + self.m + self.n)
         normC = self.ga ** ((2 * self.l + 2 * self.m + 2 * self.n + 3) / 4.0)
-        normD = factd(2*self.l - 1) * factd(2*self.m - 1) * factd(2*self.n - 1)
+        normD = factd(2 * self.l - 1) * factd(2 * self.m - 1) * factd(2 * self.n - 1)
 
-        norm = normA * normB * normC / normD**0.5
+        norm = normA * normB * normC / normD ** 0.5
         return norm
 
 
@@ -86,6 +85,7 @@ def _read_atoms_file(file):
     output:
     atoms -- list of type Atom
     """
+
     # start from the beginning of the file
     file.seek(0)
     # find the posisiton of the tag [Atoms]
@@ -128,6 +128,7 @@ def read_geometry(file):
     else:
         return _read_atoms_file(file)
 
+
 def _read_contractions(file):
     """Read the contracted GTOs.
 
@@ -154,7 +155,7 @@ def _read_contractions(file):
     line = file.readline()
     atms = [int(s) for s in line.split() if s.isdigit()]
     atm = atms[0]
-    print("Reading GTOs on atom: "+str(atm))
+    print("Reading GTOs on atom: " + str(atm))
 
     contraction_counter = 1
     group_counter = 0
@@ -174,7 +175,7 @@ def _read_contractions(file):
                 else:
                     atms = [int(s) for s in line.split() if s.isdigit()]
                     atm = atms[0]
-                    print("Reading GTOs on atom: "+str(atm))
+                    print("Reading GTOs on atom: " + str(atm))
                     line = file.readline()
             # read the contraction
             contraction_spec = line.split()
@@ -222,15 +223,15 @@ def _read_contractions(file):
                     l = a[0]
                     m = a[1]
                     n = a[2]
-                    temp_gto = PrimitiveGTO(atm, contraction_counter+i,
-                         group_counter, g, c, l, m, n)
+                    temp_gto = PrimitiveGTO(atm, contraction_counter + i,
+                                            group_counter, g, c, l, m, n)
                     GTOs.append(temp_gto)
                     temp_gto.print_gto()
 
             contraction_counter += len(ang)
     else:
         print("Something went wrong! Can't find [MO]")
-    print('size GTOS',np.size(GTOs))
+    print('size GTOS', np.size(GTOs))
     return GTOs
 
 
@@ -302,10 +303,14 @@ def _read_MO(file, mo_cutoff):
     # redored the MO according to the Molpro labels
     nMO = len(syms)
     syms_array = np.array([float(i) for i in syms])
+    idx1 = np.argsort(syms_array)
+    print(idx1)
+    syms_array = (syms_array - syms_array.astype(int)) * 1000 + syms_array.astype(int)
+    print(syms_array)
     idx = np.argsort(syms_array)
-    syms_array = syms_array[idx]
-
+    print(syms_array[idx])
     mo = np.array(mo_table)
+    print(idx)
     mo = mo[idx, :]
     print('size Mos ', np.size(mo[1, :]))
     energy_array = np.array(energy)
@@ -313,16 +318,16 @@ def _read_MO(file, mo_cutoff):
 
     occ_array = np.array(occ)
     occ_array = occ_array[idx]
-
+    print('final occupation is', sum(occ_array))
     # print the MOs
-    print("*****************************************************")
-    print("Molecular orbitals and MO coefficients:")
-    print(nMO*"%12.1f" % tuple(syms_array))
-    print(nMO*"%12.6f" % tuple(occ))
-    print(nMO*"%12.6f" % tuple(energy))
-    print(nMO*"%s" % tuple(i.rjust(12) for i in spin))
-    for row in np.transpose(mo):
-        print(nMO*"%12.6f" % tuple(row))
+    # print("*****************************************************")
+    # print("Molecular orbitals and MO coefficients:")
+    # print(nMO*"%12.1f" % tuple(syms_array))
+    # print(nMO*"%12.6f" % tuple(occ))
+    # print(nMO*"%12.6f" % tuple(energy))
+    # print(nMO*"%s" % tuple(i.rjust(12) for i in spin))
+    # for row in np.transpose(mo):
+    #     print(nMO*"%12.6f" % tuple(row))
 
     # return a numpy array
     return (np.transpose(mo), occ_array, energy_array, syms_array)
@@ -343,7 +348,7 @@ def _mo_fill_gto(GTOs, mo_table):
         mo_table - numpy matrix - mo coefficients
     """
     for gto in GTOs:
-        gto.mo = mo_table[gto.contraction-1, :]
+        gto.mo = mo_table[gto.contraction - 1, :]
         # gto.print_gto()
         # print(gto.mo)
 
@@ -368,7 +373,7 @@ def _reverse_contraction_scheme(GTOs):
             # if the primitive is already included as a part of another
             # contraction
             if (i.atom_idx == j.atom_idx and i.ga == j.ga
-                and i.l == j.l and i.m == j.m and i.n == j.n):
+                    and i.l == j.l and i.m == j.m and i.n == j.n):
                 # add the MO to the total (assumed that the gto has been
                 # normalised)
                 j.mo += i.mo
@@ -408,9 +413,9 @@ def _normalise_gto(GTOs):
 def _xyz_fill_gto(GTOs, molecule):
     """Fill the position of the atoms."""
     for i in GTOs:
-        i.x = molecule.atoms[i.atom_idx-1].x
-        i.y = molecule.atoms[i.atom_idx-1].y
-        i.z = molecule.atoms[i.atom_idx-1].z
+        i.x = molecule.atoms[i.atom_idx - 1].x
+        i.y = molecule.atoms[i.atom_idx - 1].y
+        i.z = molecule.atoms[i.atom_idx - 1].z
 
 
 def _gtos2numpy(GTOs):
@@ -452,15 +457,8 @@ def _read_MO_GTOs(file, N, decontract=False):
     # read the MO and assign to each primitive
     (mo_table, occ, energy, syms) = _read_MO(file, N)
 
-
-
     _mo_fill_gto(GTOs, mo_table)
     _normalise_gto(GTOs)
-
-
-
-
-
 
     # reverse the contraction scheme to leave only unrepeated primitives
     if decontract:
@@ -476,7 +474,7 @@ def _read_MO_GTOs(file, N, decontract=False):
     return gto_array
 
 
-def read_orbitals(file, N=10000,  decontract=False):
+def read_orbitals(file, N=10000, decontract=False):
     """Read the GTOs and MOs.
 
     This is wrapper. Can take both file object or filename.
@@ -484,9 +482,11 @@ def read_orbitals(file, N=10000,  decontract=False):
     """
     if isinstance(file, str):
         with open(file, 'r') as f:
-            return _read_MO_GTOs(f, N, decontract)
+            gtos = _read_MO_GTOs(f, N, decontract)
+            atoms = _read_atoms_file(f)
     else:
         return _read_MO_GTOs(file, N, decontract)
+    return gtos, atoms
 
 
 def read_occupied_orbitals(file, decontract=False):

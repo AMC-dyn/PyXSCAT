@@ -31,19 +31,26 @@ def twordmconst():
                     closed = line.strip().split()
             else:
                 closed = 0
-    print('closed orbitals',closed)
+    print('closed orbitals', closed)
     # if 'none' in closed:
     #     # closed = input('Specify the number of closed orbitals \n')
     #     closed = 0
+    countcivs=0
     closed = int(closed)
     with open('molpro.pun', 'r') as fh:
         for line in fh:
             if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
                 NN = line.strip().split()
+                if "." not in NN[0]:
+                    civs.append(NN[1:])
+                    confs.append(
+                        'ab' * closed + NN[0].replace("0", "00").replace("a", "a0").replace("b", "0b").replace("2",
+                                                                                                        "ab"))
 
-                civs.append(NN[1:])
-                confs.append(
-                    'ab' * closed + NN[0].replace("0", "00").replace("a", "a0").replace("b", "0b").replace("2", "ab"))
+                    countcivs += 1
+                else:
+
+                    civs[countcivs-1].extend(NN)
                 if len(NN) != 1:
                     count += 1
     # up to here in python
@@ -83,4 +90,5 @@ def twordmconst():
     #     nc1 = nc1 + 1
     # print('number of differences', np.shape(ndiff))
     # print(ep2)
+    print(civs[0])
     return civs, confs

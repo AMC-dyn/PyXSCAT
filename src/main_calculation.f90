@@ -5,12 +5,12 @@
 
 module main_calculation_mod
 
-
+|
     implicit none 
 
     contains
 
-subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
+subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
         mmod,q,nq, group,&
         cutoffz,cutoffmd,cutoffcentre,confs,civecs,q_abs,result)
 
@@ -34,8 +34,8 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
         integer(kind=ikind), intent(in),dimension(:) :: l, m, n,group
         integer(kind=ikind), dimension(:,:), intent(in):: confs
 
-        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
-        real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs
+        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q, Zn
+        real(kind=dp), intent(in),dimension(:,:) :: mmod, civecs,geom
         real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
         real(kind=dp),dimension(ngto,ngto):: z
 
@@ -52,12 +52,12 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
-        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN
-        real(kind=dp) :: start,time1,time2,time3,time4,co,wl,rr
+        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k
+        real(kind=dp) :: start,time1,time2,time3,time4,co,wl,rr,k0,rij
         complex(kind=dp), dimension(:,:,:,:), allocatable :: exponent1, exponent2
         complex(kind=dp), dimension(size(q)):: resultaligned
         real(kind=dp),dimension(3,size(q)) :: q_al
-        real(KIND=dp), dimension(size(q)) :: ss
+        real(KIND=dp), dimension(size(q)) :: ss,ss2,Iee,Inn,Ine
 
         print*, 'here we are '
 
@@ -101,7 +101,7 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
                P0matrix = 0
                CALL set_P0(P0matrix, 4*maxval(l), q)
             call maxcoincidence(confs,ep3,ndiff2)
-            call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
+            call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
                print*,'maxnmo',nmomax
                co=0
                do i=1,nmomax
@@ -131,18 +131,19 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
                     exponent2(nq,maxval(l)*4+1,maxval(l)*4+1,maxval(l)*4+1))
 
              wl=4.0_dp*dacos(-1.0_dp)/maxval(q)
-
-             call linspace(0.0_dp,dacos(-1.0_dp)-dacos(-1.0_dp)/nq,nq,ss);
+             wl=3.00
+               call linspace(0.0_dp,dacos(-1.0_dp)/2,nq,ss);
+            ss=(ss-dacos(-1.0_dp))/2.0_dp
             print*,'linspace calculated', wl
             do mm=1,nq
-                rr=((2.d0*dacos(-1.00_dp)/(wl)))
-                q_al(1,mm)=-rr*sin(ss(mm))*cos(0.0_dp)
-                q_al(2,mm)=-rr*sin(ss(mm))*sin(0.0_dp)
-                q_al(3,mm)=-rr*cos(ss(mm))+rr
+                k0 = wl*1.889726125*0.529
+                rr=2*k0*cos(ss(mm))
+                q_al(1,mm)=rr*sin(ss(mm))*cos(0.0_dp)
+                q_al(2,mm)=rr*sin(ss(mm))*sin(0.0_dp)
+                q_al(3,mm)=rr*cos(ss(mm))
 
-                q_abs(mm)=sqrt(q_al(1,mm)**2+q_al(2,mm)**2+q_al(3,mm)**2)
-            end do
-
+                q_abs(mm)=sqrt(q_al(1,mm)**2.0_dp+q_al(2,mm)**2.0_dp+q_al(3,mm)**2.0_dp)
+                end do
             call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q_abs,nq)
 
@@ -155,11 +156,11 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
                 do MM=0,maxval(m)*4
                     do NN=0,maxval(n)*4
 
-                    exponent2(:,LL+1,MM+1,NN+1)=(complex(0,-1.00)*q_al(1,:))**(LL)* &
-                            (complex(0,-1.00)*q_al(2,:))**(MM)*(complex(0,-1.00)*q_al(3,:))**(NN)
+                    exponent2(:,LL+1,MM+1,NN+1)=((0,-1.00)*q_al(1,:))**(LL)* &
+                            ((0,-1.00)*q_al(2,:))**(MM)*((0,-1.00)*q_al(3,:))**(NN)
 
-                    exponent1(:,LL+1,MM+1,NN+1)=(complex(0,1.00)*q_al(1,:))**(LL) &
-                            *(complex(0,1.00)*q_al(2,:))**(MM)*(complex(0,1.00)*q_al(3,:))**(NN)
+                    exponent1(:,LL+1,MM+1,NN+1)=((0,1.00)*q_al(1,:))**(LL) &
+                            *((0,1.00)*q_al(2,:))**(MM)*((0,1.00)*q_al(3,:))**(NN)
                      enddo
                 enddo
             enddo
@@ -176,21 +177,24 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
 
 
              call maxcoincidence(confs,ep3,ndiff2)
-            call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
+            call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
                print*,'maxnmo',nmomax
              wl=4.0_dp*dacos(-1.0_dp)/maxval(q)
-
-             call linspace(0.0_dp,dacos(-1.0_dp)-dacos(-1.0_dp)/nq,nq,ss);
+             wl=3.00
+             call linspace(0.0_dp,dacos(-1.0_dp)/2,nq,ss);
+            ss=(ss-dacos(-1.0_dp))/2.0_dp
             print*,'linspace calculated', wl
             do mm=1,nq
-                rr=((2.d0*dacos(-1.00_dp)/(wl)))
-                q_al(1,mm)=-rr*sin(ss(mm))*cos(0.0_dp)
-                q_al(2,mm)=-rr*sin(ss(mm))*sin(0.0_dp)
-                q_al(3,mm)=-rr*cos(ss(mm))+rr
+                k0 = wl*1.889726125*0.529
+                rr=2*k0*cos(ss(mm))
+                q_al(1,mm)=rr*sin(ss(mm))*cos(0.0_dp)
+                q_al(2,mm)=rr*sin(ss(mm))*sin(0.0_dp)
+                q_al(3,mm)=rr*cos(ss(mm))
 
-                q_abs(mm)=sqrt(q_al(1,mm)**2+q_al(2,mm)**2+q_al(3,mm)**2)
+                q_abs(mm)=sqrt(q_al(1,mm)**2.0_dp+q_al(2,mm)**2.0_dp+q_al(3,mm)**2.0_dp)
             end do
              co=0
+             print*,'qvector',size(q_abs),maxval(q_abs),maxval(ss)
                do i=1,nmomax
                    co=co+onerdm_matrix(i,i)
                end do
@@ -204,15 +208,69 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
                     do NN=0,maxval(n)*4
 
 
-                    exponent1(:,LL+1,MM+1,NN+1)=(complex(0,1.00)*q_al(1,:))**(LL) &
-                            *(complex(0,1.00)*q_al(2,:))**(MM)*(complex(0,1.00)*q_al(3,:))**(NN)
+                    exponent1(:,LL+1,MM+1,NN+1)=((0,1.00)*q_al(1,:))**(LL) &
+                            *((0,1.00)*q_al(2,:))**(MM)*((0,1.00)*q_al(3,:))**(NN)
                      enddo
                 enddo
             enddo
             print*, 'calling elastic'
              call elastic_integration_alig(ng,px,py,pz,l,m,n,ddx,ddy,ddz,z,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q_al,e12,exponent1,resultaligned)
-                 result=abs(resultaligned)
+                 result=abs(resultaligned)**2
+
+
+
+            !Starting the rotationally averaged elastic electron scattering, in the end 4 different versions must be programmed
+
+            else if (type==5) then
+
+                P0matrix = 0
+                CALL set_P0(P0matrix, 4*maxval(l), q)
+                call maxcoincidence(confs,ep3,ndiff2)
+                call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
+
+                call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+        mmod,onerdm_matrix,nmomax,q,nq)
+
+                print*,'first Z', Z(1,1)
+
+                call elastic_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+                cutoffz,cutoffmd, cutoffcentre,q,e12,Iee)
+
+
+
+                print*,Iee(1),geom
+
+                call nuclei_electron_integration(Zn,geom,ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+                cutoffz,cutoffmd, cutoffcentre,q,e12,Ine)
+
+                print*,Ine(1)
+
+                Inn=0.0_dp
+                do i=1,size(Zn)
+                    do j=1,size(Zn)
+                        do k=1,nq
+                         Rij=sqrt(sum((geom(i,:)-geom(j,:))**2) )
+                         Inn(k)=Inn(k)+Zn(i)*Zn(j)* sinc(q(k)*abs(Rij))
+
+                         end do
+                    enddo
+                end do
+
+                print*,Inn(1)
+
+                print*,sum(Ine-Iee)
+                result=Iee-2*Ine+Inn
+
+
+
+
+
+
+                !we need three terms here, Inn, Iee and Ine
+
+
+
         end if
         end subroutine total_scattering_calculation
 
@@ -232,5 +290,16 @@ subroutine total_scattering_calculation(type,state1,state2,maxl,ngto,ng,ga,l,m,n
         array(i) = from + range * (i - 1) / (n - 1)
     end do
     end subroutine
+
+     function sinc (a)
+             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+            INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+             real(kind=dp):: sinc, a
+             if (abs(a) < 1.0d-10) then
+                sinc = 1
+             else
+                sinc = sin(a) / (a)
+             end if
+    end function
 
         end module main_calculation_mod

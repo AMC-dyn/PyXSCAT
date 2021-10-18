@@ -195,7 +195,7 @@ put,molden,molpro.mld
         f.write('''---''')
 
     os.system(
-        'E:/Molpro/bin/molpro.exe -d . -s molpro_inp_scat_.inp')  # running molpro, change it for any run in a different computer
+        'molpro -s molpro_inp_scat_.inp')  # running molpro, change it for any run in a different computer
     time_counter = 0  #
     time_to_wait = 100
     while not os.path.exists(

@@ -1301,11 +1301,11 @@ module integrals
       !  print*,OMP_get_num_threads()
         !First big loop
 
-        tsi=complex(0.0_dp,0.0_dp)
+        tsi=(0.0_dp,0.0_dp)
      !  !$OMP PARALLEL do private(posI,posJ,spi,spj,za), &
       !  !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,dx1,dy1,dz1) shared(q_al,l,m,n), &
      !   !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi)
-        print*,Z(26,26), E12(1,16,16)
+        print*,Z(2,9), E12(1,16,16)
         counter1=0
 
         do i=1,ncap
@@ -1351,7 +1351,7 @@ module integrals
 
 
                         tsi = tsi + f * e12(:, i, j)
-                        print*,tsi(1),i,j, counter1, counter2
+
                         count=count+1
                         deallocate(za)
                !        deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
@@ -1365,6 +1365,113 @@ module integrals
 
 
     end subroutine elastic_integration_alig
+
+
+    subroutine nuclei_electron_integration(Zn,geom,ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z,group_start,group_count,group, &
+            cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+             use omp_lib
+        implicit none
+
+              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        INTEGER(kind=ikind), INTENT(IN) :: ncap
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+
+        REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
+        real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1
+        real(kind=dp),dimension(:,:,:,:), intent(in) :: p0matrix
+        REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
+        real(kind=dp), intent(in), dimension(:,:)::z,geom
+
+        REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
+        REAL(kind=dp), intent(in), dimension(:) :: q,Zn
+        REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
+
+
+        REAL(kind=dp), dimension(size(q)) :: f
+        integer(kind=ikind), dimension(:,:), allocatable :: posits
+        real(kind=dp),dimension(:,:), allocatable :: za,zb
+        integer(kind=ikind),dimension(:), allocatable ::posi,posk
+        REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
+        real(kind=dp) :: hx,hy,hz,h
+        integer(kind=ikind),dimension(size(l)) :: ll
+        integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj
+        integer(kind=ikind) :: spi, spk, nt,na
+
+        nq=size(q)
+        ng=maxval(group)
+        ll=l+m+n
+        allocate(posits(ng,maxval(group_count)))
+        posits=1
+        count=1
+        do i=1,ncap
+            count=1
+            do j=group_start(i),group_start(i)+group_count(i)-1
+               posits(i,count)=j
+                count=count+1
+            end do
+        end do
+
+
+             tsi=0.0_dp
+        do na=1,size(Zn)
+            do i=1,ncap
+                 do k=1,ncap
+
+                    hx = geom(na,1) - px(i, k)
+                    hy = geom(na,2) - py(i, k)
+                    hz = geom(na,3) - pz(i, k)
+                    h = sqrt((hx * hx + hy * hy + hz * hz))
+
+                allocate(posI(size(posits(i,:group_count(i)))), &
+                        posK(size(posits(k,:group_count(k)))))
+
+
+                posI = posits(i,:group_count(i))
+
+                posK = posits(k,:group_count(k))
+
+
+                spi = size(posI)
+                spk = size(posK)
+
+                allocate(za(spi,spk))
+
+               za=z(posi,posk)
+
+
+
+                dx1=>dx(:,:,:,k,i)
+                dy1=>dy(:,:,:,k,i)
+                dz1=>dz(:,:,:,k,i)
+
+
+                if (h < cutoffcentre) then
+                    call integral_ij_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,i, k, &
+                                    za,  cutoffz, cutoffmd, f)
+
+                else
+
+                    call  integral_k_ij(q,l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,&
+                                 i, k, za,  cutoffz, cutoffmd, f)
+                end if
+
+                tsi = tsi +  Zn(na) * f * e12(:, i, k)
+
+                deallocate(posI,posK,za)
+
+               ! deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+            end do
+        end do
+
+     enddo
+     print*,tsi(90)
+
+
+    end subroutine nuclei_electron_integration
+
+
 
     SUBROUTINE set_P0(P0, lmax4, q)
 
@@ -1675,7 +1782,7 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
 
         implicit none
 
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
 
         ! definition of input
@@ -1776,6 +1883,92 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
         end do
 
     END SUBROUTINE
+
+    SUBROUTINE integral_ij_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,gi,gj,za, &
+             cutoff1,cutoff2,f)
+        implicit none
+
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+
+        ! definition of input
+
+        INTEGER(kind=ikind), INTENT(IN)                       :: nq, gi, gj
+        REAL(kind=dp), INTENT(IN)                             :: cutoff1, cutoff2
+        REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: p0mat
+        real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1
+         real(kind=dp), intent(in),  dimension(:,:) :: za
+
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: gs,gc,l,m,n
+        ! definition of output
+        REAL(kind=dp), INTENT(OUT), DIMENSION(nq)             :: f
+        ! definition of loop indices
+        INTEGER(kind=ikind)                                   :: h1
+        INTEGER(kind=ikind)                                   :: ll, mm, nn, llp, mmp, nnp
+        ! definition of internal variables
+        INTEGER(kind=ikind)                                   :: i,j,k,r, posi, posj
+        REAL(kind=dp)                                         :: z1,ztot
+
+        REAL(kind=dp)                                         :: mdl, mdm, mdn, mdlp, mdmp,mdnp
+        real(kind=dp) :: prod6, prod5,prod4,prod3,prod2,prod1
+!        REAL(kind=dp), DIMENSION(size(Z1(:,1,1)))                          :: zij1, zkr1
+!        REAL(kind=dp), DIMENSION(size(Z2(:,1,1)))                          :: zij2, zkr2
+
+
+        posI=1
+
+       ! posI=apos(i)
+
+        f=0.0_dp
+        ! loop through all possible ways to get total angular momentum lmax1
+        do i = gs(gi), gs(gi) + gc(gi) - 1
+
+            posj=1
+
+            do j = gs(gj), gs(gj) + gc(gj) - 1
+                Ztot=Za(posI, posJ)
+
+                ! continue only if larger
+!                if (abs(ztot) < cutoff1) then
+!                    posj=posj+1
+!                    cycle
+!                end if
+
+
+                do ll = 0, l(i)+l(j)
+                            MDL = Dx1(ll+1,l(i)+1,l(j)+1)
+                            if (abs(MDL)<1.0e-30) cycle
+                            prod1 = MDL * ztot
+                            ! MD coeff 2
+                            do mm = 0, m(i)+m(j)
+                                MDM = Dy1(mm+1,m(i)+1,m(j)+1)
+                                if (abs(MDM)<1.0e-30) cycle
+                                prod2 = MDM * prod1
+                                ! MD coeff 3
+                                do nn =0, n(i)+n(j)
+                                    H1=(-1.0)**(ll+mm+nn)
+                                    MDN=Dz1(nn+1,n(i)+1,n(j)+1)
+                                    if (abs(MDN)<1.0e-30) cycle ! check if MD coeff is 0
+                                    prod3 = MDN * H1  * prod2
+                                    ! MD coeff 4
+                                    if (abs(prod3)>cutoff2) then
+                                        ! add the contribution to the total
+                                        F = F + prod3 * P0mat(:,ll+1,mm+1,nn+1)
+
+                                    end if
+
+                                end do
+
+                            end do
+                end do
+                posj=posj+1
+            end do
+            posi=posi+1
+        end do
+
+
+    END SUBROUTINE
+
 
 
 
@@ -2106,7 +2299,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
 
-        h_saved=complex(0.0_dp,0.0_dp)
+        h_saved=(0.0_dp,0.0_dp)
 
 ! loop through all possible ways to get total angular momentum lmax1
 
@@ -2181,7 +2374,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
-       f=h_saved*exp(complex(0,1.00_dp)*q_al(1,:)*(Hx))*exp(complex(0,1.0_dp)*q_al(2,:)*(Hy))*exp(complex(0,1.0_dp)*q_al(3,:)*(Hz))
+       f=h_saved*exp((0,1.00_dp)*q_al(1,:)*(Hx))*exp((0,1.0_dp)*q_al(2,:)*(Hy))*exp((0,1.0_dp)*q_al(3,:)*(Hz))
 
     end subroutine
 
@@ -2194,7 +2387,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
         implicit none
 
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=selected_int_kind(8)), intent(in)  :: gi,gj,gk,gr
@@ -2393,7 +2586,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
 
-        h_saved=complex(0.0_dp,0.0_dp)
+        h_saved=(0.0_dp,0.0_dp)
 
 ! loop through all possible ways to get total angular momentum lmax1
 
@@ -2406,9 +2599,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
             posj=1
             do j = group_start(gj), group_start(gj) + group_count(gj) - 1
 
-                z1=Za(posi,posj)
+                ztot=Za(posi,posj)
 
-                        ztot=Z1
+
 !
                         ! continue only if larger
                      !   if (abs(ztot) < cutoff1) then
@@ -2431,9 +2624,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
                                     if (abs(MDN)<1.0e-30) cycle ! check if MD coeff is 0
                                     prod3 = MDN  * prod2
 
-                                    if (prod3>1E-30) then
+                                    if (abs(prod3)>1E-30) then
                                     ! MD coeff 4
-                                    h_saved = h_saved + exponent1(:,ll+1,mm+1,nn+1)*prod3
+                                         h_saved = h_saved + exponent1(:,ll+1,mm+1,nn+1)*prod3
 
                                     end if
 
@@ -2446,10 +2639,143 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
-      F=h_saved*exp(complex(0,1.00_dp)*q_al(1,:)*(Hx))*exp(complex(0,1.0_dp)*q_al(2,:) &
-              *(Hy))*exp(complex(0,1.0_dp)*q_al(3,:)*(Hz))
+      F=h_saved*exp((0,1.00_dp)*q_al(1,:)*(Hx))*exp((0,1.0_dp)*q_al(2,:) &
+              *(Hy))*exp((0,1.0_dp)*q_al(3,:)*(Hz))
 
     end subroutine
+
+    subroutine integral_k_ij(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1, gi,gj,&
+            za,cutoff1, cutoff2,f)
+
+
+
+        implicit none
+
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
+        integer(kind=selected_int_kind(8)), intent(in)  :: gi,gj
+        integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: l,m,n,group_start,group_count
+        real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
+        real(kind=dp), intent(in), dimension(:,:) :: za
+        real(kind=dp), intent(in), dimension(:)   ::  mu
+
+        real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1
+        !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
+
+
+
+        integer(kind=selected_int_kind(8)) :: ka, posi, posj, ra,i,j,k,r
+        integer(kind=selected_int_kind(8)) ::  h1
+        integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
+
+        real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z1
+        INTEGER(kind=ikind), parameter :: dim = 13
+        real(kind=dp) :: prod1,prod2,prod3
+        REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
+        REAL(kind=dp), DIMENSION(dim)               :: h_saved
+        REAL(kind=dp), DIMENSION(dim, dim, dim, dim)  :: h_pre2
+        REAL(kind=dp), DIMENSION(dim)               :: BD
+
+
+
+      !  real(kind=dp), dimension(:), allocatable :: pmu, h_0, h_1, h_r, muoh,zij, zij2, zkr, zkr2
+
+        real(kind=dp), intent(out), dimension(size(mu)) :: f
+        real(kind=dp), allocatable,dimension(:) :: l1vec,l2vec,suml1l2
+
+
+        LLmax = l(group_start(gi)) + m(group_start(gi)) + n(group_start(gi)) + &
+                l(group_start(gj)) + m(group_start(gj)) + n(group_start(gj))
+
+
+        if (LLmax + 1 > dim) then
+            print*, "only s,p,d and f type GTOs are supported"
+            stop
+        end if
+
+
+
+        call Hermite_like_coeffs(a, LLmax, Hx)
+        call Hermite_like_coeffs(b, LLmax, Hy)
+        call Hermite_like_coeffs(c, LLmax, Hz)
+
+
+
+
+        bd=0.0_dp
+
+        do k = 0, LLmax
+            do j = 0, LLmax - k
+                do i = 0, LLmax - k - j
+                    call BesselDeriv(BD, i, j, k, a, b, c, LLmax)
+                    h_pre2(:,i+1,j+1,k+1) = BD
+                end do
+            end do
+        end do
+
+       ! posi=apos(i)
+
+
+
+        h_saved=0.0_dp
+
+! loop through all possible ways to get total angular momentum lmax1
+
+
+        posI=1
+
+
+        ! loop through all possible ways to get total angular momentum lmax1
+        do i = group_start(gi), group_start(gi) + group_count(gi) - 1
+            posj=1
+            do j = group_start(gj), group_start(gj) + group_count(gj) - 1
+
+
+                    ztot=Za(posi,posj)
+
+
+!
+                        ! continue only if larger
+!                        if (abs(ztot) < cutoff1) then
+!                                posj=posj+1
+!                                cycle
+!                            end if
+                           do ll = 0, l(i)+l(j)
+                            MDL = Dx1(ll+1,l(i)+1,l(j)+1)
+                            if (abs(MDL)<1.0e-30) cycle
+                            prod1 = MDL * ztot
+                            ! MD coeff 2
+                            do mm = 0, m(i)+m(j)
+                                MDM = Dy1(mm+1,m(i)+1,m(j)+1)
+                                if (abs(MDM)<1.0e-30) cycle
+                                prod2 = MDM * prod1
+                                ! MD coeff 3
+                                do nn =0, n(i)+n(j)
+                                    H1=(-1.0)**(ll+mm+nn)
+                                    MDN=Dz1(nn+1,n(i)+1,n(j)+1)
+                                    if (abs(MDN)<1.0e-30) cycle ! check if MD coeff is 0
+                                     prod3 = MDN * H1  * prod2
+                                    ! MD coeff 4
+                                    if (abs(prod3)>cutoff2) then
+                                                    ! add the contribution to the total
+                                        h_saved = h_saved + h_pre2(:,ll+1,mm+1,nn+1)*prod3
+
+                                    end if
+
+                                    end do
+                                    end do
+                end do
+                posj=posj+1
+            end do
+        posi=posi+1
+        end do
+
+        CALL BesselSum(F, mu, H, LLmax, h_saved)
+
+
+    end subroutine
+
 
         SUBROUTINE BesselSum(h_sum, mu, H, LLmax, h_saved)
                   INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)

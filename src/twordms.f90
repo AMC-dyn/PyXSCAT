@@ -64,7 +64,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                 end do
             end do
 
-    print*,ndiff(1,2)
+
     end subroutine maxcoincidence
 
     subroutine createtwordm(confs,civs,ndiff,ep2,mat,total)
@@ -417,7 +417,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
         if (logicaltwordms(i)) then
             mat(count,:)=matdum(i,:)
             total(count)=totaldum(i)
-            print*,total(count)
+
             count=count+1
         end if
     end do

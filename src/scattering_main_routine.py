@@ -9,8 +9,18 @@ import scipy.io as sci
 
 
 # Rotational averaged  caclulation of total scattering
+def integertobinary(N):
+    binary = []
+    for i in range(1, 19):
+        k = int(np.mod(N, 2))
+        binary.append(k)
+        N = N / 2
+
+    return binary
+
 
 def main():
+
     tic1 = time.time()
     # INPUT:
     # mldfile       string          input molden file name
@@ -34,11 +44,18 @@ def main():
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 8
-    civs, confs = td.twordmconst()  # state1 and state2 should be used here
-    Nmo_max=len(confs[:][0])/2
+    Nmo_max = 18
+    jeremyR = True
+    if not jeremyR:
+        civs, confs = td.twordmconst()  # state1 and state2 should be used here
+        Nmo_max = len(confs[:][0]) / 2
+    else:
+        Nmo_max = 18
     print('Max_nmos,', Nmo_max)
-    gtos = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+    gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+
+    geom = atoms.geometry()
+    print(atoms.atomic_numbers())
 
     print(np.size(gtos.ga))
 
@@ -65,7 +82,7 @@ def main():
         # cut off epsilon; if H < epsilon, use P0 cases
         cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
         # the cutoff for the Z integral
-        cutoffz = 1e-30 # suggested: cutoffz = 1E-9;
+        cutoffz = 1e-30  # suggested: cutoffz = 1E-9;
         # the cutoff for the product of the MD coefficients
         cutoffmd = 1e-30  # suggested: cutoffmd = 1E-20;
     else:
@@ -73,15 +90,14 @@ def main():
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
         cutoffz = input("Input the cutoff for the Z integral")
     # reshape q to a column vector
-    q = np.linspace(0.000001, 10, 100)
+    q = np.linspace(0.00000000001, 10, 100)
     # set q t0 E-10 if q = 0
     if q[0] < 1E-10:
         q[0] = 1E-10
 
     # reading the 2-particle RDM from MOLPRO output
 
-
-   # mattry, total = td2.twordmconst()
+    # mattry, total = td2.twordmconst()
 
     print('twordm constructed')
 
@@ -102,34 +118,66 @@ def main():
     ng = max(group)
     maxl = max(l)
     nq = np.size(q)
-    confs2 = np.zeros((np.size(confs), len(confs[0])), dtype=np.int64)
-    counts = 0
-    for i in confs:
-        lst = []
-        lst = [*i.replace('a', '1').replace('b', '2')]
-        confs2[counts, :] = np.asarray(lst, dtype=np.int64)
-        counts = counts + 1
 
+    if not jeremyR:
+        confs2 = np.zeros((np.size(confs), len(confs[0])), dtype=np.int64)
+        counts = 0
+        for i in confs:
+            lst = []
+            lst = [*i.replace('a', '1').replace('b', '2')]
+            confs2[counts, :] = np.asarray(lst, dtype=np.int64)
+            counts = counts + 1
+        print(confs2)
+
+
+
+
+    elif jeremyR:
+        count = 0
+        fileJeremy = 'civ_out0.01'
+        confbin1 = []
+        confbin2 = []
+        civs = []
+        f = open(fileJeremy, 'r')
+        for line in f:
+            NN = line.strip().split()
+
+            civs.append(float(NN[1]))
+            confbin1.append(integertobinary(int(NN[2])))
+            confbin2.append(integertobinary(int(NN[3])))
+            count += 1
+        confs2 = np.zeros((count - 1, len(confbin1[0] * 2)))
+        confbin1 = np.asarray(confbin1)
+        confbin2 = np.asarray(confbin2)
+        confbin2 = confbin2 * 2
+        civs=np.asarray(civs,dtype=np.float64)
+        print('norm of the CI', sum(civs**2))
+        civs=civs/np.sqrt(sum(civs**2))
+        for i in range(0, count - 1):
+            for j in range(0, 18):
+                confs2[i, 2 * j] = confbin1[i, j]
+                confs2[i, 2 * j + 1] = confbin2[i, j]
+        print('confs2', confs2)
     tic2 = time.time()
     print(np.size(group))
     print('Angular momenta red', ng)
     print('time for readers in python', tic2 - tic1, 's')
 
-    q_alig, resultado2 = main_calculation.total_scattering_calculation(4, 1, 1, maxl, Ngto, ng,
-                                                               ga, l, m, n, xx, yy, zz, mmod,
-                                                               q, nq,
-                                                               group,
-                                                               cutoffz, cutoffmd, cutoffcentre, confs2, civs)
-
+    q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 1, maxl,
+                                                                       Ngto, ng,
+                                                                       ga, l, m, n, xx, yy, zz, mmod,
+                                                                       q, nq,
+                                                                       group,
+                                                                       cutoffz, cutoffmd, cutoffcentre, confs2, civs)
 
     print(resultado2)
-
-    return resultado2,q,q_alig
+    print(q)
+    return resultado2, q, q_alig
 
 
 tic2 = time.time()
 
-res,q,q_alig = main()
+res, q, q_alig = main()
 toc = time.time()
-sci.savemat('result_aligned.mat',{'q':q_alig, 'I':res})
+sci.savemat('CO_0p01.mat', {'q': q, 'I': res})
 print(toc - tic2)

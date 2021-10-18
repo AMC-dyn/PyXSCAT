@@ -4,7 +4,7 @@
        contains
 
 
-     subroutine onerdm_creat(confs,civs,onerdm,maxnmo)
+     subroutine onerdm_creat(confs,civs,onerdm,maxnmo,state1,state2)
             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
          integer(kind=ikind), intent(in), dimension(:,:) :: confs
@@ -12,11 +12,13 @@
          real (kind=dp), intent(out), dimension(:,:), allocatable :: onerdm
          integer(kind=ikind),dimension(:,:), allocatable :: ep2, ndiff
          integer(kind=ikind), intent(out) :: maxnmo
+            integer(kind=ikind),intent(in):: state1,state2
+
 
 
          call maxcoincidence(confs, ep2,ndiff)
 
-         call createonerdm(confs,civs,ndiff,ep2,onerdm,maxnmo)
+         call createonerdm(confs,civs,ndiff,ep2,onerdm,maxnmo,state1,state2)
 
 
 
@@ -84,7 +86,7 @@
 !    end subroutine maxcoincidence
 
 
-    subroutine createonerdm(confs,civs,ndiff,ep2,onerdm,maxnmo)
+    subroutine createonerdm(confs,civs,ndiff,ep2,onerdm,maxnmo,state1,state2)
 
     implicit none
 
@@ -94,7 +96,7 @@
     integer(kind=ikind), intent(in),dimension(:,:) :: confs
     integer(kind=ikind), intent(in), dimension(:,:) :: ep2, ndiff
     real(kind=dp), intent(in), dimension(:,:) :: civs
-
+    integer(kind=ikind), intent(in) :: state1,state2
 
 
     real(kind=dp), dimension(:,:), intent(out),allocatable :: onerdm
@@ -149,8 +151,8 @@
 
 
                         onerdm(sorb , qorb ) = onerdm(sorb , qorb ) + &
-                                civs(c1,1) * civs(c2,1) * ep
-                        print*,  civs(c1,1) * civs(c2,1) * ep, sorb,qorb,c1,c2
+                                civs(c1,state1) * civs(c2,state2) * ep
+
 
 
 
@@ -163,9 +165,9 @@
                     if (confs(c1,i1)/=0) then
 
                         sorb=nint((i1) / 2.0_dp + 0.1)
-                        print*,sorb,civs(c1,1) * civs(c1,1) * ep, onerdm(sorb,sorb)
-                        onerdm( sorb , sorb)  = onerdm(sorb , sorb) + civs(c1,1) * civs(c1,1) * ep
-                        print*, onerdm(sorb,sorb)
+
+                        onerdm( sorb , sorb)  = onerdm(sorb , sorb) + civs(c1,state1) * civs(c1,state2) * ep
+
 
                     end if
                     enddo
@@ -179,7 +181,8 @@
     count=0.0
     open(file='onerdm.dat', unit=15)
     do i=1,size(onerdm(:,1))
-       write(15,*) onerdm(i,:)
+
+         write(15,'(1000F14.7)')( onerdm(i,c1) ,c1=1,size(onerdm(i,:)))
     end do
     close(15)
 

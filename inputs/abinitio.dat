@@ -1,12 +1,14 @@
 
 GEOMETRY
 Angstrom
-1
-Ne 0.0 0.0 0.0
+3
+O 0.0 0.0 0.0
+F -1.09956 0.0 -0.874633
+F 1.09956 0.0 -0.874633
 RUN
-Yes
+No
 MLD
-molpro.mld
+co_631g.molden
 PUNCH
 molpro.pun
 METHOD
@@ -17,13 +19,13 @@ NONE
 BASIS
 6-311G
 OCC
-6
+13
 CLOSED
 0
 COM
 True
 NEL
-10
+26
 MULTIPLICITY
 Singlet
 NSTATES
