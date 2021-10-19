@@ -5,7 +5,7 @@
 
 module main_calculation_mod
 
-|
+
     implicit none 
 
     contains

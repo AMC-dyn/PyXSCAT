@@ -134,7 +134,7 @@ def main():
 
     elif jeremyR:
         count = 0
-        fileJeremy = 'civ_out0.01'
+        fileJeremy = 'civ_out0.0005'
         confbin1 = []
         confbin2 = []
         civs = []
@@ -146,14 +146,15 @@ def main():
             confbin1.append(integertobinary(int(NN[2])))
             confbin2.append(integertobinary(int(NN[3])))
             count += 1
-        confs2 = np.zeros((count - 1, len(confbin1[0] * 2)))
+        print(confbin1)
+        confs2 = np.zeros((count, len(confbin1[0] * 2)))
         confbin1 = np.asarray(confbin1)
         confbin2 = np.asarray(confbin2)
         confbin2 = confbin2 * 2
         civs=np.asarray(civs,dtype=np.float64)
         print('norm of the CI', sum(civs**2))
         civs=civs/np.sqrt(sum(civs**2))
-        for i in range(0, count - 1):
+        for i in range(0, count ):
             for j in range(0, 18):
                 confs2[i, 2 * j] = confbin1[i, j]
                 confs2[i, 2 * j + 1] = confbin2[i, j]
@@ -179,5 +180,5 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-sci.savemat('CO_0p01.mat', {'q': q, 'I': res})
+sci.savemat('CO_0p0005.mat', {'q': q, 'I': res})
 print(toc - tic2)

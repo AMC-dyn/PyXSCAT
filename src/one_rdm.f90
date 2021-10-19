@@ -186,6 +186,13 @@
     end do
     close(15)
 
+     open(file='configurations.dat', unit=15)
+    do i=1,size(confs(:,1))
+
+         write(15,*)( confs(i,c1) ,c1=1,size(confs(i,:)))
+    end do
+    close(15)
+
     print*, 'onerdm calculated'
 
 
