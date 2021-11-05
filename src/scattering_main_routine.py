@@ -11,7 +11,7 @@ import scipy.io as sci
 # Rotational averaged  caclulation of total scattering
 def integertobinary(N):
     binary = []
-    for i in range(1, 19):
+    for i in range(0, 32):
         k = int(np.mod(N, 2))
         binary.append(k)
         N = N / 2
@@ -20,7 +20,6 @@ def integertobinary(N):
 
 
 def main():
-
     tic1 = time.time()
     # INPUT:
     # mldfile       string          input molden file name
@@ -44,13 +43,13 @@ def main():
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 18
+    Nmo_max = 32
     jeremyR = True
     if not jeremyR:
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
         Nmo_max = len(confs[:][0]) / 2
     else:
-        Nmo_max = 18
+        Nmo_max = 32
     print('Max_nmos,', Nmo_max)
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
@@ -127,52 +126,77 @@ def main():
             lst = [*i.replace('a', '1').replace('b', '2')]
             confs2[counts, :] = np.asarray(lst, dtype=np.int64)
             counts = counts + 1
-        print(confs2)
+
+        q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 1, maxl,
+                                                                           Ngto, ng,
+                                                                           ga, l, m, n, xx, yy, zz, mmod,
+                                                                           q, nq,
+                                                                           group,
+                                                                           cutoffz, cutoffmd, cutoffcentre, confs2,
+                                                                           civs)
+
+
 
 
 
 
     elif jeremyR:
         count = 0
-        fileJeremy = 'civ_out0.0005'
+        fileJeremy = 'O3/civ_out_0.0001'
         confbin1 = []
         confbin2 = []
         civs = []
         f = open(fileJeremy, 'r')
         for line in f:
-            NN = line.strip().split()
 
-            civs.append(float(NN[1]))
-            confbin1.append(integertobinary(int(NN[2])))
-            confbin2.append(integertobinary(int(NN[3])))
             count += 1
-        print(confbin1)
-        confs2 = np.zeros((count, len(confbin1[0] * 2)))
-        confbin1 = np.asarray(confbin1)
-        confbin2 = np.asarray(confbin2)
-        confbin2 = confbin2 * 2
-        civs=np.asarray(civs,dtype=np.float64)
-        print('norm of the CI', sum(civs**2))
-        civs=civs/np.sqrt(sum(civs**2))
-        for i in range(0, count ):
-            for j in range(0, 18):
-                confs2[i, 2 * j] = confbin1[i, j]
-                confs2[i, 2 * j + 1] = confbin2[i, j]
-        print('confs2', confs2)
-    tic2 = time.time()
-    print(np.size(group))
-    print('Angular momenta red', ng)
-    print('time for readers in python', tic2 - tic1, 's')
+        f.close()
+        if count <= 10:
+            f = open(fileJeremy, 'r')
+            for line in f:
+                NN = line.strip().split()
 
-    q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 1, maxl,
-                                                                       Ngto, ng,
-                                                                       ga, l, m, n, xx, yy, zz, mmod,
-                                                                       q, nq,
-                                                                       group,
-                                                                       cutoffz, cutoffmd, cutoffcentre, confs2, civs)
+                civs.append(float(NN[1]))
+                confbin1.append(integertobinary(int(NN[2])))
+                confbin2.append(integertobinary(int(NN[3])))
+
+            confs2 = np.zeros((count, len(confbin1[0] * 2)))
+            confbin1 = np.asarray(confbin1)
+            confbin2 = np.asarray(confbin2)
+            confbin2 = confbin2 * 2
+            civs = np.asarray(civs, dtype=np.float64)
+            print('norm of the CI', sum(civs ** 2))
+            civs = civs / np.sqrt(sum(civs ** 2))
+            for i in range(0, count):
+                for j in range(0, 32):
+                    confs2[i, 2 * j] = confbin1[i, j]
+                    confs2[i, 2 * j + 1] = confbin2[i, j]
+            print('confs2', len(confs2))
+
+            q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1, 1,
+                                                                               maxl,
+                                                                               Ngto, ng,
+                                                                               ga, l, m, n, xx, yy, zz, mmod,
+                                                                               q, nq,
+                                                                               group,
+                                                                               cutoffz, cutoffmd, cutoffcentre, confs2,
+                                                                               civs)
+        else:
+
+            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1, 1,
+                                                                               maxl,
+                                                                               Ngto, ng,
+                                                                               ga, l, m, n, xx, yy, zz, mmod,
+                                                                               q, nq,
+                                                                               group,
+                                                                               cutoffz, cutoffmd, cutoffcentre, fileJeremy,count)
+    #tic2 = time.time()
+    #print(np.size(group))
+    #print('Angular momenta red', ng)
+    #print('time for readers in python', tic2 - tic1, 's')
 
     print(resultado2)
-    print(q)
+    #print(q)
     return resultado2, q, q_alig
 
 

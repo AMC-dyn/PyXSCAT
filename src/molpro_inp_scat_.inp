@@ -12,19 +12,18 @@ orient,noorient;
 angstrom;
 geomtype=xyz;
 geom={
-        3
+        2
 
 O 0.0 0.0 0.0
-F -1.09956 0.0 -0.874633
-F 1.09956 0.0 -0.874633
+C 0.0 0.0 -0.874633
 }
 {multi,failsafe;
 maxiter,40;
 config,det
-occ,13;
+occ,9;
 closed,0;
-wf,26,1,0;
-state,1;
+wf,14,1,0;
+state,2;
 pspace,10.0        
 orbital,2140.3;
 ORBITAL,IGNORE_ERROR;
