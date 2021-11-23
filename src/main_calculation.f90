@@ -277,7 +277,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
         subroutine total_scattering_calculation_2(type,Zn,geom,state1,state2,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
         mmod,q,nq, group,&
-        cutoffz,cutoffmd,cutoffcentre,fileJ,numberlines,q_abs,result)
+        cutoffz,cutoffmd,cutoffcentre,fileJ,numberlines,newdat,start,end,irep,q_abs,result)
 
 
 
@@ -297,6 +297,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
         integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl,type, state1,state2,numberlines
         integer(kind=ikind), intent(in),dimension(:) :: l, m, n,group
+        integer*8, intent(in), dimension(:,:):: newdat
+        integer*8,intent(in), dimension(:):: irep,start,end
 
 
         real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q, Zn
@@ -319,7 +321,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
         integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k
-        real(kind=dp) :: start,time1,time2,time3,time4,co,wl,rr,k0,rij
+        real(kind=dp) ::time1,time2,time3,time4,co,wl,rr,k0,rij
         complex(kind=dp), dimension(:,:,:,:), allocatable :: exponent1, exponent2
         complex(kind=dp), dimension(size(q)):: resultaligned
         real(kind=dp),dimension(3,size(q)) :: q_al
@@ -347,7 +349,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
           !  call maxcoincidence(confs,ep3,ndiff2)
           !  call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
             nmomax=27
-            call createtwordm_bit(fileJ,numberlines,mat,total)
+            call createtwordm_bit(fileJ,numberlines,newdat,irep,start,end,mat,total)
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
              m1 = mat(:,1)
              m2 = mat(:,2)
@@ -384,10 +386,10 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                call cpu_time(time3)
                 print*,'time slow one_rdm',time3-time2
 
-                nmomax=28
+                nmomax=18
 
             print*, 'number of lines', numberlines
-               call one_rdm_bit(fileJ,onerdm_matrix_2,nmomax,numberlines)
+               call one_rdm_bit(fileJ,onerdm_matrix_2,nmomax,numberlines,newdat,irep)
 
                  call cpu_time(time2)
                 print*,'time bit one_rdm', time2-time3

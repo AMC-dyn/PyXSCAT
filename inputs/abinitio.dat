@@ -7,7 +7,7 @@ C 0.0 0.0 -0.874633
 RUN
 No
 MLD
-O3/o3_631g.molden
+co_fci.molden
 PUNCH
 molpro.pun
 METHOD

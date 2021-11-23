@@ -6,6 +6,7 @@ from integrals_wrapper import main_calculation_mod as main_calculation
 import time
 import molden_reader_nikola as mldreader
 import scipy.io as sci
+import pandas as pd
 
 
 # Rotational averaged  caclulation of total scattering
@@ -17,6 +18,60 @@ def integertobinary(N):
         N = N / 2
 
     return binary
+
+
+def read_fci(file):
+    CIV = False
+    alphas = []
+    betas = []
+    civectors = []
+
+    with open(file, 'r') as f:
+
+        for lines in f:
+            if 'CI Vector' in lines:
+                CIV = True
+                print('CIV FOUND')
+
+            if CIV and '/EOF' not in lines and 'CI Vector' not in lines:
+
+                N = lines.strip().split()
+                vec = np.array(N[1:], dtype=int)
+
+                civ = np.array(N[0], dtype=np.float64)
+                alpha, beta = orbitals_to_integers(vec)
+
+                civectors.append(civ)
+                alphas.append(alpha)
+                betas.append(beta)
+            elif '/EOF' in lines:
+                CIV = False
+                break
+    civectors = np.asarray(civectors)
+    alphas = np.asarray(alphas)
+    betas = np.asarray(betas)
+
+    return civectors, alphas, betas
+
+
+def orbitals_to_integers(vec):
+    alpha = 0
+    beta = 0
+    comp = 0
+    a = True
+    b = False
+    for i in vec:
+        if i < comp:
+            b = True
+            a = False
+        if a:
+            alpha += 2 ** (i - 1)
+
+        if b:
+            beta += 2 ** (i - 1)
+
+        comp = i
+    return alpha, beta
 
 
 def main():
@@ -142,61 +197,169 @@ def main():
 
     elif jeremyR:
         count = 0
-        fileJeremy = 'O3/civ_out_0.0001'
-        confbin1 = []
-        confbin2 = []
-        civs = []
-        f = open(fileJeremy, 'r')
-        for line in f:
+        fci = True
+        fileJeremy = 'fci_co.out'
+        if fci:
+            civs, alphas, betas = read_fci(fileJeremy)
+            test = np.sum(civs ** 2)
+            print(test)
+            # matrix2 = np.asarray([alphas, betas])
+            # matrix2 = np.sort(matrix2, axis=0)
+            # print(matrix2[:, 4763253])
 
-            count += 1
-        f.close()
-        if count <= 10:
+            index = np.where(abs(civs) >= 1E-6)
+            print('the number of elements selected is ', np.size(index))
+            alphas = alphas[index]
+            betas = betas[index]
+            civs = civs[index]
+            newdat, ipos1, irep1 = np.unique(alphas, return_index=True, return_inverse=True)
+            newdat2, ipos2, irep2 = np.unique(betas, return_index=True, return_inverse=True)
+
+            nnn = np.ones(np.size(newdat), dtype=np.int)
+            start = np.ones(np.size(newdat),dtype=np.int)
+            end = np.ones(np.size(newdat), dtype=np.int)
+            nnn2 = np.ones(np.size(newdat), dtype=np.int)
+            start_2 = np.ones(np.size(newdat2), dtype=np.int)
+            end_2 = np.ones(np.size(newdat2), dtype=np.int)
+            for i in range(np.size(newdat)):
+                var = np.where(alphas == newdat[i])[0]
+                nnn[i] = np.size(var)
+                start[i] = int(var[0] + 1)
+                end[i] = int(var[-1] + 1)
+            for i in range(np.size(newdat2)):
+                var = np.where(betas == newdat2[i])[0]
+                nnn2[i] = np.size(var)
+                start_2[i] = int(var[0] + 1)
+                end_2[i] = int(var[-1] + 1)
+            print('CHecking this start, end')
+            print(nnn[0],end[0]-start[0],end[0])
+            print(newdat[0], alphas[start[0]-1:end[0]-1])
+            print(np.sum(newdat[irep1] - alphas))
+            irep1 = nnn
+            print(np.size(newdat), np.size(newdat2))
+            if np.size(newdat) < np.size(newdat2):
+                newarray = np.zeros(np.size(newdat2) - np.size(newdat))
+                newdat = np.append(newdat, newarray)
+            elif np.size(newdat) > np.size(newdat2):
+                newarray = np.zeros(np.size(newdat) - np.size(newdat2))
+                newdat2 = np.append(newdat2, newarray)
+            newdat = np.transpose(np.asarray([newdat, newdat2]))
+            print(np.size(newdat))
+
+            test = np.sum(civs[abs(civs) != 1E-6] ** 2)
+            print(test)
+            # alphas = alphas[ipos]
+            # betas = betas[ipos]
+
+            # df = pd.DataFrame({'x': alphas, 'y': betas})
+            # print('dataframe created')
+            # df_new = df.apply(sorted,axis=1)
+            #
+            # print(df_new.iloc[[4763254]])
+            # print('dataframe sorted')
+            # df_final = df_new.drop_duplicates()
+            # print('dataframe unique')
+            # print(np.size(matrix2[0, :]))
+
+            print('dataframe created')
+            f = open('fci_calc.dat', 'w')
+
+            for i in range(0, len(civs)):
+                if abs(civs[i]) >= 1E-6:
+                    f.write(str(i) + ' ' + str(civs[i]) + ' ' + str(alphas[i]) + ' ' + str(betas[i]) + '\n')
+                    count = count + 1
+            f.close()
+
+            fileJeremy = 'fci_calc.dat'
+            # count = len(civs)
+            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1, 1,
+                                                                                 maxl,
+                                                                                 Ngto, ng,
+                                                                                 ga, l, m, n, xx, yy, zz, mmod,
+                                                                                 q, nq,
+                                                                                 group,
+                                                                                 cutoffz, cutoffmd, cutoffcentre,
+                                                                                 fileJeremy, count, newdat, start, end,
+                                                                                 irep1)
+
+        else:
+            confbin1 = []
+            confbin2 = []
+            civs = []
             f = open(fileJeremy, 'r')
             for line in f:
                 NN = line.strip().split()
+                confbin1.append(int(NN[2]))
+                confbin2.append(int(NN[3]))
+                count += 1
+            f.close()
+            if count <= 10:
+                confbin1 = []
+                confbin2 = []
+                f = open(fileJeremy, 'r')
+                for line in f:
+                    NN = line.strip().split()
 
-                civs.append(float(NN[1]))
-                confbin1.append(integertobinary(int(NN[2])))
-                confbin2.append(integertobinary(int(NN[3])))
+                    civs.append(float(NN[1]))
+                    confbin1.append(integertobinary(int(NN[2])))
+                    confbin2.append(integertobinary(int(NN[3])))
 
-            confs2 = np.zeros((count, len(confbin1[0] * 2)))
-            confbin1 = np.asarray(confbin1)
-            confbin2 = np.asarray(confbin2)
-            confbin2 = confbin2 * 2
-            civs = np.asarray(civs, dtype=np.float64)
-            print('norm of the CI', sum(civs ** 2))
-            civs = civs / np.sqrt(sum(civs ** 2))
-            for i in range(0, count):
-                for j in range(0, 32):
-                    confs2[i, 2 * j] = confbin1[i, j]
-                    confs2[i, 2 * j + 1] = confbin2[i, j]
-            print('confs2', len(confs2))
+                confs2 = np.zeros((count, len(confbin1[0] * 2)))
+                confbin1 = np.asarray(confbin1)
+                confbin2 = np.asarray(confbin2)
+                confbin2 = confbin2 * 2
+                civs = np.asarray(civs, dtype=np.float64)
+                print('norm of the CI', sum(civs ** 2))
+                civs = civs / np.sqrt(sum(civs ** 2))
+                for i in range(0, count):
+                    for j in range(0, 32):
+                        confs2[i, 2 * j] = confbin1[i, j]
+                        confs2[i, 2 * j + 1] = confbin2[i, j]
+                print('confs2', len(confs2))
 
-            q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1, 1,
-                                                                               maxl,
-                                                                               Ngto, ng,
-                                                                               ga, l, m, n, xx, yy, zz, mmod,
-                                                                               q, nq,
-                                                                               group,
-                                                                               cutoffz, cutoffmd, cutoffcentre, confs2,
-                                                                               civs)
-        else:
+                q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1,
+                                                                                   1,
+                                                                                   maxl,
+                                                                                   Ngto, ng,
+                                                                                   ga, l, m, n, xx, yy, zz, mmod,
+                                                                                   q, nq,
+                                                                                   group,
+                                                                                   cutoffz, cutoffmd, cutoffcentre,
+                                                                                   confs2,
+                                                                                   civs)
+            else:
+                newdat, ipos, irep = np.unique(confbin1, return_index=True, return_inverse=True)
+                newdat2, ipos, irep = np.unique(confbin2, return_index=True, return_inverse=True)
 
-            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1, 1,
-                                                                               maxl,
-                                                                               Ngto, ng,
-                                                                               ga, l, m, n, xx, yy, zz, mmod,
-                                                                               q, nq,
-                                                                               group,
-                                                                               cutoffz, cutoffmd, cutoffcentre, fileJeremy,count)
-    #tic2 = time.time()
-    #print(np.size(group))
-    #print('Angular momenta red', ng)
-    #print('time for readers in python', tic2 - tic1, 's')
+                print(np.size(newdat), np.size(newdat2))
+                if np.size(newdat) < np.size(newdat2):
+                    newarray = np.zeros(np.size(newdat2) - np.size(newdat))
+                    newdat = np.append(newdat, newarray)
+                elif np.size(newdat) > np.size(newdat2):
+                    newarray = np.zeros(np.size(newdat) - np.size(newdat2))
+                    newdat2 = np.append(newdat2, newarray)
+
+                print(np.size(newdat), np.size(newdat2))
+                newdat = np.transpose(np.asarray([newdat, newdat2]))
+
+                print(np.shape(newdat))
+
+                q_alig, resultado2 = main_calculation.total_scattering_calculation_2(2, atoms.atomic_numbers(), geom, 1,
+                                                                                     1,
+                                                                                     maxl,
+                                                                                     Ngto, ng,
+                                                                                     ga, l, m, n, xx, yy, zz, mmod,
+                                                                                     q, nq,
+                                                                                     group,
+                                                                                     cutoffz, cutoffmd, cutoffcentre,
+                                                                                     fileJeremy, count, newdat)
+    # tic2 = time.time()
+    # print(np.size(group))
+    # print('Angular momenta red', ng)
+    # print('time for readers in python', tic2 - tic1, 's')
 
     print(resultado2)
-    #print(q)
+    # print(q)
     return resultado2, q, q_alig
 
 
