@@ -98,13 +98,18 @@ def main():
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 32
+    Nmo_max = 25
     jeremyR = True
-    if not jeremyR:
+    mcci = False
+    hf = False
+    if not jeremyR and not hf:
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
         Nmo_max = len(confs[:][0]) / 2
+    elif not jeremyR and hf:
+        civs = 1.000
+        confs = ['ababab']
     else:
-        Nmo_max = 32
+        Nmo_max = 18
     print('Max_nmos,', Nmo_max)
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
@@ -181,24 +186,57 @@ def main():
             lst = [*i.replace('a', '1').replace('b', '2')]
             confs2[counts, :] = np.asarray(lst, dtype=np.int64)
             counts = counts + 1
+        print(confs2[0, :])
+        with open('configurations_bit.dat', 'w') as f:
+            for i in range(counts - 1):
+                var1 = confs2[i, :]
+                alpha = 0
+                beta = 0
+                for j in range(len(var1)):
+                    if var1[j] != 0:
+                        if np.mod(j, 2) == 0:
+                            alpha = alpha + 2 ** (j / 2)
+                        else:
+                            beta = beta + 2 ** ((j - 1) / 2)
 
-        q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 1, maxl,
+                f.write(str(i + 1) + ' ' + str(civs[i][0]) + ' ' + str(int(alpha)) + ' ' + str(int(beta)) + '\n')
+
+        q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1, 1, maxl,
                                                                            Ngto, ng,
                                                                            ga, l, m, n, xx, yy, zz, mmod,
                                                                            q, nq,
                                                                            group,
                                                                            cutoffz, cutoffmd, cutoffcentre, confs2,
                                                                            civs)
-
-
-
+        # newdat=0
+        # start=0
+        # end=0
+        # start_2=0
+        # end_2=0
+        # fci=False
+        # nnn=0
+        # nnn2=0
+        # ordering1=0
+        # ordering2=0
+        # q_alig, resultado2 = main_calculation.total_scattering_calculation_2(2, atoms.atomic_numbers(), geom, 1,
+        #                                                                      1,
+        #                                                                      maxl,
+        #                                                                      Ngto, ng,
+        #                                                                      ga, l, m, n, xx, yy, zz, mmod,
+        #                                                                      q, nq,
+        #                                                                      group,
+        #                                                                      cutoffz, cutoffmd, cutoffcentre,
+        #                                                                      'configurations_bit.dat', counts-1, newdat, start,
+        #                                                                      end, start_2, end_2, fci, nnn,
+        #                                                                      nnn2, ordering1, ordering2)
 
 
 
     elif jeremyR:
         count = 0
-        fci = True
-        fileJeremy = 'fci_co.out'
+        fci = False
+        read2rdm = False
+        fileJeremy = 'civ_out_MCCI_Rep'
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
@@ -207,7 +245,7 @@ def main():
             # matrix2 = np.sort(matrix2, axis=0)
             # print(matrix2[:, 4763253])
 
-            index = np.where(abs(civs) >= 1E-6)
+            index = np.where(abs(civs) >= 1E-8)
             print('the number of elements selected is ', np.size(index))
             alphas = alphas[index]
             betas = betas[index]
@@ -216,7 +254,7 @@ def main():
             newdat2, ipos2, irep2 = np.unique(betas, return_index=True, return_inverse=True)
 
             nnn = np.ones(np.size(newdat), dtype=np.int)
-            start = np.ones(np.size(newdat),dtype=np.int)
+            start = np.ones(np.size(newdat), dtype=np.int)
             end = np.ones(np.size(newdat), dtype=np.int)
             nnn2 = np.ones(np.size(newdat), dtype=np.int)
             start_2 = np.ones(np.size(newdat2), dtype=np.int)
@@ -232,8 +270,8 @@ def main():
                 start_2[i] = int(var[0] + 1)
                 end_2[i] = int(var[-1] + 1)
             print('CHecking this start, end')
-            print(nnn[0],end[0]-start[0],end[0])
-            print(newdat[0], alphas[start[0]-1:end[0]-1])
+            print(nnn[0], end[0] - start[0], end[0])
+            print(newdat[0], alphas[start[0] - 1:end[0] - 1])
             print(np.sum(newdat[irep1] - alphas))
             irep1 = nnn
             print(np.size(newdat), np.size(newdat2))
@@ -265,86 +303,145 @@ def main():
             f = open('fci_calc.dat', 'w')
 
             for i in range(0, len(civs)):
-                if abs(civs[i]) >= 1E-6:
+                if abs(civs[i]) >= 1E-8:
                     f.write(str(i) + ' ' + str(civs[i]) + ' ' + str(alphas[i]) + ' ' + str(betas[i]) + '\n')
                     count = count + 1
             f.close()
 
             fileJeremy = 'fci_calc.dat'
             # count = len(civs)
-            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1, 1,
+            ordering1 = np.zeros(np.size(alphas))
+            ordering2 = np.zeros(np.size(alphas))
+            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1,
+                                                                                 1,
                                                                                  maxl,
                                                                                  Ngto, ng,
                                                                                  ga, l, m, n, xx, yy, zz, mmod,
                                                                                  q, nq,
                                                                                  group,
                                                                                  cutoffz, cutoffmd, cutoffcentre,
-                                                                                 fileJeremy, count, newdat, start, end,
-                                                                                 irep1)
+                                                                                 fileJeremy, count, newdat, start,
+                                                                                 end, start_2, end_2, fci, nnn,
+                                                                                 nnn2, ordering1, ordering2, read2rdm,
+                                                                                 mcci)
 
         else:
-            confbin1 = []
-            confbin2 = []
-            civs = []
-            f = open(fileJeremy, 'r')
-            for line in f:
-                NN = line.strip().split()
-                confbin1.append(int(NN[2]))
-                confbin2.append(int(NN[3]))
-                count += 1
-            f.close()
-            if count <= 10:
+            if not read2rdm:
                 confbin1 = []
                 confbin2 = []
+                civs = []
                 f = open(fileJeremy, 'r')
                 for line in f:
                     NN = line.strip().split()
+                    confbin1.append(int(NN[1]))
+                    confbin2.append(int(NN[2]))
+                    count += 1
+                f.close()
+                if count <= 10:
+                    confbin1 = []
+                    confbin2 = []
+                    f = open(fileJeremy, 'r')
+                    for line in f:
+                        NN = line.strip().split()
 
-                    civs.append(float(NN[1]))
-                    confbin1.append(integertobinary(int(NN[2])))
-                    confbin2.append(integertobinary(int(NN[3])))
+                        civs.append(float(NN[0]))
+                        confbin1.append(integertobinary(int(NN[1])))
+                        confbin2.append(integertobinary(int(NN[2])))
 
-                confs2 = np.zeros((count, len(confbin1[0] * 2)))
-                confbin1 = np.asarray(confbin1)
-                confbin2 = np.asarray(confbin2)
-                confbin2 = confbin2 * 2
-                civs = np.asarray(civs, dtype=np.float64)
-                print('norm of the CI', sum(civs ** 2))
-                civs = civs / np.sqrt(sum(civs ** 2))
-                for i in range(0, count):
-                    for j in range(0, 32):
-                        confs2[i, 2 * j] = confbin1[i, j]
-                        confs2[i, 2 * j + 1] = confbin2[i, j]
-                print('confs2', len(confs2))
+                    confs2 = np.zeros((count, len(confbin1[0] * 2)))
+                    confbin1 = np.asarray(confbin1)
+                    confbin2 = np.asarray(confbin2)
+                    confbin2 = confbin2 * 2
+                    civs = np.asarray(civs, dtype=np.float64)
+                    print('norm of the CI', sum(civs ** 2))
+                    civs = civs / np.sqrt(sum(civs ** 2))
+                    for i in range(0, count):
+                        for j in range(0, 32):
+                            confs2[i, 2 * j] = confbin1[i, j]
+                            confs2[i, 2 * j + 1] = confbin2[i, j]
+                    print('confs2', len(confs2))
 
-                q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1,
-                                                                                   1,
-                                                                                   maxl,
-                                                                                   Ngto, ng,
-                                                                                   ga, l, m, n, xx, yy, zz, mmod,
-                                                                                   q, nq,
-                                                                                   group,
-                                                                                   cutoffz, cutoffmd, cutoffcentre,
-                                                                                   confs2,
-                                                                                   civs)
+                    q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom,
+                                                                                       1,
+                                                                                       1,
+                                                                                       maxl,
+                                                                                       Ngto, ng,
+                                                                                       ga, l, m, n, xx, yy, zz, mmod,
+                                                                                       q, nq,
+                                                                                       group,
+                                                                                       cutoffz, cutoffmd, cutoffcentre,
+                                                                                       confs2,
+                                                                                       civs)
+                else:
+
+                    ordering1 = 0
+                    ordering2 = 0
+                    # print(np.asarray(confbin1)[ordering1])
+                    newdat, ipos, irep1 = np.unique(confbin1, return_index=True, return_inverse=True)
+                    newdat2, ipos, irep2 = np.unique(confbin2, return_index=True, return_inverse=True)
+                    nnn = np.ones(np.size(newdat), dtype=np.int)
+                    start = np.ones(np.size(newdat), dtype=np.int)
+                    end = np.ones(np.size(newdat), dtype=np.int)
+                    nnn2 = np.ones(np.size(newdat2), dtype=np.int)
+                    start_2 = np.ones(np.size(newdat2), dtype=np.int)
+                    end_2 = np.ones(np.size(newdat2), dtype=np.int)
+
+                    # for i in range(np.size(newdat)):
+                    #     var = np.where(np.asarray(confbin1)[ordering1] == newdat[i])[0]
+                    #     nnn[i] = np.size(var)
+                    #     start[i] = int(var[0] + 1)
+                    #     end[i] = int(var[-1] + 1)
+                    # for i in range(np.size(newdat2)):
+                    #     var = np.where(np.asarray(confbin2)[ordering2] == newdat2[i])[0]
+                    #
+                    #     nnn2[i] = np.size(var)
+                    #     start_2[i] = int(var[0] + 1)
+                    #     end_2[i] = int(var[-1] + 1)
+                    print(np.size(newdat), np.size(newdat2))
+                    if np.size(newdat) < np.size(newdat2):
+                        newarray = np.zeros(np.size(newdat2) - np.size(newdat))
+                        newdat = np.append(newdat, newarray)
+                    elif np.size(newdat) > np.size(newdat2):
+                        newarray = np.zeros(np.size(newdat) - np.size(newdat2))
+                        newdat2 = np.append(newdat2, newarray)
+
+                    print(np.size(newdat), np.size(newdat2))
+                    newdat = np.transpose(np.asarray([newdat, newdat2]))
+
+                    print(np.shape(newdat))
+
+                    q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(),
+                                                                                         geom, 1,
+                                                                                         1,
+                                                                                         maxl,
+                                                                                         Ngto, ng,
+                                                                                         ga, l, m, n, xx, yy, zz, mmod,
+                                                                                         q, nq,
+                                                                                         group,
+                                                                                         cutoffz, cutoffmd,
+                                                                                         cutoffcentre,
+                                                                                         fileJeremy, count, newdat,
+                                                                                         start,
+                                                                                         end, start_2, end_2, fci, nnn,
+                                                                                         nnn2, ordering1, ordering2,
+                                                                                         read2rdm, mcci)
+
             else:
-                newdat, ipos, irep = np.unique(confbin1, return_index=True, return_inverse=True)
-                newdat2, ipos, irep = np.unique(confbin2, return_index=True, return_inverse=True)
-
-                print(np.size(newdat), np.size(newdat2))
-                if np.size(newdat) < np.size(newdat2):
-                    newarray = np.zeros(np.size(newdat2) - np.size(newdat))
-                    newdat = np.append(newdat, newarray)
-                elif np.size(newdat) > np.size(newdat2):
-                    newarray = np.zeros(np.size(newdat) - np.size(newdat2))
-                    newdat2 = np.append(newdat2, newarray)
-
-                print(np.size(newdat), np.size(newdat2))
-                newdat = np.transpose(np.asarray([newdat, newdat2]))
-
-                print(np.shape(newdat))
-
-                q_alig, resultado2 = main_calculation.total_scattering_calculation_2(2, atoms.atomic_numbers(), geom, 1,
+                newdat = 0
+                start = 0
+                end = 0
+                start_2 = 0
+                count = 0
+                fci = False
+                nnn = 0
+                nnn2 = 0
+                ordering1 = 0
+                ordering2 = 0
+                end_2 = 0
+                with open(fileJeremy, 'r') as f:
+                    for lines in f:
+                        count = count + 1
+                q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1,
                                                                                      1,
                                                                                      maxl,
                                                                                      Ngto, ng,
@@ -352,7 +449,11 @@ def main():
                                                                                      q, nq,
                                                                                      group,
                                                                                      cutoffz, cutoffmd, cutoffcentre,
-                                                                                     fileJeremy, count, newdat)
+                                                                                     fileJeremy, count, newdat, start,
+                                                                                     end, start_2, end_2, fci, nnn,
+                                                                                     nnn2, ordering1, ordering2,
+                                                                                     read2rdm, mcci)
+
     # tic2 = time.time()
     # print(np.size(group))
     # print('Angular momenta red', ng)
@@ -367,5 +468,5 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-sci.savemat('CO_0p0005.mat', {'q': q, 'I': res})
+sci.savemat('CO_0p0001_elastic.mat', {'q': q, 'I': res})
 print(toc - tic2)

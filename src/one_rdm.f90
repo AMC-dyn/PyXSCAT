@@ -145,7 +145,7 @@
 
 
             if (ndiff1==2) then
-
+                if (c1<=20) print*,'conguration of interest',c1,c2,ep
 
                 do n=1,size(confs(c1,:))
                     if (confs(c1,n) /= confs(c2,n)) then
@@ -273,7 +273,7 @@
             read(15,*)j, civs(i), Nalpha(i), Nbeta(i)
         enddo
         close(15)
-
+count=10
          do c1=1,count-1
 
              do c2=1,count-1
@@ -330,7 +330,7 @@
 
                             end if
                         end do
-
+                         print*,c1,c2,ep
                         onerdm(sorb , qorb ) = onerdm(sorb , qorb ) + &
                                 civ1*civ2*ep
 
@@ -357,7 +357,7 @@
 
                             end if
                         end do
-
+                        print*,c1,c2,ep
                         onerdm(sorb , qorb ) = onerdm(sorb , qorb ) + &
                                 civ1*civ2*ep
 
@@ -387,7 +387,7 @@ enddo
 
     end subroutine
 
-       subroutine createtwordm_bit(file_read,numberlines,newdat,irep,start,end,mat,total)
+       subroutine createtwordm_bit_fci(file_read,numberlines,newdat,irep,start,end,mat,total)
 
 
      Use, intrinsic :: iso_fortran_env, Only : iostat_end
@@ -476,7 +476,7 @@ enddo
 
 
      n_single=popcnt(xor(newdat(i,1), compnum))*popcnt(newdat(1,1))
-     print*,'position of jci',
+
 
      allocate(single_exc(size(newdat(:,1)), n_single))
      allocate(hole_exc(size(newdat(:,1)), n_single), particle_exc(size(newdat(:,1)), n_single),phases(size(newdat(:,1)), n_single))
@@ -656,30 +656,7 @@ enddo
           enddo
 
     call cpu_time(time2)
-     print*,'created double excitations', time2-time1, count2, n_double
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+     print*,'created double excitations', time2-time1, count2, n
 
      call cpu_time(time1)
      print*,sum(newdat(:,1)-newdat(:,2))
@@ -833,62 +810,6 @@ do c1=1,numberlines
 
                 end do
 
-!               index=0
-!                civ2=0.0_dp
-!                particle_int=single_exc(index1,i)
-!                if (particle_int==0) cycle
-!                count2=counter_exc(index1,i)
-!                if (count2==0) cycle
-!                ss = starts(index1,i)
-!                ee = ends(index1,i)
-!
-!
-!                index=findloc(Nalphbet(1,2,ss:ee),nalphbet(1,2,c1), 1)
-!
-!                if (index==0) cycle
-!
-!                index=index+ss-1
-!                civ2=civs(index)
-!                porb=hole_exc(index1,i)
-!                qorb=particle_exc(index1,i)
-!                ep=phases(index1,i)
-!
-!                buffer=IBCLR(Nalphbet(1,1,c1),porb-1)
-!                !if (particle_int/=nalphbet(1,2,c1) ) then
-!                c_term=phase_dbl(iand(ep,1))*2.00*civ1*civ2
-!              !  else
-!                !     c_term=phase_dbl(iand(ep,1))*2.00*civ1*civ2
-!              !  end if
-!
-!                do while(buffer /= 0_8)
-!                    rorb=trailz(buffer)+1
-!                    buffer=IAND(buffer,buffer-1_8)
-!
-!                    twordm(porb,rorb,rorb,qorb)=twordm(porb,rorb,rorb,qorb)+c_term
-!
-!                    twordm(rorb,porb,qorb,rorb)=twordm(rorb,porb,qorb,rorb)+c_term !sorb=rorb
-!                    !case 2 spins and spinr are the same by construction as are spinp and spinq
-!                    twordm(rorb,porb,rorb,qorb)=twordm(rorb,porb,rorb,qorb)-c_term !sorb=rorb
-!                    !case 3 s and p are the different ones - sign change so both operators to come before occupied when acting on their det (left det for p and r, right det for s and q)
-!                    twordm(porb,rorb,qorb,rorb)=twordm(porb,rorb,qorb,rorb)-c_term !sorb=rorb
-!
-!
-!
-!
-!                end do
-!
-!                buffer=nalphbet(1,2,c1)
-!                do while(buffer /= 0_8)
-!                    rorb=trailz(buffer)+1
-!                    buffer=IAND(buffer,buffer-1_8)
-!
-!                    twordm(porb,rorb,rorb,qorb)=twordm(porb,rorb,rorb,qorb)+c_term
-!
-!                    twordm(rorb,porb,qorb,rorb)=twordm(rorb,porb,qorb,rorb)+c_term!sorb=rorb
-!                    !case 2 spins and spinr are the same by construction as are spinp and spinq
-!
-!                end do
-
 
 
 
@@ -957,512 +878,7 @@ end do
 
 
 
-!
-!!!!
-!!
-!!!!                    !case 1
-                        !print*,porb,rorb,qorb
-                                        !    !sorb=rorb
-!!!!                    !case 4 s and r are the differences so signs of moving through occupied will cancel
-!!!!                    twordm(rorb,porb,qorb,rorb)=twordm(rorb,porb,qorb,rorb)+c_term !sorb=rorb
-!!!!                    !case 2 spins and spinr are the same by construction as are spinp and spinq
-!!!!                    twordm(rorb,porb,rorb,qorb)=twordm(rorb,porb,rorb,qorb)-c_term !sorb=rorb
-!!!!!                    case 3 s and p are the different ones - sign change so both operators to come before occupied when acting on their det (left det for p and r, right det for s and q)
-!!!!                    twordm(porb,rorb,qorb,rorb)=twordm(porb,rorb,qorb,rorb)-c_term !sorb=rorb
-!!!!
-!                                        end do
-!
-!                                    exit
-!                                endif
-!                            end do
 
-!                            if (index==0) print*,'wtf'
-
-
-!!
-!                buffer_p=nalphbet(2,c1) !map spin 1 to spin 2 and 2 to 1
-!
-!                do while(buffer_p/=0_8)
-!                    rorb=trailz(buffer_p)+1
-!                    buffer_p=IAND(buffer_p,buffer_p-1_8)
-!!                   only have case 1 and 2 as spins are different
-!                    !case 1
-!                    twordm(porb,rorb,rorb,qorb)=twordm(porb,rorb,rorb,qorb)+c_term  !sorb=rorb
-!                    !case 4 s and r are the differences so signs of moving through occupied will cancel
-!                    twordm(rorb,porb,qorb,rorb)=twordm(rorb,porb,qorb,rorb)+c_term !sorb=rorb
-!                end do
-
-
-
-
-
-
-
-
-
-
-!        do c2=c1+1,numberlines
-!            civ2=civs(c2)
-!!            call combine_alpha_beta(Nalphbet(1,c2), Nalphbet(2,c2), alphbet_2)
-!
-!
-!            diff1=xor( Nalphbet(1,c1), Nalphbet(1,c2))
-!            diff2=xor(Nalphbet(2,c1), Nalphbet(2,c2))
-!            if (popcnt(diff1)==4 .and.popcnt(diff2)==0 ) then
-!
-!                ep=1
-!                hole= iand(diff1,Nalphbet(1,c1))
-!                particle = iand(diff1,Nalphbet(1,c2))
-!                if (particle/= 0_8) then
-!                   i=trailz(particle)+1
-!                   particle=iand(particle,particle-1_8)
-!                   j=trailz(particle)+1
-!                   high1=i
-!                   high2=j
-!               end if
-!               if (hole/= 0_8) then
-!                   k=trailz(hole)+1
-!                   hole=iand(hole,hole-1_8)
-!                   l=trailz(hole)+1
-!                   low1=k
-!                   low2=l
-!               end if
-!
-!
-!
-!                 buffer_prime=Nalphbet(1,c1)
-!                 buffer_prime_2=Nalphbet(1,c2)
-!
-!                  do while (buffer_prime/=0_8)
-!                      tz=trailz(buffer_prime)
-!                      tz2=trailz(buffer_prime_2)
-!
-!                      if (tz/=tz2 .and. btest(Nalphbet(1,c2),tz)) then
-!
-!                          ep=-ep
-!                      end if
-!                      buffer_prime=iand(buffer_prime, buffer_prime-1_8)
-!                      buffer_prime_2=iand(buffer_prime_2, buffer_prime_2-1_8)
-!                  end do
-!                c_term=2*civ1*civ2*ep
-!                sorb=i !korb
-!                qorb=j!lorb
-!                porb=l !jorb
-!                rorb=k !iorb
-!                twordm(porb,rorb,sorb,qorb)=twordm(porb,rorb,sorb,qorb)&
-!                    +c_term
-!!all same spin so all swaps are allowed
-!   !Case 2 Swap p and r introduces negative sign
-!
-!                twordm(rorb,porb,sorb,qorb)=twordm(rorb,porb,sorb,qorb)&
-!                    -c_term
-!   !Case 3 from Case 1 swap s and q to give negative sign
-!                twordm(porb,rorb,qorb,sorb)=twordm(porb,rorb,qorb,sorb)&
-!                    -c_term
-!   !Case 4 from Case 1 swap s and q then swap p and r so no sign change
-!
-!                twordm(rorb,porb,qorb,sorb)=twordm(rorb,porb,qorb,sorb)&
-!                    +c_term
-!
-!
-!            else if (popcnt(diff1)==0 .and.popcnt(diff2)==4 ) then
-!
-!                ep=1
-!                hole= iand(diff2,Nalphbet(2,c1))
-!                particle = iand(diff2,Nalphbet(2,c2))
-!                if (particle/= 0_8) then
-!                   i=trailz(particle)+1
-!                   particle=iand(particle,particle-1_8)
-!                   j=trailz(particle)+1
-!                   high1=i
-!                   high2=j
-!               end if
-!               if (hole/= 0_8) then
-!                   k=trailz(hole)+1
-!                   hole=iand(hole,hole-1_8)
-!                   l=trailz(hole)+1
-!                   low1=k
-!                   low2=l
-!               end if
-!
-!
-!
-!                 buffer_prime=Nalphbet(2,c1)
-!                 buffer_prime_2=Nalphbet(2,c2)
-!
-!                  do while (buffer_prime/=0_8)
-!                      tz=trailz(buffer_prime)
-!                      tz2=trailz(buffer_prime_2)
-!
-!                      if (tz/=tz2 .and. btest(nalphbet(2,c2),tz)) then
-!
-!                          ep=-ep
-!                      end if
-!                      buffer_prime=iand(buffer_prime, buffer_prime-1_8)
-!                      buffer_prime_2=iand(buffer_prime_2, buffer_prime_2-1_8)
-!                  end do
-!                c_term=2*civ1*civ2*ep
-!                sorb=i !korb
-!                qorb=j!lorb
-!                porb=l !jorb
-!                rorb=k !iorb
-!                twordm(porb,rorb,sorb,qorb)=twordm(porb,rorb,sorb,qorb)&
-!                    +c_term
-!!all same spin so all swaps are allowed
-!   !Case 2 Swap p and r introduces negative sign
-!
-!                twordm(rorb,porb,sorb,qorb)=twordm(rorb,porb,sorb,qorb)&
-!                    -c_term
-!   !Case 3 from Case 1 swap s and q to give negative sign
-!                twordm(porb,rorb,qorb,sorb)=twordm(porb,rorb,qorb,sorb)&
-!                    -c_term
-!   !Case 4 from Case 1 swap s and q then swap p and r so no sign change
-!
-!                twordm(rorb,porb,qorb,sorb)=twordm(rorb,porb,qorb,sorb)&
-!                    +c_term
-!
-!   else if (popcnt(diff1)==2 .and.popcnt(diff2)==2 ) then
-!
-!                ep=1
-!                hole= iand(diff1,Nalphbet(1,c1))
-!                particle = iand(diff1,Nalphbet(1,c2))
-!                if (particle/= 0_8) then
-!                   i=trailz(particle)+1
-!
-!                   high1=i
-!
-!               end if
-!               if (hole/= 0_8) then
-!                   k=trailz(hole)+1
-!
-!                   low1=k
-!
-!               end if
-!
-!                hole= iand(diff2,Nalphbet(2,c1))
-!                particle = iand(diff2,Nalphbet(2,c2))
-!                if (particle/= 0_8) then
-!                  j=trailz(particle)+1
-!
-!                   high2=j
-!
-!                end if
-!
-!               if (hole/= 0_8) then
-!                   l=trailz(hole)+1
-!
-!                   low1=l
-!
-!               end if
-!
-!                do spin11=1,2
-!                 buffer_prime=Nalphbet(spin11,c1)
-!                 buffer_prime_2=Nalphbet(spin11,c2)
-!
-!                  do while (buffer_prime/=0_8)
-!                      tz=trailz(buffer_prime)
-!                      tz2=trailz(buffer_prime_2)
-!
-!                      if (tz/=tz2 .and. btest(Nalphbet(spin11,c2),tz)) then
-!
-!                          ep=-ep
-!                      end if
-!                      buffer_prime=iand(buffer_prime, buffer_prime-1_8)
-!                      buffer_prime_2=iand(buffer_prime_2, buffer_prime_2-1_8)
-!                  end do
-!
-!                end do
-!                c_term=2*civ1*civ2*ep
-!                sorb=i !korb
-!                qorb=j!lorb
-!                porb=l !jorb
-!                rorb=k !iorb
-!                twordm(porb,rorb,sorb,qorb)=twordm(porb,rorb,sorb,qorb)&
-!                    +c_term
-!!all same spin so all swaps are allowed
-!   !Case 2 Swap p and r introduces negative sign
-!
-!
-!
-!                twordm(rorb,porb,qorb,sorb)=twordm(rorb,porb,qorb,sorb)&
-!                    +c_term
-!
-!
-!
-!
-!
-!
-!            end if
-!
-!
-!
-!
-!            end do
-
-!            ndiff1=popcnt(tmp)
-!            ndiff1=ishft(ndiff1,-1)
-!
-!            if (ndiff1==2) then
-!
-!
-!               particle= iand(tmp,alphbet_2)
-!               hole= iand(tmp,alphbet)
-!
-!               if (particle/= 0_8) then
-!                   i=trailz(particle)+1
-!                   particle=iand(particle,particle-1_8)
-!                   j=trailz(particle)+1
-!                   high1=i
-!                   high2=j
-!               end if
-!               if (hole/= 0_8) then
-!                   k=trailz(hole)+1
-!                   hole=iand(hole,hole-1_8)
-!                   l=trailz(hole)+1
-!                   low1=k
-!                   low2=l
-!               end if
-!
-!
-!                buffer=alphbet
-!                buffer_2=alphbet_2
-!
-!                do while (buffer/=0_8)
-!                  tz=trailz(buffer)
-!                  tz2=trailz(buffer_2)
-!
-!                  if (tz/=tz2 .and. btest(alphbet_2,tz)) then
-!
-!                      ep=-ep
-!                  end if
-!                  buffer=iand(buffer, buffer-1_8)
-!                  buffer_2=iand(buffer_2, buffer_2-1_8)
-!                 end do
-!
-!
-!
-!                spin11=mod(low1,2)
-!                spin12=mod(low2,2)
-!                spin21=mod(high1,2)
-!                spin22=mod(high2,2)
-!
-!                i = nint((i) / 2.0_dp + 0.1)
-!                j = nint((j) / 2.0_dp + 0.1)
-!                k = nint((k) / 2.0_dp + 0.1)
-!                l = nint((l) / 2.0_dp + 0.1)
-!
-!
-!
-!
-!                sorb = i
-!                qorb = j
-!                porb = l
-!                rorb = k
-!
-!
-!                eg = 1.00
-!
-!                if (spin21 == spin11 .and. spin22 == spin12) then
-!
-!
-!                    twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                civ1 * civ2 * ep * eg
-!
-!                end if
-!
-!                sorb = i
-!                qorb = j
-!                rorb = l
-!                porb = k
-!
-!                eg=-1.00
-!
-!
-!                if (spin21 == spin12 .and. spin22 == spin11) then
-!
-!                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                civ1 * civ2 * ep * eg
-!
-!
-!                end if
-!
-!                qorb = i
-!                sorb = j
-!                porb = l
-!                rorb = k
-!
-!                eg=-1.00
-!
-!                if (spin11 == spin22 .and. spin21 == spin12) then
-!
-!                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                civ1 * civ2 * ep * eg
-!
-!
-!
-!                end if
-!
-!
-!                qorb = i
-!                sorb = j
-!                rorb = l
-!                porb = k
-!
-!                eg=1.00
-!
-!                if (spin12 == spin22 .and. spin21 == spin11) then
-!
-!                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                civ1 * civ2 * ep * eg
-!
-!
-!                end if
-!
-!
-!            else if (ndiff1==1) then
-!
-!
-!                if (Nalphbet(1,c1)==Nalphbet(1,c2)) then
-!                            tmp = xor( Nalphbet(2,c1), Nalphbet(2,c2))
-!                            particle = iand(tmp, Nalphbet(2,c2))
-!                            hole = iand(tmp, Nalphbet(2,c1))
-!                            if (particle /= 0_8) then
-!                                tz = trailz(particle)
-!                                j=tz+1
-!                            end if
-!
-!                            if (hole /= 0_8) then
-!                                tz = trailz(hole)
-!                                i=tz+1
-!                            end if
-!                            low=i*2
-!                            high=j*2
-!                else
-!                            tmp = xor( Nalphbet(1,c1), Nalphbet(1,c2))
-!                            particle = iand(tmp, Nalphbet(1,c2))
-!                            hole = iand(tmp, Nalphbet(1,c1))
-!                            if (particle /= 0_8) then
-!                                tz = trailz(particle)
-!                                j=tz+1
-!                            end if
-!
-!                            if (hole /= 0_8) then
-!                                tz = trailz(hole)
-!                                i=tz+1
-!                            end if
-!                             low=i*2-1
-!                             high=j*2-1
-!                end if
-!
-!               ! number=popcnt(ibits(alphbet,low,(high-low-1)))
-!                      ! print*,'newnumber',number
-!!                       red_vec=integer2binary_orbs_bit(Nalphbet(1,:,c2),maxnmo*2)
-!!                       number=size(pack(red_vec(low+1:high-1),red_vec(low+1:high-1)/=0))
-!!                        print*,'oldnumber',number
-!
-!
-!                !ep=(-1)**number
-!                buffer=alphbet
-!                buffer_2=alphbet_2
-!                do while (buffer/=0_8)
-!                  tz=trailz(buffer)
-!                  tz2=trailz(buffer_2)
-!
-!                  if (tz/=tz2 .and. btest(alphbet_2,tz)) then
-!
-!                      ep=-ep
-!                  end if
-!                  buffer=iand(buffer, buffer-1_8)
-!                  buffer_2=iand(buffer_2, buffer_2-1_8)
-!                 end do
-!
-!                c = ep*civ1*civ2
-!                count=1
-!                do tz=1,norbs*2
-!
-!                    if (btest(alphbet_2, tz-1) .and. btest(alphbet,tz-1)) then
-!                        occs(count)=nint((tz) / 2.0_dp + 0.1)
-!                        spin(count)=mod(tz,2)
-!                        count=count+1
-!                    end if
-!                end do
-!
-!                if (allocated(occs_r)) deallocate(occs_r)
-!                allocate(occs_r(count-1))
-!                occs_r=occs(1:count-1)
-!
-!                spin11=mod(low,2)
-!                spin22=mod(low,2)
-!
-!
-!                do tz=1,size(occs_r)
-!                        qorb = j
-!                        porb = i
-!                        eg = 1.00
-!
-!
-!!twordm(18,18,18,15)
-!                        sorb=occs_r(tz)
-!                        rorb=occs_r(tz)
-!
-!                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                c* eg
-!
-!
-!
-!                        qorb = j
-!                        rorb = i
-!                        eg = -1.00
-!                        sorb=occs_r(tz)
-!                        porb=occs_r(tz)
-!                        if (spin(tz)==spin11 .and. spin(tz)==spin22) then
-!                               twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                c * eg
-!
-!                        end if
-!
-!
-!                        sorb = j
-!                        porb = i
-!                        eg = -1.00
-!                        qorb=occs_r(tz)
-!                        rorb=occs_r(tz)
-!                        if (spin11==spin(tz)) then
-!                                twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                c * eg
-!                        endif
-!
-!
-!                        sorb = j
-!                        rorb = i
-!                        eg = 1.00
-!                        porb=occs_r(tz)
-!                        qorb=occs_r(tz)
-!
-!                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-!                                c * eg
-!
-!
-!
-!                end do
-!
-!
-!            end if
-!
-!
-!
-!
-!
-!
-!
-!        end do
-!
-!
-!
-!    end do
-
-
-!
      print*,'Value not appearing', twordm(1,3,1,4)
     print*,'everything finishes'
     cutoff = 1E-30
@@ -1507,7 +923,449 @@ end do
 
 
 !
-    end subroutine createtwordm_bit
+    end subroutine createtwordm_bit_fci
+
+
+
+     subroutine createtwordm_bit(file_read,length, mat,total)
+
+
+      !length of wavefunction, energy from 2RDM (without nuclear contribution)
+ ! basis functions, electrons, coefficients, list of orbitals in SD
+implicit none
+ INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+     character(len=20), intent(in) :: file_read
+
+    real(kind=dp), intent(out), dimension(:), allocatable :: total
+    integer(kind=ikind), intent(out), dimension(:,:), allocatable :: mat
+
+integer ::  length
+double precision, allocatable :: SpinFree2RDM(:,:,:,:)
+integer porb,rorb,sorb,qorb
+integer spins,spinq,spinp,spinr
+double precision dtemp,ep,eg
+integer ici,jci,ndiff,idiff1,idiff2
+integer i,i1,i2,l,l2,k,k2
+double precision Eone_e,Etwo_e,TwoRDM_e,cutoff
+integer newdiff,mytemp,n,count2,count_p,p,q,r,s
+  integer hole,part,tz,tz2,buffer,nword
+  integer myhigh,mylow,nperm
+  integer idx_part,idx_hole
+  integer exc(0:2,2,2),mya,myb,myc,myd
+  integer tz3
+  integer myspin,samespin,ispin,nbft
+  integer buffer2,ispin2, dummy,length2,buffer3
+  integer*8 buffer_esp1, buffer_esp2, allc1,allc2
+  double precision, parameter :: phase_dbl(0:1)=(/1.d0,-1.d0/)
+  double precision c_term,temp
+  double precision :: c(length)
+  integer icij(2,1,length)
+ logical(4), dimension(:), allocatable :: logicaltwordms
+    integer(kind=ikind),  dimension(:,:), allocatable :: matdum
+    real(kind=dp), dimension(:), allocatable :: totaldum
+
+
+
+open(15,file=file_read)
+nword=1
+ do i=1,length
+     read(15,*)c(i), icij(1,1,i), icij(2,1,i)
+ enddo
+close(15)
+
+
+ nbft=maxval(integer2binary_orbs(maxval(icij)))
+print*,'max orbs', nbft
+ALLOCATE(SpinFree2RDM(nbft,nbft,nbft,nbft))
+
+print*,'allocated matrix'
+  !set to zero (a while ago Array=0.0D0 did not work for some compilers)
+ do porb=1,nbft
+ do rorb=1,nbft
+ do sorb=1,nbft
+ do qorb=1,nbft
+ SpinFree2RDM(porb,rorb,sorb,qorb)=0.0D0
+ end do
+ end do
+ end do
+ end do
+
+print*, 'spinfreee filled'
+dtemp=0.0D0
+!ici=jci first
+
+
+length2=length
+
+
+do ici=1,length2
+
+
+!only zero differences by construction  ! could try to make further improvements but there are only length terms for no differences not O(length**2) as for 1 and 2
+c_term=c(ici)**2 !calculate once as  common to all zero differences for this ici
+do ispin=1,2
+buffer=icij(ispin,1,ici)
+
+do while(buffer.ne.0)
+sorb=trailz(buffer)+1
+buffer=IAND(buffer,buffer-1)
+
+do ispin2=1,2
+buffer2=icij(ispin2,1,ici)
+do while(buffer2.ne.0)
+qorb=trailz(buffer2)+1
+buffer2=IAND(buffer2,buffer2-1)
+
+if((qorb.eq.sorb).AND.(ispin.eq.ispin2)) cycle ! all possible choices of two so can't pick the same twice
+
+  !Case 1 p is same as s and r is q
+  if(ispin.eq.ispin2) THEN
+
+SpinFree2RDM(sorb,qorb,sorb,qorb)=SpinFree2RDM(sorb,qorb,sorb,qorb)-c_term !porb=sorb rorb=qorb
+  END IF
+
+!Case 2 p is same as q and r is same as s
+!All s and q spins valid for this contribution
+
+SpinFree2RDM(qorb,sorb,sorb,qorb)=SpinFree2RDM(qorb,sorb,sorb,qorb)+c_term !p=q r=s
+
+end do
+end do
+end do
+end do ! end of zero differences
+
+
+end do !end of ici loop
+
+print*,'starting big loop'
+
+
+
+
+!now jci>ici and double values so we don't need to do jci<ici
+do ici=1,length2
+do jci=1,length2
+
+temp=SpinFree2RDM(11,11,12,14)
+
+
+
+!!!!!!!!!!!!!
+newdiff=0
+do n=1,nword
+mytemp=IEOR(icij(1,n,ici),icij(1,n,jci))
+
+newdiff=newdiff+POPCNT(mytemp) ! calcs number of bits set to 1 as we used xor (IEOR) bitwise that must be - note one difference adds two to newdiff as there are two places where the bits will be set to 1
+
+mytemp=IEOR(icij(2,n,ici),icij(2,n,jci))
+
+newdiff=newdiff+POPCNT(mytemp)
+
+end do
+ if (newdiff.gt.4) cycle !more than two differences so matrix element is zero
+
+
+
+
+
+
+if(newdiff.eq.4) THEN ! get differences and phase
+
+exc(0,1,1)=0
+exc(0,2,1) =0
+exc(0,1,2)=0
+exc(0,2,2)=0
+nperm=0
+samespin=0
+do myspin=1,2
+idx_part=0
+idx_hole=0
+mytemp=(IEOR(icij(myspin,1,ici),icij(myspin,1,jci)))
+hole= IAND(mytemp,icij(myspin,1,ici))
+part= IAND(mytemp,icij(myspin,1,jci))
+
+do while(part.ne.0)
+tz=trailz(part)
+idx_part=idx_part+1
+exc(0,2,myspin)=exc(0,2,myspin)+1
+exc(idx_part,2,myspin)=tz+1
+part=iand(part,part-1)
+end do
+
+do while(hole.ne.0)
+tz=trailz(hole)
+idx_hole=idx_hole+1
+exc(0,1,myspin)=exc(0,1,myspin)+1
+exc(idx_hole,1,myspin)=tz+1
+hole=iand(hole,hole-1)
+end do
+
+do i=1,exc(0,1,myspin)
+mylow=min(exc(i,1,myspin),exc(i,2,myspin))
+myhigh=max(exc(i,1,myspin),exc(i,2,myspin))
+nperm=nperm+POPCNT(IAND(icij(myspin,1,ici),&
+IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+
+
+end do
+!both holes have same spin
+if(exc(0,1,myspin).eq.2) THEN !this seems less efficient...
+samespin=myspin
+mya=min(exc(1,1,myspin),exc(1,2,myspin))
+myb=max(exc(1,1,myspin),exc(1,2,myspin))
+myc=min(exc(2,1,myspin),exc(2,2,myspin))
+myd=max(exc(2,1,myspin),exc(2,2,myspin))
+
+if((myc>mya).AND.(myc<myb).AND.(myd>myb)) nperm=nperm+1
+exit
+END IF ! end of check if both are same spin
+
+end do !loop over myspin
+
+  c_term=c(ici)*c(jci)*phase_dbl(iand(nperm,1)) ! calculate once as common to all in this loop
+  ! c_term=c(ici)*c(jci)*ep
+   if(samespin.eq.0) THEN
+
+      !Case 1
+     sorb=exc(1,2,1) !korb
+     qorb=exc(1,2,2)!lorb
+     porb=exc(1,1,2) !jorb
+     rorb=exc(1,1,1) !iorb
+ ! print*,ici,jci,c_term
+ ! print*, porb,rorb,sorb,qorb
+      !spins.eq.spinr and spinq.eq.spinp by construction
+SpinFree2RDM(porb,rorb,sorb,qorb)=SpinFree2RDM(porb,rorb,sorb,qorb)&
++c_term
+
+SpinFree2RDM(rorb,porb,qorb,sorb)=SpinFree2RDM(rorb,porb,qorb,sorb)&
++c_term
+   !Case 2 Swap p and r introduces negative sign but means spins.ne.spinr so no contribution
+   !Case 3 from Case 1 swap s and q to give negative sign but spins.ne.spinr so no contribution
+   !Case 4 from Case 1 swap s and q then swap p and r so no sign change
+
+         !spins.eq.spinr and spinq.eq.spinp by construction
+!SpinFree2RDM(rorb,porb,qorb,sorb)=SpinFree2RDM(rorb,porb,qorb,sorb)&
+!+c_term
+
+
+!SpinFree2RDM(porb,rorb,sorb,qorb)=SpinFree2RDM(porb,rorb,sorb,qorb)&
+!+c_term
+    ELSE
+  !samespin.eq.1 or   2
+  !Case 1
+     sorb=exc(1,2,samespin) !korb
+     qorb=exc(2,2,samespin)!lorb
+     porb=exc(2,1,samespin) !jorb
+     rorb=exc(1,1,samespin) !iorb
+SpinFree2RDM(porb,rorb,sorb,qorb)=SpinFree2RDM(porb,rorb,sorb,qorb)&
++c_term
+
+!SpinFree2RDM(qorb,sorb,rorb,porb)=SpinFree2RDM(qorb,sorb,rorb,porb)&
+!+c_term
+!all same spin so all swaps are allowed
+   !Case 2 Swap p and r introduces negative sign
+
+SpinFree2RDM(rorb,porb,sorb,qorb)=SpinFree2RDM(rorb,porb,sorb,qorb)&
+-c_term
+
+!SpinFree2RDM(sorb,qorb,rorb,porb)=SpinFree2RDM(sorb,qorb,rorb,porb)&
+!-c_term
+   !Case 3 from Case 1 swap s and q to give negative sign
+SpinFree2RDM(porb,rorb,qorb,sorb)=SpinFree2RDM(porb,rorb,qorb,sorb)&
+-c_term
+
+!SpinFree2RDM(qorb,sorb,porb,rorb)=SpinFree2RDM(qorb,sorb,porb,rorb)&
+!-c_term
+   !Case 4 from Case 1 swap s and q then swap p and r so no sign change
+
+SpinFree2RDM(rorb,porb,qorb,sorb)=SpinFree2RDM(rorb,porb,qorb,sorb)&
++c_term
+
+   !    SpinFree2RDM(sorb,qorb,porb,rorb)=SpinFree2RDM(sorb,qorb,porb,rorb)&
+!+c_term
+
+
+   end if ! end of samespin check
+
+
+
+cycle
+
+
+end if ! end of two differences (newdiff.eq.4)
+
+!one difference
+if(newdiff.eq.2) THEN !  newdiff.eq.2 is one difference
+
+do myspin=1,2
+mytemp=(IEOR(icij(myspin,1,ici),icij(myspin,1,jci)))
+hole= IAND(mytemp,icij(myspin,1,ici))
+part= IAND(mytemp,icij(myspin,1,jci))
+if(hole.ne.0) THEN
+  tz=1+trailz(hole)
+  tz2=1+trailz(part)
+  EXIT
+  END IF
+  end do
+
+
+!get sign for single
+!myspin shows if alpha or beta at this point
+mylow=min(tz,tz2)
+myhigh=max(tz,tz2)
+!PRINT *,mylow,myhigh
+nperm=POPCNT(IAND(icij(myspin,1,ici),IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+
+
+
+  c_term=c(ici)*c(jci)*phase_dbl(iand(nperm,1)) ! calculate once as common to all in this loop
+    !c_term=c(ici)*c(jci)*ep
+!case 1 and 4 and 2 and 3
+porb=tz
+qorb=tz2
+
+!ispin=myspin
+buffer=IBCLR(icij(myspin,1,ici),porb-1) ! remove porb of this spin so rorb cannot be porb
+
+
+do while(buffer.ne.0)
+rorb=trailz(buffer)+1
+buffer=IAND(buffer,buffer-1)
+
+
+!case 1
+SpinFree2RDM(porb,rorb,rorb,qorb)=SpinFree2RDM(porb,rorb,rorb,qorb)+c_term  !sorb=rorb
+!case 4 s and r are the differences so signs of moving through occupied will cancel
+SpinFree2RDM(rorb,porb,qorb,rorb)=SpinFree2RDM(rorb,porb,qorb,rorb)+c_term !sorb=rorb
+!case 2 spins and spinr are the same by construction as are spinp and spinq
+SpinFree2RDM(rorb,porb,rorb,qorb)=SpinFree2RDM(rorb,porb,rorb,qorb)-c_term !sorb=rorb
+! case 3 s and p are the different ones - sign change so both operators to come before occupied when acting on their det (left det for p and r, right det for s and q)
+SpinFree2RDM(porb,rorb,qorb,rorb)=SpinFree2RDM(porb,rorb,qorb,rorb)-c_term !sorb=rorb
+
+
+!SpinFree2RDM(qorb,rorb,rorb,porb)=SpinFree2RDM(qorb,rorb,rorb,porb)+c_term  !sorb=rorb
+!!case 4 s and r are the differences so signs of moving through occupied will cancel
+!SpinFree2RDM(rorb,qorb,porb,rorb)=SpinFree2RDM(rorb,qorb,porb,rorb)+c_term !sorb=rorb
+!!case 2 spins and spinr are the same by construction as are spinp and spinq
+!SpinFree2RDM(rorb,qorb,rorb,porb)=SpinFree2RDM(rorb,qorb,rorb,porb)-c_term !sorb=rorb
+!! case 3 s and p are the different ones - sign change so both operators to come before occupied when acting on their det (left det for p and r, right det for s and q)
+!SpinFree2RDM(qorb,rorb,porb,rorb)=SpinFree2RDM(qorb,rorb,porb,rorb)-c_term !sorb=rorb
+
+
+!  if (rorb==1 .and. porb==4 .and. qorb==3) then
+!      print*, SpinFree2RDM(rorb,porb,qorb,rorb),ici,jci
+!  end if
+
+end do
+
+buffer=icij(IEOR(myspin,3),1,ici)  !map spin 1 to spin 2 and 2 to 1
+
+do while(buffer.ne.0)
+rorb=trailz(buffer)+1
+buffer=IAND(buffer,buffer-1)
+!only have case 1 and 2 as spins are different
+!case 1
+SpinFree2RDM(porb,rorb,rorb,qorb)=SpinFree2RDM(porb,rorb,rorb,qorb)+c_term  !sorb=rorb
+!case 4 s and r are the differences so signs of moving through occupied will cancel
+SpinFree2RDM(rorb,porb,qorb,rorb)=SpinFree2RDM(rorb,porb,qorb,rorb)+c_term !sorb=rorb
+!
+!SpinFree2RDM(qorb,rorb,rorb,porb)=SpinFree2RDM(qorb,rorb,rorb,porb)+c_term  !sorb=rorb
+!!case 4 s and r are the differences so signs of moving through occupied will cancel
+!SpinFree2RDM(rorb,qorb,porb,rorb)=SpinFree2RDM(rorb,qorb,porb,rorb)+c_term !sorb=rorb
+
+end do
+
+!end of case 1 and case 4 and 2 and 3
+
+
+
+!if (SpinFree2RDM(4,5,12,12) /= temp) print*,ici,jci,ep, SpinFree2RDM(4,5,12,12)
+
+cycle
+end if  ! end of  single difference, newdiff.eq.2
+
+
+
+
+
+end do !end of ici loop
+end do !end of jci loop
+
+print*,'here we are'
+
+print*, maxval(SpinFree2RDM)
+
+print*,'final guy', SpinFree2RDM(11,11,12,14)
+
+!Write out 2RDM
+
+
+ print*,'everything finishes'
+    cutoff = 1E-30
+    count_p=0
+    count2=1
+
+    allocate(logicaltwordms(nbft**4))
+    allocate(totaldum(nbft**4), matdum(nbft**4,4))
+    logicaltwordms(:)=.False.
+    open (unit = 15, file = 'twordm_fortran_bit_2.dat')
+    do p=1,nbft
+        do q=1,nbft
+            do r=1,nbft
+                do s=1,nbft
+                    totaldum(count2)=SpinFree2RDM(p,q,r,s)
+                    matdum(count2,:)=(/p,s,q,r/)
+                    if (abs(SpinFree2RDM(p,q,r,s))>=cutoff) then
+                        count_p=count_p+1
+                        logicaltwordms(count2)=.True.
+                        write(15,"(4I3, E30.16)") p,s,q,r,SpinFree2RDM(p,q,r,s)
+
+                    end if
+                    count2=count2+1
+                end do
+            end do
+        end do
+    end do
+    close(15)
+
+    allocate(mat(count_p, 4), total(count_p))
+    count_p=1
+    do i=1,count2-1
+        if (logicaltwordms(i)) then
+            mat(count_p,:)=matdum(i,:)
+            total(count_p)=totaldum(i)
+
+            count_p=count_p+1
+        end if
+    end do
+
+        print*, 'twordm calculated'
+
+
+end subroutine
+
+subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
+    implicit none
+
+    integer(kind=SELECTED_INT_KIND(8)),intent(in), dimension(:,:):: mat
+    double precision, intent(in), dimension(:) :: twordm
+    double precision, intent(out), dimension(:,:), allocatable::onerdm
+    integer*8, intent(in) :: nel
+    integer*8 :: maxnmo,i,j,k,l
+
+    maxnmo=maxval(mat)
+    print*,'maximum number or orbitals', maxnmo
+    allocate(onerdm(maxnmo,maxnmo))
+    onerdm=0.d0
+    do i=1,size(mat(:,1))
+        j=mat(i,1)
+        k=mat(i,2)
+        if (mat(i,3)==mat(i,4)) then
+        onerdm(j,k)=onerdm(j,k)+twordm(i)/(nel-1)
+
+        end if
+    end do
 
 
 
@@ -1515,6 +1373,7 @@ end do
 
 
 
+    end subroutine
 
 
 
@@ -1529,7 +1388,7 @@ end do
 
 
            integer(kind=ikind):: numberlines
-           character(len=20),intent(in) :: file_read
+           character(len=30),intent(in) :: file_read
            integer*8,intent(in),dimension(:):: irep
            real(kind=dp), dimension(:), allocatable :: civs
            integer*8,dimension(:,:,:), allocatable :: Nalphbet
@@ -1539,13 +1398,14 @@ end do
            integer(kind=ikind),intent(inout):: maxnmo
            integer*8:: exc(0:2,2,2),deg,buffer,c1,c2,ep,n1a,n2a,n1b,n2b,low,high,number,red_vec(maxnmo*2)
            double precision :: phase, c,civ1,civ2
-           integer*8:: hole, particle, tmp,tz,final,max,prueba(maxnmo*2),buffer_2,tz2,index,nn,nel,n
+           integer*8:: tmp,tz,final,max,prueba(maxnmo*2),buffer_2,tz2,index,nn,nel,n,porb,qorb,newdiff,diff
+           integer*8:: mylow, myhigh
            real(kind=dp)::time1,time2
            integer*8, intent(in), dimension(:,:):: newdat
            integer*8, allocatable, dimension(:,:,:) :: orb_mat
            integer*8,allocatable, dimension(:) :: orb_indexed
            integer*8, dimension(numberlines):: sum_mat
-
+              double precision, parameter :: phase_dbl(0:1)=(/1.d0,-1.d0/)
 
 
            onerdm=0.0_dp
@@ -1557,310 +1417,98 @@ end do
            Nalphbet=0
            open(15,file=file_read)
            do i=1,count
+
                read(15,*)j, civs(i), Nalphbet(1,1,i), Nalphbet(1,2,i)
            enddo
            close(15)
 
-           maxnmo=maxval(integer2binary_orbs(maxval(Nalphbet(1,1,:))))
+           maxnmo=maxval(integer2binary_orbs(maxval(Nalphbet)))
+
+           print*,'max orbitals',maxnmo
            nel=popcnt(Nalphbet(1,1,1))
             allocate(onerdm(maxnmo,maxnmo))
 
            onerdm=0.0_dp
 
-           allocate(orb_mat(2,nel,size(newdat(:,2))), orb_indexed(nel))
-           print*, 'allocated orb_mat, orb_indexed'
-           do i=1,size(newdat(:,1))
-               count=1
-               buffer=newdat(i,1)
-                do while (buffer /= 0_8)
-                                j = trailz(buffer)
-                                orb_mat(1,count,i)=j+1
-                                count=count+1
-                                buffer = iand(buffer,buffer-1_8)
-                end do
-           end do
-           do i=1,size(newdat(:,2))
-               count=1
-               buffer=newdat(i,2)
-                do while (buffer /= 0_8)
-                                j = trailz(buffer)
-                                orb_mat(2,count,i)=j+1
-                                count=count+1
-                                buffer = iand(buffer,buffer-1_8)
-                end do
-           end do
+          do c1=1,numberlines
 
-            print*, 'orbmat calculated',numberlines,maxnmo
+              do i=1,2
 
-            compnum=0
+                  buffer=Nalphbet(1,i,c1)
+                  do while(buffer/=0_8)
+                      j=trailz(buffer)
 
-            do i=1,maxnmo
-                compnum=compnum+2**(i-1)
+                      onerdm(j+1,j+1)=onerdm(j+1,j+1)+civs(c1)*civs(c1)
+                      buffer=iand(buffer,buffer-1_8)
+                  end do
+
+              end do
+
            end do
-            print*,compnum
+          print*,'we have finished the elastic part'
             call cpu_time(time1)
+           count=numberlines
+           do c1=1,count-1
 
-            do c1=1,numberlines
-
-
-                   if (c1==1000) then
-                     print*,'Almost there 100000'
-                       call cpu_time(time2)
-                       print*,time2-time1
-                   end if
-
-                    civ1=civs(c1)
+               if (c1==100000) then
 
 
+                  call cpu_time(time2)
+                   print*,'almost there', time2-time1
+               end if
+               do c2=c1+1,count
 
-                        do i=1,2
-                            buffer = Nalphbet(1,i,c1)
-!                            do n=1,size(newdat(:,i))
-!                                if (newdat(n,i)==buffer) then
-!                                    index=n
-!                                    exit
-!                                end if
-!                            end do
-                            index=FINDLOC(newdat(:,i),buffer,1)
+                    diff1=popcnt(IEOR(Nalphbet(1,1,c1),Nalphbet(1,1,c2)))
+                    diff2=popcnt(IEOR(Nalphbet(1,2,c1),Nalphbet(1,2,c2)))
+                    newdiff=diff1+diff2
+                    if (newdiff/=2) cycle
 
-                            orb_indexed=orb_mat(i,:,index)
-                            do nn=1,size(orb_indexed)
-                                j=orb_indexed(nn)
-                                onerdm(j,j) = onerdm(j,j) + &
-                                civ1*civ1
-                            end do
-!                            do while (buffer /= 0_8)
-!                                j = trailz(buffer)
-!
-!                                onerdm(j+1,j+1) = onerdm(j+1,j+1) + &
-!                                civ1*civ1
-!
-!                                buffer = iand(buffer,buffer-1_8)
-!                            end do
+                    if (diff1==2) then
+                            diff=IEOR(Nalphbet(1,1,c1),Nalphbet(1,1,c2))
+                            porb=trailz(iand(Nalphbet(1,1,c1),diff))+1
+                            qorb=trailz(iand(Nalphbet(1,1,c2),diff))+1
+
+                            mylow=min(porb,qorb)
+                            myhigh=max(porb,qorb)
+                            ep=POPCNT(IAND(Nalphbet(1,1,c1),&
+                                IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+!                            ep=ep+POPCNT(IAND(Nalphbet(1,2,c1),&
+!                               IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow))))
 
 
-                        end do
+
+                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+
+                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+
+                    end if
+
+                   if (diff2==2) then
+                            diff=IEOR(Nalphbet(1,2,c1),Nalphbet(1,2,c2))
+                            porb=trailz(iand(Nalphbet(1,2,c1),diff))+1
+                            qorb=trailz(iand(Nalphbet(1,2,c2),diff))+1
+
+                            mylow=min(porb,qorb)
+                            myhigh=max(porb,qorb)
+                            ep=POPCNT(IAND(Nalphbet(1,2,c1),&
+                                IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+                             !ep=ep+POPCNT(IAND(Nalphbet(1,1,c1),&
+                             !   IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
 
 
-                   ! print*,'the fun starts'
-                    buffer=xor(Nalphbet(1,1,c1), compnum)
-                   ! print*,'buffer 1 '
+                          !  if (c1<=20) print*,'conguration of interest',c1,c2,ep
 
-                  !  print*,'buffer 2 '
-                    do while (buffer /= 0_8)
-                        j=trailz(buffer)
-                        hole_int=ibset(Nalphbet(1,1,c1),j)
-                        buffer_2=Nalphbet(1,1,c1)
-                        do while(buffer_2 /=0_8)
-                            k=trailz(buffer_2)
-                            particle_int = ibclr(hole_int,k)
-                            buffer_2 = iand(buffer_2,buffer_2-1_8)
+                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
 
-                            !print*,'before index'
+                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
 
-                           ! print*,particle_int,Nalphbet(1,2,c1)
-                           ! print*,size(abs(Nalphbet(1,:,:)- spread( (/particle_int, Nalphbet(1,2,c1)/), 2, size(Nalphbet(1,1,:)))))
-
-!                            n=1
-!                            count=0
-!                            do while(n/=0)
-!                                count=count+1
-!                                if (count>size(Nalphbet(1,1,:))) exit
-!                                n=sum(abs(Nalphbet(1,:,count)-(/particle_int, Nalphbet(1,2,c1)/)))
-!
-!                            end do
-!                            if (n/=0) cycle
-                            !index=count
-                             !call sgemm('t','n', size(Nalphbet(1,1,:)),1 , 2, 1.0, Nalphbet(1,:,:), &
-                              !&           2, (/-Nalphbet(1,2,c1), particle_int/), 2, 0.0_dp, sum_mat,size(Nalphbet(1,1,:)))
-                            index=0
-                            civ2=0.0_dp
-                            do i = 1,size(Nalphbet(1,1,:))
-                                if (particle_int==Nalphbet(1,1,i) .and. Nalphbet(1,2,c1)==Nalphbet(1,2,i)) then
-                                    index = i
-                                     civ2=civs(index)
-                                    exit
-                                endif
-                            end do
-                            if (index==0) cycle
-                           !     print*,particle_int
-                           ! end if
-                           ! index=minloc(abs(sum_mat),1)
-
-                            !index = minloc(sum(abs(Nalphbet(1,:,:)- spread( (/particle_int, Nalphbet(1,2,c1)/), 2, size(Nalphbet(1,1,:)))), 1),1)
-                           ! print*,index
-                          !  if (0==index .or. index>size(Nalphbet(1,1,:))) then
-                           !     cycle
-                          !  end if
-                          !  print*,index,particle_int, Nalphbet(1,2,c1),Nalphbet(1,1,index), Nalphbet(1,2,index)
+                    end if
 
 
-                            buffer_prime=Nalphbet(1,1,c1)
-                            buffer_prime_2=Nalphbet(1,1,index)
-                            ep=1
-                            do while (buffer_prime/=0_8)
-                                tz=trailz(buffer_prime)
-                                tz2=trailz(buffer_prime_2)
-
-                                if (tz/=tz2 .and. btest(Nalphbet(1,1,index),tz)) then
-
-                                    ep=-ep
-                                end if
-                                buffer_prime=iand(buffer_prime, buffer_prime-1_8)
-                                buffer_prime_2=iand(buffer_prime_2, buffer_2-1_8)
-                            end do
-
-                            phase=ep
-
-                           ! print*,j,k,index,phase
-                            c = phase*civ1*civ2
-                            onerdm(j+1,k+1) = onerdm(j+1,k+1) + c
+                   end do! calcs number of bits set to 1 as we used xor (IEOR) bitwise that must be - note one difference adds two to newdiff as there are two places where the bits will be set to 1
+enddo
 
 
-                        end do
-                        buffer = iand(buffer,buffer-1_8)
-                    end do
-
-                    buffer=xor(Nalphbet(1,2,c1), compnum)
-
-                    do while (buffer /= 0_8)
-                        j=trailz(buffer)
-                        hole_int=ibset(Nalphbet(1,2,c1),j)
-                        buffer_2=Nalphbet(1,2,c1)
-                        do while(buffer_2 /=0_8)
-                            k=trailz(buffer)
-                            particle_int=ibclr(hole_int,k)
-                            buffer_2 = iand(buffer_2,buffer_2-1_8)
-                             do i = 1,size(Nalphbet(1,1,:))
-                                if (particle_int==Nalphbet(1,2,i) .and. Nalphbet(1,1,c1)==Nalphbet(1,1,i)) then
-                                    index = i
-                                    exit
-                                endif
-                            end do
-                           ! index = minloc(sum(abs(Nalphbet(1,:,:)- spread( (/Nalphbet(1,1,c1), particle_int/), 2, size(Nalphbet(1,1,:)))), dim=1),1)
-                            civ2=civs(index)
-
-                            buffer_prime=Nalphbet(1,2,c1)
-                            buffer_prime_2=Nalphbet(1,2,index)
-                            ep=1
-                            do while (buffer_prime/=0_8)
-                                tz=trailz(buffer_prime)
-                                tz2=trailz(buffer_prime_2)
-
-                                if (tz/=tz2 .and. btest(Nalphbet(1,2,index),tz)) then
-
-                                    ep=-ep
-                                end if
-                                buffer_prime=iand(buffer_prime, buffer_prime-1_8)
-                                buffer_prime_2=iand(buffer_prime_2, buffer_2-1_8)
-                            end do
-
-                            phase=ep
-                            c = phase*civ1*civ2
-                            onerdm(j+1,k+1) = onerdm(j+1,k+1) + c
-
-
-                        end do
-                        buffer = iand(buffer,buffer-1_8)
-                    end do
-
-            end do
-                 !   print*, 'number completed'
-
-
-!                    do c2=c1+1,numberlines
-!                        diff1=xor( Nalphbet(1,1,c1), Nalphbet(1,1,c2))
-!                        diff2=xor(Nalphbet(1,2,c1), Nalphbet(1,2,c2))
-!
-!                        popcnt1=popcnt(diff1)
-!                        popcnt2= popcnt(diff2)
-!                        !number=excitations(,Nalphbet(1,:,c2),1)
-!                        number= popcnt1+popcnt2
-!
-!                        number=number-1
-!
-!                    if  (number== 1) then
-!
-!                        if (popcnt1==0) then
-!                            tmp =diff2
-!                            particle = iand(tmp, Nalphbet(1,2,c2))
-!                            hole = iand(tmp, Nalphbet(1,2,c1))
-!
-!                            tz = trailz(particle)
-!                            j=tz+1
-!                            tz = trailz(hole)
-!                            i=tz+1
-!
-!                            low=i*2
-!                            high=j*2
-!                        else
-!                            tmp = xor( Nalphbet(1,1,c1), Nalphbet(1,1,c2))
-!                            particle = iand(tmp, Nalphbet(1,1,c2))
-!                            hole = iand(tmp, Nalphbet(1,1,c1))
-!
-!                            tz = trailz(particle)
-!                            j=tz+1
-!
-!
-!
-!                            tz = trailz(hole)
-!                            i=tz+1
-!
-!                            low=i*2-1
-!                            high=j*2-1
-!
-!
-!
-!                        end if
-!                        if (low>high) then
-!                          temp=low
-!                          low=high
-!                          high=temp
-!                      end if
-!                        phase=1
-!                        civ2=civs(c2)
-!
-!
-!
-!
-!                      ! call combine_alpha_beta(Nalphbet(1,1,c2), Nalphbet(1,2,c2), final)
-!
-!                      ! number=popcnt(ibits(final,low,(high-low-1)))
-!                      ! print*,'newnumber',number
-!!                       red_vec=integer2binary_orbs_bit(Nalphbet(1,:,c2),maxnmo*2)
-!!                       number=size(pack(red_vec(low+1:high-1),red_vec(low+1:high-1)/=0))
-!!                        print*,'oldnumber',number
-!
-!
-!
-!                        do i=1,2
-!                            buffer=Nalphbet(1,i,c1)
-!                            buffer_2=Nalphbet(1,i,c2)
-!
-!                            do while (buffer/=0_8)
-!                                tz=trailz(buffer)
-!                                tz2=trailz(buffer_2)
-!
-!                                if (tz/=tz2 .and. btest(Nalphbet(1,i,c2),tz)) then
-!
-!                                    ep=-ep
-!                                end if
-!                                buffer=iand(buffer, buffer-1_8)
-!                                buffer_2=iand(buffer_2, buffer_2-1_8)
-!                            end do
-!
-!                        end do
-!                       phase=ep
-!                       c = phase*civ1*civ2
-!
-!                       onerdm(i,j) = onerdm(i,j) + c
-!                       onerdm(j,i) = onerdm(j,i) + c
-!
-!
-!                    end if
-!                    end do
-
-              !  end do
              call cpu_time(time2)
            print*,'time constructing 1rdm', time2-time1
            open(file='onerdm_mine.dat', unit=15)
@@ -1880,6 +1528,7 @@ end do
 !    close(15)
 
        end subroutine
+
 
 
        subroutine compute_density_matrix(det,Ndet,coef,mo_num, &
@@ -2112,6 +1761,89 @@ end do
            end select
        end
 
+       subroutine mcci_to_bit(file_read,file_write,numberlines)
+           implicit none
+           character(len=60), intent(in):: file_read,file_write
+           integer(kind=SELECTED_INT_KIND(8)),intent(in):: numberlines
+           integer*8:: icij(2,1,numberlines), j, k,i,nbft,itemp,ici,ntotal,phase,iperm
+           integer*8, allocatable, dimension(:,:):: list
+           real(kind=SELECTED_REAL_KIND(15)):: c(numberlines)
+           double precision, parameter :: phase_dbl(0:1) = (/ 1.d0, -1.d0 /)
+
+
+           open(file=file_read,unit=15)
+
+           do i=1,numberlines
+               read(15,*)c(i), icij(1,1,i), icij(2,1,i)
+           enddo
+           close(15)
+
+
+           nbft=maxval(integer2binary_orbs(maxval(icij)))
+
+           allocate(list(2,popcnt(icij(1,1,1))*2))
+           open(file=file_write,unit=17)
+           do ici=1,numberlines
+                k=0
+               do j=0,nbft-1
+                   if(btest(icij(1,1,ici), j)) THEN
+                       k=k+1
+                       list(1,k) = j+1
+                   END IF
+                   if(btest(icij(2,1,ici), j)) THEN
+                       k=k+1
+                       list(1,k) = j+1 + nbft
+                   END IF
+
+               end do
+
+               ntotal=2*popcnt(icij(1,1,1))
+               !alpha then beta format  'bitwise rep'
+               k=0
+               do j=0,nbft-1
+                   if(btest(icij(1,1,ici), j)) THEN
+                       k=k+1
+                       list(2,k) = j+1
+                   END IF
+               end do
+               do j=0,nbft-1
+                   if(btest(icij(2,1,ici), j)) THEN
+                       k=k+1
+                       list(2,k) = j+1 + nbft
+                   END IF
+               end do
+
+
+               iperm=0  !moves to transform list(2  to list(1
+
+               do j=1,ntotal-1
+                   if(list(1,j).ne.list(2,j)) THEN
+                       do k=j+1,ntotal
+                           if(list(1,j).eq.list(2,k)) THEN
+                               iperm=iperm+1
+                               itemp=list(2,j)
+                               list(2,j)=list(2,k)
+                               list(2,k)=itemp
+                               exit
+                           end if
+                       end do
+                   END IF
+               end do
+
+
+               phase=phase_dbl(iand(iperm,1))
+
+               c(ici)=phase*c(ici)
+
+               write(17,"(E30.16, 2I20)") c(ici), icij(1,1,ici),icij(2,1,ici)
+
+
+           end do !end of loop over ici
+
+           close(17)
+
+
+           end subroutine mcci_to_bit
        recursive function combo(n,k) result(cmb)
            implicit none
            integer*8 :: cmb

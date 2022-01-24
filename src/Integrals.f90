@@ -62,6 +62,8 @@ module integrals
         !First big loop
 
         tsi=0.0_dp
+        if (any(isnan(p0matrix))) print*,'ouch'
+
        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
@@ -1002,6 +1004,7 @@ module integrals
 
 
                         end if
+                       ! if(abs(f(1))>=1E-30)print*,f(1)
                         tsi = tsi + 8.000 * f * e12(:, i, j) * e12(:, k, r)
 
                         count=count+1
@@ -1014,10 +1017,10 @@ module integrals
             end do
         end do
 
-       !$OMP END parallel DO
+      !$OMP END parallel DO
 
 
-        print*,'la rata ', tsi(1)
+        print*,'la rata ', tsi
 
         !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,za,zb), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
@@ -1538,7 +1541,7 @@ module integrals
         elseif (sum(A)==0) then
             P0(:,L+1,M+1,N+1) = 1.0_dp
         elseif (A(1)==0 .and. A(2)==0 .and. A(3)==2) then
-            P0(:,L+1,M+1,N+1)=-q**2/3.
+            P0(:,L+1,M+1,N+1)=-(q**2/3.)
         elseif (A(1)==0 .and. A(2)==2 .and. A(3)==2) then
             P0(:,L+1,M+1,N+1)=(q**4./15._dp)
         elseif (A(1)==2 .and. A(2)==2 .and. A(3)==2) then
@@ -1864,6 +1867,7 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
                                                 if (abs(prod6)>cutoff2) then
                                                     ! add the contribution to the total
                                                     F = F + prod6 * P0mat(:,ll+llp+1,mm+mmp+1,nn+nnp+1)
+                                                    if (gi==1 .and. gj==2 .and. gk==2 .and. gr==3) print*,Za(posI, posJ)
                                                     !Int=Int+prodD.*f;
                                                 end if
                                             end do

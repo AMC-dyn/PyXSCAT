@@ -30,7 +30,7 @@ def twordmconst():
                 if read and not line.startswith('CLOSED'):
                     closed = line.strip().split()
             else:
-                closed = 0
+                closed = 23
     print('closed orbitals', closed)
     # if 'none' in closed:
     #     # closed = input('Specify the number of closed orbitals \n')
@@ -90,5 +90,5 @@ def twordmconst():
     #     nc1 = nc1 + 1
     # print('number of differences', np.shape(ndiff))
     # print(ep2)
-    print(civs[0])
+   # print(civs[0])
     return civs, confs

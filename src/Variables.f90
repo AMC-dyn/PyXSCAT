@@ -543,6 +543,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         end do
 
         call unique_total(mat1,total,matfin,totalfin)
+        print*,sum(total)
         !matfin=mat1
         !totalfin=total
         allocate(m11(size(totalfin)),m22(size(totalfin)),m33(size(totalfin)),m44(size(totalfin)))
@@ -731,7 +732,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
 
             enddo
         enddo
-
+        print*,'Z(1,2)',Z(1,2)
 
 
         gap=0.0

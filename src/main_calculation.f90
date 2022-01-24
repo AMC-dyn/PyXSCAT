@@ -277,7 +277,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
         subroutine total_scattering_calculation_2(type,Zn,geom,state1,state2,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
         mmod,q,nq, group,&
-        cutoffz,cutoffmd,cutoffcentre,fileJ,numberlines,newdat,start,end,irep,q_abs,result)
+        cutoffz,cutoffmd,cutoffcentre,fileJ,numberlines,newdat,start,end,start_2, end_2, fci,irep1,irep2,ordering1 &
+                ,ordering2, read2rdm,mcci,q_abs,result)
 
 
 
@@ -294,19 +295,19 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-
+        logical, intent(in) :: fci,read2rdm,mcci
         integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl,type, state1,state2,numberlines
         integer(kind=ikind), intent(in),dimension(:) :: l, m, n,group
         integer*8, intent(in), dimension(:,:):: newdat
-        integer*8,intent(in), dimension(:):: irep,start,end
+        integer*8,intent(in), dimension(:):: irep1,start,end, irep2, start_2, end_2,ordering1,ordering2
 
 
         real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q, Zn
         real(kind=dp), intent(in),dimension(:,:) :: mmod, geom
         real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
         real(kind=dp),dimension(ngto,ngto):: z
-        character (len=30), intent(in) :: fileJ
-
+        character (len=60), intent(in) :: fileJ
+        character (len=60):: fileout_8
         real(kind=dp), intent(in) :: cutoffmd, cutoffz,cutoffcentre
 
         real(kind=dp), intent(out), dimension(nq):: result,q_abs
@@ -320,7 +321,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
-        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k
+        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k,c1,sizenmat
         real(kind=dp) ::time1,time2,time3,time4,co,wl,rr,k0,rij
         complex(kind=dp), dimension(:,:,:,:), allocatable :: exponent1, exponent2
         complex(kind=dp), dimension(size(q)):: resultaligned
@@ -348,22 +349,71 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             CALL set_P0(P0matrix, 4*maxval(l), q)
           !  call maxcoincidence(confs,ep3,ndiff2)
           !  call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
-            nmomax=27
-            call createtwordm_bit(fileJ,numberlines,newdat,irep,start,end,mat,total)
+            nmomax=18
+
+                if (read2rdm) then
+                sizenmat=numberlines
+                open(file=fileJ,unit=15)
+                allocate(mat(sizenmat,4), total(sizenmat))
+                do i=1,sizenmat
+                    read(15,*)mat(i,1), mat(i,2), mat(i,3), mat(i,4), total(i)
+                end do
+
+              !  call mcci_to_bit(fileJ,fileout,numberlines)
+              !  print*,'Created new file'
+                !call one_rdm_two_rdm(mat,total,onerdm_matrix_2)
+                close(15)
+                else
+                    if (fci) then
+                call createtwordm_bit_fci(fileJ,numberlines,newdat,irep1,start,end,mat,total)
+                elseif (mcci) then
+                 fileout_8='newdat.dat'
+                call mcci_to_bit(fileJ,fileout_8,numberlines)
+                 print*, 'created new file'
+                call createtwordm_bit(fileout_8,numberlines,&
+                        mat,total)
+                else
+                    fileout_8='es.dat'
+                    print*,fileJ,numberlines
+
+                    call mcci_to_bit(fileJ,fileout_8,numberlines)
+                    print*,fileJ,numberlines
+                  call createtwordm_bit(fileout_8,numberlines,&
+                        mat,total)
+            end if
+                end if
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
              m1 = mat(:,1)
              m2 = mat(:,2)
              m3 = mat(:,3)
              m4 = mat(:,4)
+             print*,m1(1), total(1)
              nmat=size(m1)
              print*,'size of nmat',nmat
+             nmomax=maxval(mat)
+             print*,nmomax
+!            call one_rdm_two_rdm(mat,total,onerdm_matrix_2)
+!            co=0
+!            do i=1,nmomax
+!                   co=co+onerdm_matrix_2(i,i)
+!               end do
+!
+!            call one_rdm_bit(fileJ,onerdm_matrix,nmomax,numberlines,newdat,irep1)
+!            print*,'diagonal part of the onerdm',co
+!            open(file='onerdm_from_twordm.dat', unit=15)
+!
+!             do i=1,size(onerdm_matrix_2(:,1))
+!
+!                 write(15,'(1000F14.7)')( onerdm_matrix_2(i,c1),c1=1,size(onerdm_matrix_2(i,:)))
+!            end do
+!            close(15)
 
 
-            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+           call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
-           ! call cpu_time(time3)
-            !print*,'Time variables', time3-time2
+            call cpu_time(time3)
+            print*,'Time variables', time3-time2
 
             call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result)
@@ -389,7 +439,22 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 nmomax=18
 
             print*, 'number of lines', numberlines
-               call one_rdm_bit(fileJ,onerdm_matrix_2,nmomax,numberlines,newdat,irep)
+            if (read2rdm) then
+                print*, fileJ
+                sizenmat=numberlines
+                open(file=fileJ,unit=15)
+                allocate(mat(sizenmat,4), total(sizenmat))
+                do i=1,sizenmat
+                    read(15,*)mat(i,1), mat(i,2), mat(i,3), mat(i,4), total(i)
+                end do
+                   close(15)
+                nmomax=maxval(mat)
+                call one_rdm_two_rdm(mat,total,onerdm_matrix_2,14)
+
+            else
+               call one_rdm_bit(fileJ,onerdm_matrix_2,nmomax,numberlines,newdat,irep1)
+
+            end if
 
                  call cpu_time(time2)
                 print*,'time bit one_rdm', time2-time3

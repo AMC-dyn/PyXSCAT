@@ -5,7 +5,7 @@ program trying
         integer :: length
         end subroutine TwoRDM_SD
     end interface
-    call TwoRDM_SD(935785)
+    call TwoRDM_SD(149850)
 end program trying
 
 
@@ -33,22 +33,19 @@ integer newdiff,mytemp,n
   double precision :: c(length)
   integer icij(2,1,length)
 
-open(15,file='fci_calc.dat')
+open(15,file='O3/civ_out_0.0001')
 nword=1
  do i=1,length
      read(15,*)dummy, c(i), icij(1,1,i), icij(2,1,i)
-     print*, i
  enddo
 close(15)
 
-print*,'read coeffs'
 
- nbft=18
+ nbft=27
 
+print*,length 
 length2=length
 
-print*,icij(:,1,1021)
-print*,icij(:,1,1127)
 ALLOCATE(SpinFree2RDM(nbft,nbft,nbft,nbft))
 
 print*,'allocated matrix'
@@ -67,13 +64,8 @@ print*, 'spinfreee filled'
 dtemp=0.0D0
 !ici=jci first
 
-mytemp=ieor(icij(1,1,59895),icij(1,1,26565))
 
-hole= IAND(mytemp,icij(1,1,59895))
-part= IAND(mytemp,icij(1,1,26565))
 
-print*,'hole',hole
-print*,'part',part
 
 
 do ici=1,length2
@@ -100,7 +92,6 @@ if((qorb.eq.sorb).AND.(ispin.eq.ispin2)) cycle ! all possible choices of two so 
   if(ispin.eq.ispin2) THEN
 
 SpinFree2RDM(sorb,qorb,sorb,qorb)=SpinFree2RDM(sorb,qorb,sorb,qorb)-c_term !porb=sorb rorb=qorb
-
   END IF
 
 !Case 2 p is same as q and r is same as s
@@ -116,13 +107,12 @@ end do ! end of zero differences
 
 end do !end of ici loop
 
-
+print*,'starting big loop'
 
 !now jci>ici and double values so we don't need to do jci<ici
-do ici=1,length2
-do jci=1,length2
+do ici=1,length2-1
+do jci=ici+1,length2
 
-if (ici==100000) print*, '100000, 8KK to go'
 
 !!!!!!!!!!!!!
 newdiff=0
@@ -136,7 +126,6 @@ mytemp=IEOR(icij(2,n,ici),icij(2,n,jci))
 newdiff=newdiff+POPCNT(mytemp)
 
 end do
-if (ici==30111 .and. jci==89505 ) print*, newdiff
  if (newdiff.gt.4) cycle !more than two differences so matrix element is zero
 
 
@@ -208,6 +197,9 @@ end do !loop over myspin
       !spins.eq.spinr and spinq.eq.spinp by construction
 SpinFree2RDM(porb,rorb,sorb,qorb)=SpinFree2RDM(porb,rorb,sorb,qorb)&
 +c_term
+
+SpinFree2RDM(qorb,sorb,rorb,porb)=SpinFree2RDM(qorb,sorb,rorb,porb)&
++c_term
    !Case 2 Swap p and r introduces negative sign but means spins.ne.spinr so no contribution
    !Case 3 from Case 1 swap s and q to give negative sign but spins.ne.spinr so no contribution
    !Case 4 from Case 1 swap s and q then swap p and r so no sign change
@@ -216,6 +208,9 @@ SpinFree2RDM(porb,rorb,sorb,qorb)=SpinFree2RDM(porb,rorb,sorb,qorb)&
 SpinFree2RDM(rorb,porb,qorb,sorb)=SpinFree2RDM(rorb,porb,qorb,sorb)&
 +c_term
 
+
+SpinFree2RDM(sorb,qorb,porb,rorb)=SpinFree2RDM(sorb,qorb,porb,rorb)&
++c_term
     ELSE
   !samespin.eq.1 or   2
   !Case 1
@@ -225,17 +220,29 @@ SpinFree2RDM(rorb,porb,qorb,sorb)=SpinFree2RDM(rorb,porb,qorb,sorb)&
      rorb=exc(1,1,samespin) !iorb
 SpinFree2RDM(porb,rorb,sorb,qorb)=SpinFree2RDM(porb,rorb,sorb,qorb)&
 +c_term
+
+SpinFree2RDM(qorb,sorb,rorb,porb)=SpinFree2RDM(qorb,sorb,rorb,porb)&
++c_term
 !all same spin so all swaps are allowed
    !Case 2 Swap p and r introduces negative sign
 
 SpinFree2RDM(rorb,porb,sorb,qorb)=SpinFree2RDM(rorb,porb,sorb,qorb)&
 -c_term
+
+SpinFree2RDM(sorb,qorb,rorb,porb)=SpinFree2RDM(sorb,qorb,rorb,porb)&
+-c_term
    !Case 3 from Case 1 swap s and q to give negative sign
 SpinFree2RDM(porb,rorb,qorb,sorb)=SpinFree2RDM(porb,rorb,qorb,sorb)&
+-c_term
+
+SpinFree2RDM(qorb,sorb,porb,rorb)=SpinFree2RDM(qorb,sorb,porb,rorb)&
 -c_term
    !Case 4 from Case 1 swap s and q then swap p and r so no sign change
 
 SpinFree2RDM(rorb,porb,qorb,sorb)=SpinFree2RDM(rorb,porb,qorb,sorb)&
++c_term
+
+       SpinFree2RDM(sorb,qorb,porb,rorb)=SpinFree2RDM(sorb,qorb,porb,rorb)&
 +c_term
 
 
@@ -297,6 +304,15 @@ SpinFree2RDM(rorb,porb,rorb,qorb)=SpinFree2RDM(rorb,porb,rorb,qorb)-c_term !sorb
 SpinFree2RDM(porb,rorb,qorb,rorb)=SpinFree2RDM(porb,rorb,qorb,rorb)-c_term !sorb=rorb
 
 
+SpinFree2RDM(qorb,rorb,rorb,porb)=SpinFree2RDM(qorb,rorb,rorb,porb)+c_term  !sorb=rorb
+!case 4 s and r are the differences so signs of moving through occupied will cancel
+SpinFree2RDM(rorb,qorb,porb,rorb)=SpinFree2RDM(rorb,qorb,porb,rorb)+c_term !sorb=rorb
+!case 2 spins and spinr are the same by construction as are spinp and spinq
+SpinFree2RDM(rorb,qorb,rorb,porb)=SpinFree2RDM(rorb,qorb,rorb,porb)-c_term !sorb=rorb
+! case 3 s and p are the different ones - sign change so both operators to come before occupied when acting on their det (left det for p and r, right det for s and q)
+SpinFree2RDM(qorb,rorb,porb,rorb)=SpinFree2RDM(qorb,rorb,porb,rorb)-c_term !sorb=rorb
+
+
 !  if (rorb==1 .and. porb==4 .and. qorb==3) then
 !      print*, SpinFree2RDM(rorb,porb,qorb,rorb),ici,jci
 !  end if
@@ -314,6 +330,9 @@ SpinFree2RDM(porb,rorb,rorb,qorb)=SpinFree2RDM(porb,rorb,rorb,qorb)+c_term  !sor
 !case 4 s and r are the differences so signs of moving through occupied will cancel
 SpinFree2RDM(rorb,porb,qorb,rorb)=SpinFree2RDM(rorb,porb,qorb,rorb)+c_term !sorb=rorb
 
+SpinFree2RDM(qorb,rorb,rorb,porb)=SpinFree2RDM(qorb,rorb,rorb,porb)+c_term  !sorb=rorb
+!case 4 s and r are the differences so signs of moving through occupied will cancel
+SpinFree2RDM(rorb,qorb,porb,rorb)=SpinFree2RDM(rorb,qorb,porb,rorb)+c_term !sorb=rorb
 
 end do
 

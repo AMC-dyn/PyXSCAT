@@ -37,21 +37,29 @@ subroutine maxcoincidence(confs, ep2,ndiff)
             allocate(mat1(size(confs(:,1)),count), ndiff(size(confs(:,1)),size(confs(:,1))))
             ndiff=0
             mat1=matdum(:,1:count)
-            print*, 'mat1 constructed'
+            print*, 'mat1 constructed 2'
+
             do c1=1, size(confs(:,1))
                 do c2=c1+1,size(confs(:,1))
-                    if (c1==1 .and. c2==9) then
-                        print*, mat1(1,:)
-                        print*, mat1(9,:)
-                    end if
-                    do i=1,size(mat1(1,:))
+
+                    ep2(c1,c2)=1
+                    do i=1,size(mat1(c1,:))
                         if  (mat1(c1,i) /= mat1(c2,i)) then
 
 
-                            do j=1,size(mat1(1,:))
-                                if (mat1(c1,i) /= mat1(c2,j)) then
+                            do j=1,size(mat1(c2,:))
+                                if (mat1(c1,i) == mat1(c2,j)) then
+
                                     ep2(c1,c2)=-ep2(c1,c2)
                                     ep2(c2,c1)=ep2(c1,c2)
+!                                    if (c1==1 .and. c2==85) print*,'changed',mat1(c2,i),mat1(c2,j)
+!                                    itemp=mat1(c2,j)
+!                                    mat1(c2,j)=mat1(c2,i)
+!                                    mat1(c2,i)=itemp
+
+                                    exit
+
+
 
 
                                 end if
@@ -72,6 +80,98 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
     end subroutine maxcoincidence
 
+    subroutine maxc_individual(c1,c2, ep,diffs1,diffs2,spin1,spin2,ndiff)
+
+        implicit none
+                INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        integer(kind=ikind), intent(in), dimension(:) :: c1,c2
+        integer(kind=ikind), intent(out):: ep, ndiff
+        integer(kind=ikind), intent(out), dimension(:), allocatable :: diffs1,diffs2,spin1,spin2
+        integer(kind=ikind), dimension(:,:), allocatable :: mat1
+        integer(kind=ikind) :: i,j, count1,itemp
+
+
+        allocate(mat1(2,count(c1/=0)))
+        ep=1
+        count1=0
+
+
+            do i=1,size(c1)
+
+
+
+                    if (c1(i)/=0) then
+                        count1=count1+1
+                        mat1(1,count1)=i
+                        end if
+                end do
+
+         count1=0
+        do i=1,size(c2)
+
+
+
+                    if (c2(i)/=0) then
+                        count1=count1+1
+                        mat1(2,count1)=i
+                        end if
+        end do
+
+
+            ndiff=0
+
+
+            ep=1
+            do i=1,size(mat1(1,:))
+
+                if  (mat1(1,i) /= mat1(2,i)) then
+
+
+                    do j=1,size(mat1(1,:))
+                        if (mat1(1,i) == mat1(2,j)) then
+
+                                    !ndiff=ndiff-1
+                                    ep=-ep
+
+                                    itemp=mat1(2,j)
+                                    mat1(2,j)=mat1(2,i)
+                                    mat1(2,i)=itemp
+
+                                    exit
+
+
+
+
+                                end if
+                            end do
+                        end if
+                    end do
+                 do i=1,size(mat1(1,:))
+                     if  (mat1(1,i) /= mat1(2,i)) then
+                         ndiff=ndiff+1
+
+                         end if
+                 end do
+
+                allocate(diffs1(ndiff), diffs2(ndiff), spin1(ndiff), spin2(ndiff))
+                count1=0
+               do i=1,size(mat1(1,:))
+                    if  (mat1(1,i) /= mat1(2,i)) then
+                        count1=count1+1
+                        diffs1(count1)=nint(mat1(1,i) / 2.0_dp + 0.1)
+                        diffs2(count1)=nint(mat1(2,i) / 2.0_dp + 0.1)
+                        spin1(count1)=mod(mat1(1,i),2)
+                        spin2(count1)=mod(mat1(2,i),2)
+                   end if
+               end do
+
+
+
+
+    end subroutine maxc_individual
+
+
     subroutine createtwordm(confs,civs,ndiff,ep2,mat,total)
 
     implicit none
@@ -88,12 +188,12 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     real(kind=dp), dimension(:,:,:,:), allocatable :: twordm
     integer(kind=ikind) :: ep,nc1,lconfs,norbs,nc2,sorb,rorb,qorb,porb,p,q,r,s,c1,c2,count1,count
 
-    integer(kind=ikind) :: i,i1,i2,n,count2,eg, ndiff1
+    integer(kind=ikind) :: i,i1,i2,n,count2,eg, ndiff1,ndiff2
 
     integer(kind=ikind), dimension(:), allocatable :: mat1,mat2
     logical(4) :: sdef, rdef, pdef, qdef
     logical(4), dimension(:), allocatable :: logicaltwordms
-    real(kind=dp) :: cutoff
+    real(kind=dp) :: cutoff,temp
     integer(kind=ikind), dimension(:), allocatable :: diffs1,diffs2
     integer(kind=ikind) :: spins,spinr,spinq, spinp
     integer(kind=ikind), dimension(:), allocatable :: spin1,spin2
@@ -106,13 +206,14 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     twordm=0.0_dp
     nc1=1
     nc2=1
-    ep=1
+  !  ep=1
 
     do c1=1,size(confs(:,1))
         do c2=1,size(confs(:,1))
+            temp=twordm(11,11,12,14)
 
             ndiff1=ndiff(c1,c2)
-            ep=ep2(c1,c2)
+
 
             if (ndiff(c1,c2)/=0 .and. ndiff1 <=4) then
 
@@ -120,34 +221,39 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                 rdef = .False.
                 pdef = .False.
                 qdef = .False.
-                if (allocated(diffs1)) deallocate(diffs1)
-                if (allocated(diffs2)) deallocate(diffs2)
-                if (allocated(spin1)) deallocate(spin1)
-                if (allocated(spin2)) deallocate(spin2)
-                allocate(diffs1(ndiff(c1,c2)/2), diffs2(ndiff(c1,c2)/2), spin1(ndiff(c1,c2)/2))
-                allocate(spin2(ndiff(c1,c2)/2))
-
-                count1=1
-                count2=1
-
-                do n=1,size(confs(c1,:))
-                    if (confs(c1,n) /= confs(c2,n)) then
-                        if (confs(c1,n) /= 0) THEN
-                            diffs1(count1)=nint((n) / 2.0_dp + 0.1)
-                            spin1(count1)=confs(c1,n)
-                            count1=count1+1
-
-
-                        elseif (confs(c2,n) /= 0) THEN
-                            diffs2(count2)=nint((n) / 2.0_dp + 0.1)
-                            spin2(count2)=confs(c2,n)
-                            count2=count2+1
-                        end if
-                    end if
-                enddo
+!                if (allocated(diffs1)) deallocate(diffs1)
+!                if (allocated(diffs2)) deallocate(diffs2)
+!                if (allocated(spin1)) deallocate(spin1)
+!                if (allocated(spin2)) deallocate(spin2)
+!                allocate(diffs1(ndiff(c1,c2)/2), diffs2(ndiff(c1,c2)/2), spin1(ndiff(c1,c2)/2))
+!                allocate(spin2(ndiff(c1,c2)/2))
+!
+!                count1=1
+!                count2=1
+!
+!                do n=1,size(confs(c1,:))
+!                    if (confs(c1,n) /= confs(c2,n)) then
+!                        if (confs(c1,n) /= 0) THEN
+!                            diffs1(count1)=nint((n) / 2.0_dp + 0.1)
+!                            spin1(count1)=confs(c1,n)
+!                            count1=count1+1
+!
+!
+!                        elseif (confs(c2,n) /= 0) THEN
+!                            diffs2(count2)=nint((n) / 2.0_dp + 0.1)
+!                            spin2(count2)=confs(c2,n)
+!                            count2=count2+1
+!                        end if
+!                    end if
+!                enddo
+!!
+!                if (c1==1 .and. c2==85) print*, spin1
+!                 if (c1==1 .and. c2==85) print*, spin2
 
                 if (ndiff(c1,c2) == 4) then
+                      call maxc_individual(confs(c1,:), confs(c2,:), ep,diffs1, diffs2, spin1,spin2,ndiff2)
 
+                      !if (c1==1 .and. c2==85) print*,spin1,spin2,ep,ep2(c1,c2),count1
 
                     sorb = diffs2(1)
                     qorb = diffs2(2)
@@ -160,9 +266,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                         twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
                                 civs(c1,1) * civs(c2,1) * ep * eg
 
-                         if ( porb==1 .and. rorb==1 .and. sorb==6 .and. qorb==3) then
-                            print*,'mode 1 in 4'
-                        end if
+
 
                     end if
 
@@ -174,9 +278,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
                     if (spin2(1) == spin1(2) .and. spin2(2) == spin1(1)) then
                         twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ civs(c1,1) * civs(c2,1) * ep * eg
-                        if ( porb==1 .and. rorb==1 .and. sorb==6 .and. qorb==3) then
-                            print*,'mode 2 in 4'
-                        end if
+
                     endif
                     qorb = diffs2(1)
                     sorb = diffs2(2)
@@ -188,9 +290,6 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                         twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
                                 civs(c1,1) * civs(c2,1) * ep * eg
 
-                        if ( porb==1 .and. rorb==1 .and. sorb==6 .and. qorb==3) then
-                            print*,'mode 3 in 4'
-                        end if
 
 
                     end if
@@ -209,6 +308,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
 
                 elseif (ndiff(c1,c2) == 2) THEN
+                    call maxc_individual(confs(c1,:), confs(c2,:), ep,diffs1, diffs2, spin1,spin2,ndiff1)
 
                     qorb = diffs2(1)
                     porb = diffs1(1)
@@ -221,14 +321,14 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
                             sorb =nint(i / 2.0_dp + 0.1)
 
-                            spins = confs(c2,i)
+                            spins = mod(i,2)
                         end if
 
                         if (confs(c1,i) /= 0) then
 
                             rdef = .True.
                             rorb = nint((i) / 2.0_dp + 0.1)
-                            spinr = confs(c1,i)
+                            spinr = mod(i,2)
                         end if
 
                         if (sdef .and. rdef .and. spins == spinr .and. spin2(1) == spin1(1)) then
@@ -240,11 +340,10 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                             twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) &
                                     + civs(c1,1) * civs(c2,1) * ep * eg
 
-                              if ( porb==3 .and. rorb==3 .and. sorb==4 .and. qorb==3) then
-                            print*, 'case 1', civs(c1,1) * civs(c2,1) * ep * eg
 
 
-                        end if
+
+
 
 
                         else
@@ -264,12 +363,12 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                         if (confs(c2,i) /= 0) then
                             sdef = .True.
                             sorb = nint((i) / 2.0_dp + 0.1)
-                            spins = confs(c2,i)
+                            spins =mod(i,2)
                         endif
                         if (confs(c1,i) /= 0) then
                             pdef = .True.
                             porb = nint((i) / 2.0_dp + 0.1)
-                            spinp = confs(c1,i)
+                            spinp = mod(i,2)
                         end if
 
                         if (sdef .and. pdef .and. spin1(1) == spins .and. spin2(1) == spinp) then
@@ -280,11 +379,6 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                             twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) + &
                                     civs(c1,1) * civs(c2,1) * ep * eg
 
-                              if ( porb==3 .and. rorb==3 .and. sorb==4 .and. qorb==3) then
-                            print*, 'case 2', civs(c1,1) * civs(c2,1) * ep * eg
-
-
-                        end if
 
                         else
                             sdef = .False.
@@ -306,12 +400,12 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                         if (confs(c2,i) /= 0) then
                             qdef = .True.
                             qorb = nint((i) / 2.0_dp + 0.1)
-                            spinq = confs(c2,i)
+                            spinq = mod(i,2)
                         endif
                         if (confs(c1,i) /= 0) then
                             rdef = .True.
                             rorb = nint((i) / 2.0_dp + 0.1)
-                            spinr = confs(c1,i)
+                            spinr = mod(i,2)
                         endif
                         if (rdef .and. qdef .and. spin1(1) == spinr .and. spin2(1) == spinq) then
                             sdef = .False.
@@ -340,14 +434,14 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                         if (confs(c2,i) /= 0) then
                             qdef = .True.
                             qorb = nint((i) / 2.0_dp + 0.1)
-                            spinq = confs(c2,i)
+                            spinq = mod(i,2)
 
                         end if
 
                         if (confs(c1,i) /= 0) then
                             pdef = .True.
                             porb = nint((i) / 2.0_dp + 0.1)
-                            spinp = confs(c1,i)
+                            spinp = mod(i,2)
 
                         end if
 
@@ -358,11 +452,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                             twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) &
                                     + civs(c1,1) * civs(c2,1) * ep * eg
 
-                              if ( porb==3 .and. rorb==3 .and. sorb==4 .and. qorb==3) then
-                            print*, 'case 4', civs(c1,1) * civs(c2,1) * ep * eg,c1,c2
 
-
-                        end if
 
                         else
 
@@ -412,7 +502,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                 end do
             end if
 
-
+            if (twordm(11,11,12,14) /= temp) print*,porb,rorb,sorb,qorb,twordm(11,11,12,14)
         end do
 
     end do
@@ -422,7 +512,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     cutoff = 1E-30
     count=0
     count2=1
-
+    print*,'final value', twordm(11,11,12,14)
     allocate(logicaltwordms(norbs**4))
     allocate(totaldum(norbs**4), matdum(norbs**4,4))
     logicaltwordms(:)=.False.
@@ -999,8 +1089,8 @@ function integer2binary_orbs_bit(i,maxnmo) result(b_orbs)
 
 subroutine combine_alpha_beta(alpha,beta, result)
     implicit none
-    integer*8, intent(in):: alpha, beta
-    integer*8 :: buffer,z
+    integer, intent(in):: alpha, beta
+    integer :: buffer,z
     integer*8,intent(out) :: result
 
     result=0
@@ -1008,22 +1098,25 @@ subroutine combine_alpha_beta(alpha,beta, result)
     do while (buffer/=0_8)
         z=trailz(buffer)
 
-        result=ibset(result,z*2)
+        result=ibset(result,2*z)
 
-        buffer=ibclr(buffer,z)
+        buffer=iand(buffer,buffer-1_8)
     end do
     buffer=beta
     do while (buffer/=0_8)
         z=trailz(buffer)
+        result=ibset(result,2*z+1)
 
-        result=ibset(result,z*2+1)
-        buffer=ibclr(buffer,z)
+        buffer=iand(buffer,buffer-1_8)
     end do
 
 
 
 
 end subroutine combine_alpha_beta
+
+
+
 
 
     end module twordms
