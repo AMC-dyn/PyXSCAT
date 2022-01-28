@@ -349,7 +349,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             CALL set_P0(P0matrix, 4*maxval(l), q)
           !  call maxcoincidence(confs,ep3,ndiff2)
           !  call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
-            nmomax=18
+            nmomax=15
 
                 if (read2rdm) then
                 sizenmat=numberlines

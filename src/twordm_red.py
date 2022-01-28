@@ -30,7 +30,7 @@ def twordmconst():
                 if read and not line.startswith('CLOSED'):
                     closed = line.strip().split()
             else:
-                closed = 23
+                closed = 13
     print('closed orbitals', closed)
     # if 'none' in closed:
     #     # closed = input('Specify the number of closed orbitals \n')

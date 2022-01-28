@@ -98,8 +98,8 @@ def main():
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 25
-    jeremyR = True
+    Nmo_max = 21
+    jeremyR = False
     mcci = False
     hf = False
     if not jeremyR and not hf:
@@ -109,7 +109,7 @@ def main():
         civs = 1.000
         confs = ['ababab']
     else:
-        Nmo_max = 18
+        Nmo_max = 21
     print('Max_nmos,', Nmo_max)
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
@@ -149,7 +149,7 @@ def main():
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
         cutoffz = input("Input the cutoff for the Z integral")
     # reshape q to a column vector
-    q = np.linspace(0.00000000001, 10, 100)
+    q = np.linspace(0.00000000001, 11, 200)
     # set q t0 E-10 if q = 0
     if q[0] < 1E-10:
         q[0] = 1E-10
@@ -187,6 +187,7 @@ def main():
             confs2[counts, :] = np.asarray(lst, dtype=np.int64)
             counts = counts + 1
         print(confs2[0, :])
+
         with open('configurations_bit.dat', 'w') as f:
             for i in range(counts - 1):
                 var1 = confs2[i, :]
@@ -236,7 +237,7 @@ def main():
         count = 0
         fci = False
         read2rdm = False
-        fileJeremy = 'civ_out_MCCI_Rep'
+        fileJeremy = 'CISDetc_Ne_631Gstar1Frozen/civ_out_8'
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
@@ -333,20 +334,20 @@ def main():
                 f = open(fileJeremy, 'r')
                 for line in f:
                     NN = line.strip().split()
-                    confbin1.append(int(NN[1]))
-                    confbin2.append(int(NN[2]))
+                    confbin1.append(int(NN[2]))
+                    confbin2.append(int(NN[3]))
                     count += 1
                 f.close()
-                if count <= 10:
+                if count <= 3000:
                     confbin1 = []
                     confbin2 = []
                     f = open(fileJeremy, 'r')
                     for line in f:
                         NN = line.strip().split()
 
-                        civs.append(float(NN[0]))
-                        confbin1.append(integertobinary(int(NN[1])))
-                        confbin2.append(integertobinary(int(NN[2])))
+                        civs.append(float(NN[1]))
+                        confbin1.append(integertobinary(int(NN[2])))
+                        confbin2.append(integertobinary(int(NN[3])))
 
                     confs2 = np.zeros((count, len(confbin1[0] * 2)))
                     confbin1 = np.asarray(confbin1)
@@ -468,5 +469,5 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-sci.savemat('CO_0p0001_elastic.mat', {'q': q, 'I': res})
+sci.savemat('Ne_CIS8_total.mat', {'q': q, 'I': res})
 print(toc - tic2)

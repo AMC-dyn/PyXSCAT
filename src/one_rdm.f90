@@ -1774,7 +1774,7 @@ enddo
            open(file=file_read,unit=15)
 
            do i=1,numberlines
-               read(15,*)c(i), icij(1,1,i), icij(2,1,i)
+               read(15,*)ici, c(i), icij(1,1,i), icij(2,1,i)
            enddo
            close(15)
 
