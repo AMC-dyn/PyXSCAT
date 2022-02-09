@@ -98,7 +98,7 @@ def main():
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 21
+    Nmo_max = 27
     jeremyR = False
     mcci = False
     hf = False
@@ -107,9 +107,9 @@ def main():
         Nmo_max = len(confs[:][0]) / 2
     elif not jeremyR and hf:
         civs = 1.000
-        confs = ['ababab']
+        confs = ['abababababababababababab']
     else:
-        Nmo_max = 21
+        Nmo_max = 27
     print('Max_nmos,', Nmo_max)
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
@@ -149,7 +149,7 @@ def main():
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
         cutoffz = input("Input the cutoff for the Z integral")
     # reshape q to a column vector
-    q = np.linspace(0.00000000001, 11, 200)
+    q = np.linspace(0.00000000001, 10, 100)
     # set q t0 E-10 if q = 0
     if q[0] < 1E-10:
         q[0] = 1E-10
@@ -236,8 +236,8 @@ def main():
     elif jeremyR:
         count = 0
         fci = False
-        read2rdm = False
-        fileJeremy = 'CISDetc_Ne_631Gstar1Frozen/civ_out_8'
+        read2rdm = True
+        fileJeremy = 'CISDetc_O3_631G_3Frozen/4/NonZero2RDM_MO_Coeffs'
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
@@ -469,5 +469,5 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-sci.savemat('Ne_CIS8_total.mat', {'q': q, 'I': res})
+sci.savemat('O3_CAS.mat', {'q': q, 'I': res})
 print(toc - tic2)

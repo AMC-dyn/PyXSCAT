@@ -78,6 +78,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             call cpu_time(time2)
             P0matrix = 0
             CALL set_P0(P0matrix, 4*maxval(l), q)
+            write(*,*)
             call maxcoincidence(confs,ep3,ndiff2)
             call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
@@ -430,7 +431,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                CALL set_P0(P0matrix, 4*maxval(l), q)
            ! call maxcoincidence(confs,ep3,ndiff2)
             !call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
-               nmomax=28
+               nmomax=27
              !  call one_rdm_slow(fileJ,onerdm_matrix,nmomax)
 
                call cpu_time(time3)
@@ -449,7 +450,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 end do
                    close(15)
                 nmomax=maxval(mat)
-                call one_rdm_two_rdm(mat,total,onerdm_matrix_2,14)
+                call one_rdm_two_rdm(mat,total,onerdm_matrix_2,24)
 
             else
                call one_rdm_bit(fileJ,onerdm_matrix_2,nmomax,numberlines,newdat,irep1)
