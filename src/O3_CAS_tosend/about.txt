@@ -1,0 +1,12 @@
+
+
+
+ Read in       12126
+ After duplicate check       12126
+ ***initialization has been done***
+ 1e Energy from 2RDM subroutine  -444.92586495709963     
+ 2e Energy from 2RDM subroutine   151.68962626744604     
+ Total energy using 2RDM  -224.39282241128456 
+
+
+molpro gives      -224.392822411321  

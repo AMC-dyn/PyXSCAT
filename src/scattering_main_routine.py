@@ -98,9 +98,9 @@ def main():
     print('input time', inputime2 - inputime1, 's')
 
     mldfile = 'molpro.mld'
-    Nmo_max = 27
-    jeremyR = False
-    mcci = False
+    Nmo_max = 14
+    jeremyR = True
+    mcci = True
     hf = False
     if not jeremyR and not hf:
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
@@ -109,7 +109,7 @@ def main():
         civs = 1.000
         confs = ['abababababababababababab']
     else:
-        Nmo_max = 27
+        Nmo_max = 18
     print('Max_nmos,', Nmo_max)
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
@@ -236,8 +236,8 @@ def main():
     elif jeremyR:
         count = 0
         fci = False
-        read2rdm = True
-        fileJeremy = 'CISDetc_O3_631G_3Frozen/4/NonZero2RDM_MO_Coeffs'
+        read2rdm = False
+        fileJeremy = 'configurations_bit.dat'
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
@@ -469,5 +469,8 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-sci.savemat('O3_CAS.mat', {'q': q, 'I': res})
+nameoffile='CO_CAS_14_n.mat'
+sci.savemat(nameoffile, {'q': q, 'I': res})
+
+print(nameoffile)
 print(toc - tic2)

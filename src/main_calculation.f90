@@ -437,7 +437,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                call cpu_time(time3)
                 print*,'time slow one_rdm',time3-time2
 
-                nmomax=18
+                nmomax=27
 
             print*, 'number of lines', numberlines
             if (read2rdm) then

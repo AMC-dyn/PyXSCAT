@@ -169,7 +169,9 @@ geom={
             # print(line_wr)
             f.write(line_wr)
         f.write('}\n')
-        f.write('''{multi,failsafe;
+        f.write('''
+        hf
+        {multi,failsafe;
 maxiter,40;
 config,det
 ''')
@@ -185,7 +187,9 @@ config,det
 
         f.write('''pspace,10.0        
 orbital,2140.3;
-ORBITAL,IGNORE_ERROR;
+!CANORB,2140.3;
+dont,orbital
+!ORBITAL,IGNORE_ERROR;
 ciguess,2501.2 
 save,ci=2501.2}
 
@@ -786,6 +790,7 @@ def outputreading(x, y, z):
                     s1 = lines.strip().split(" ")
                     s1 = [s for s in s1 if s]
                     syms.append(s1[1])
+                    print(s1[1])
                 elif 'Occ' in lines:
                     s1 = lines.strip().split(" ")
                     s1 = [s for s in s1 if s]
@@ -816,9 +821,10 @@ def outputreading(x, y, z):
 
         # It is necessary to reorder the orbitals to appear in the same order as they do in the output
         # We can use the symmetries to do this
-
+        print(syms)
         idx = np.argsort(np.asarray(syms, dtype=np.float64))
-
+        symsord=np.sort(syms)
+        print(idx)
         mos = np.reshape(MOS, (total, max(realnum)))
 
         mos = mos[idx, :]
