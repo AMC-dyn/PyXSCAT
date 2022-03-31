@@ -5,7 +5,12 @@ import twordm as td2
 from integrals_wrapper import main_calculation_mod as main_calculation
 import time
 import molden_reader_nikola as mldreader
+import Molcas_output_reader as Molcas
 import scipy.io as sci
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+import sys
 import pandas as pd
 
 
@@ -74,7 +79,55 @@ def orbitals_to_integers(vec):
     return alpha, beta
 
 
+class combodemo(QWidget):
+    def __init__(self, parent=None):
+        super(combodemo, self).__init__(parent)
+
+        layout = QHBoxLayout()
+        self.cb = QComboBox()
+        self.cb.addItem("--")
+        self.cb.addItem("Yes")
+        self.cb.addItem("No")
+        self.cb.currentIndexChanged.connect(self.selectionchange)
+        layout.addWidget(self.cb)
+        self.setLayout(layout)
+        self.setWindowTitle("combo box demo")
+
+    def selectionchange(self, i):
+        print("Items in the list are :")
+
+        for count in range(self.cb.count()):
+            print(self.cb.itemText(count))
+        print("Current index", i, "selection changed ", self.cb.currentText())
+
+    def get_property(self):
+        return self.cb.currentText()
+
+
 def main():
+    # app = QApplication(sys.argv)
+    # w = QWidget()
+    # n = combodemo(w)
+    #
+    # b = QLabel(w)
+    # b.setText("Welcome to BREXSCAT")
+    # run = QLabel(w)
+    # run.setText("Run a molpro calculation?")
+    # run.move(50,75)
+    # n.move(50,85)
+    #
+    # w.setGeometry(1000, 1000, 2000, 500)
+    # b.move(50, 20)
+    # font = QFont()
+    # font.setFamily("Arial")
+    # font.setPointSize(30)
+    # b.setFont(font)
+    # w.setWindowTitle("Input")
+    # w.show()
+    # print(n.cb.currentIndex())
+    #
+    # sys.exit(app.exec_())
+
     tic1 = time.time()
     # INPUT:
     # mldfile       string          input molden file name
@@ -99,18 +152,29 @@ def main():
 
     mldfile = 'molpro.mld'
     Nmo_max = 14
-    jeremyR = True
-    mcci = True
+    jeremyR = False
+    mcci = False
     hf = False
     if not jeremyR and not hf:
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
-        Nmo_max = len(confs[:][0]) / 2
+
+        print(civs)
+
+       #confs, civs = Molcas.reading_molcas("big_AS/molcas.log", 1)
+        print(confs)
+        Nmo_max = len(confs[0]) / 2
+        print('Nmo_max:', Nmo_max)
+        # civs=np.asarray(civs)/np.sqrt(sum(np.asarray(civs)**2))
+        #print(sum(np.asarray(civs) ** 2))
     elif not jeremyR and hf:
         civs = 1.000
-        confs = ['abababababababababababab']
+        confs = ['ab' * 25]
+        print(confs)
+        Nmo_max = 25
     else:
         Nmo_max = 18
     print('Max_nmos,', Nmo_max)
+    #gtos, atoms = mldreader.read_orbitals('2andres/molcas.rasscf.molden.1', N=Nmo_max, decontract=True)
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 
     geom = atoms.geometry()
@@ -133,6 +197,8 @@ def main():
     n = np.asarray(n)
     ga = np.asarray(ga)
     mmod = np.asarray(mmod, dtype=np.float64)
+   # mmod = np.delete(mmod, range(1, mmod.shape[0], 2), axis=0)
+    print(mmod)
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
     # condit = input("Do you want to continue Y/N?")
@@ -200,9 +266,9 @@ def main():
                         else:
                             beta = beta + 2 ** ((j - 1) / 2)
 
-                f.write(str(i + 1) + ' ' + str(civs[i][0]) + ' ' + str(int(alpha)) + ' ' + str(int(beta)) + '\n')
+                f.write(str(i + 1) + ' ' + str(civs[i]) + ' ' + str(int(alpha)) + ' ' + str(int(beta)) + '\n')
 
-        q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1, 1, maxl,
+        q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 2, maxl,
                                                                            Ngto, ng,
                                                                            ga, l, m, n, xx, yy, zz, mmod,
                                                                            q, nq,
@@ -236,8 +302,8 @@ def main():
     elif jeremyR:
         count = 0
         fci = False
-        read2rdm = False
-        fileJeremy = 'configurations_bit.dat'
+        read2rdm = True
+        fileJeremy = 'COeq_631G_2FrozenCASorbs_bigcutoff/NonZero2RDM_MO_Coeffs'
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
@@ -469,7 +535,7 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-nameoffile='CO_CAS_14_n.mat'
+nameoffile = 'CO_CAS.mat'
 sci.savemat(nameoffile, {'q': q, 'I': res})
 
 print(nameoffile)

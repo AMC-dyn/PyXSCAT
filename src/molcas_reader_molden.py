@@ -90,7 +90,8 @@ def _read_atoms_file(file):
     file.seek(0)
     # find the posisiton of the tag [Atoms]
     for line in file:
-        if "[Atoms]" in line:
+        if "[Atoms] (AU)" in line:
+            print("Atoms found")
             break
     else:
         print("Something went wrong! Can't find [Atoms].")
@@ -99,16 +100,20 @@ def _read_atoms_file(file):
     atoms = mol.Molecule()
 
     for line in file:
-        if "[GTO]" in line:
+        if "[GTO]" in line or "[Charge]" in line:
+
             break
         else:
+
             columns = line.split()
+            print(columns)
             # symbol = columns[0]
             atmnum = int(columns[2])
             # coordinates in au
             x = float(columns[3]) / AU2ANG
             y = float(columns[4]) / AU2ANG
             z = float(columns[5]) / AU2ANG
+            print(atmnum)
             atoms.add_atom(mol.Atom(atmnum, x, y, z))
     else:
         print("Something went wrong! Can't find [GTO]")
@@ -162,17 +167,21 @@ def _read_contractions(file):
     # loop until you find the [MO] tag
     for line in file:
         if "[MO]" in line:
+            print(line)
+            print("breaking")
             break
         else:
             # skip if line is blank or whitspace
-            if not line or line.isspace():
-                line = file.readline()
+            if not line or line.isspace() or line == '/n':
+                # line = file.readline()
+                print(line)
                 # if the second line is blank or whitespace just go the the MO
                 # condition
                 if not line or line.isspace():
                     continue
                 # if it was a single blank line read the next atom
                 else:
+
                     atms = [int(s) for s in line.split() if s.isdigit()]
                     atm = atms[0]
                     print("Reading GTOs on atom: " + str(atm))
@@ -188,6 +197,7 @@ def _read_contractions(file):
                 line = line.replace("D", "E")
                 g = float(line.split()[0])
                 c = float(line.split()[1])
+                print(c)
                 group_counter += 1
 
                 # dealing with the angular momentum
@@ -268,15 +278,18 @@ def _read_MO(file, mo_cutoff):
     mo_table = []
     mo_counter = 0
     mo_this = []
-
+    print("mo_cutoff: ", mo_cutoff)
+    mo_cutoff=mo_cutoff*2
     # reading the MO, first energies and occupancies than the coeffs
     line = file.readline()
     while line and mo_counter <= mo_cutoff and "[FREQ]" not in line:
         if "Sym" in line:
             mo_counter += 1
             if mo_counter <= mo_cutoff:
-                s = re.findall("\d+\.\d+", line)
-                syms.append(s[0])
+                s = line.split()
+                print(s)
+                syms.append(s[1].replace('a', '.1'))
+                print(syms)
             if mo_this:
                 mo_table.append(mo_this)
             # the coefficient for this orbitals
@@ -302,6 +315,7 @@ def _read_MO(file, mo_cutoff):
 
     # redored the MO according to the Molpro labels
     nMO = len(syms)
+    print(nMO)
     syms_array = np.array([float(i) for i in syms])
     idx1 = np.argsort(syms_array)
     print(idx1)
@@ -310,7 +324,6 @@ def _read_MO(file, mo_cutoff):
     idx = np.argsort(syms_array)
     print(syms_array[idx])
     mo = np.array(mo_table)
-    print(mo)
     print(idx)
     mo = mo[idx, :]
     print('size Mos ', np.size(mo[1, :]))
@@ -329,7 +342,7 @@ def _read_MO(file, mo_cutoff):
     # print(nMO*"%s" % tuple(i.rjust(12) for i in spin))
     # for row in np.transpose(mo):
     #     print(nMO*"%12.6f" % tuple(row))
-
+    print(mo)
     # return a numpy array
     return (np.transpose(mo), occ_array, energy_array, syms_array)
 
@@ -348,6 +361,7 @@ def _mo_fill_gto(GTOs, mo_table):
         GTOs - list of PrimitiveGTO - table of GTOs
         mo_table - numpy matrix - mo coefficients
     """
+    print(len(GTOs))
     for gto in GTOs:
         gto.mo = mo_table[gto.contraction - 1, :]
         # gto.print_gto()
@@ -413,6 +427,7 @@ def _normalise_gto(GTOs):
 
 def _xyz_fill_gto(GTOs, molecule):
     """Fill the position of the atoms."""
+
     for i in GTOs:
         i.x = molecule.atoms[i.atom_idx - 1].x
         i.y = molecule.atoms[i.atom_idx - 1].y

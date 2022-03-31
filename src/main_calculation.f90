@@ -80,7 +80,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             CALL set_P0(P0matrix, 4*maxval(l), q)
             write(*,*)
             call maxcoincidence(confs,ep3,ndiff2)
-            call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
+            call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
              m1 = mat(:,1)
              m2 = mat(:,2)
@@ -120,7 +120,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
             call maxcoincidence(confs,ep3,ndiff2)
-            call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
+            call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
              m1 = mat(:,1)
              m2 = mat(:,2)

@@ -171,6 +171,7 @@ geom={
         f.write('}\n')
         f.write('''
         hf
+     
         {multi,failsafe;
 maxiter,40;
 config,det
@@ -185,13 +186,15 @@ config,det
         f.write(line_wr3)
         f.write(line_wr4)
 
-        f.write('''pspace,10.0        
+        f.write('''
+        !pspace,10.0        
 orbital,2140.3;
 !CANORB,2140.3;
-dont,orbital
+!dont,orbital
 !ORBITAL,IGNORE_ERROR;
-ciguess,2501.2 
-save,ci=2501.2}
+!ciguess,2501.2 
+!save,ci=2501.2}
+}
 
 put,molden,molpro.mld
 ''')

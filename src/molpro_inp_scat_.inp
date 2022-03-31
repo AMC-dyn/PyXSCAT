@@ -6,33 +6,35 @@ gprint,civector,orbitals,angles=-1,distance=-1
 
  gthresh,thrpun=0.000000001
  punch,molpro.pun,new
-basis= 6-31G
+basis= avqz
 symmetry,nosym;
 orient,noorient;
 angstrom;
 geomtype=xyz;
 geom={
-        2
+        1
 
-C 0.0 0.0 -0.6443045972
-O 0.0 0.0 0.4836895456
+He 0.0 0.0 0.0
 }
 
         hf
+     
         {multi,failsafe;
 maxiter,40;
 config,det
-occ,14;
-closed,2;
-wf,14,1,0;
-state,1;
-pspace,10.0        
+occ,10;
+closed,0;
+wf,2,1,0;
+state,2;
+
+        !pspace,10.0        
 orbital,2140.3;
 !CANORB,2140.3;
-dont,orbital
+!dont,orbital
 !ORBITAL,IGNORE_ERROR;
-ciguess,2501.2 
-save,ci=2501.2}
+!ciguess,2501.2 
+!save,ci=2501.2}
+}
 
 put,molden,molpro.mld
 ---

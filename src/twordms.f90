@@ -172,7 +172,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     end subroutine maxc_individual
 
 
-    subroutine createtwordm(confs,civs,ndiff,ep2,mat,total)
+    subroutine createtwordm(confs,civs,ndiff,ep2,mat,total,state1,state2)
 
     implicit none
 
@@ -181,6 +181,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
     integer(kind=ikind), intent(in),dimension(:,:) :: confs
     integer(kind=ikind), intent(in), dimension(:,:) :: ep2, ndiff
+    integer(kind=ikind),intent(in):: state1,state2
     real(kind=dp), intent(in), dimension(:,:) :: civs
     real(kind=dp), intent(out), dimension(:), allocatable :: total
     integer(kind=ikind), intent(out), dimension(:,:), allocatable :: mat
@@ -264,7 +265,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
                     if (spin2(1) == spin1(1) .and. spin2(2) == spin1(2)) THEN
                         twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-                                civs(c1,1) * civs(c2,1) * ep * eg
+                                civs(c1,state1) * civs(c2,state2) * ep * eg
 
 
 
@@ -277,7 +278,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                     eg = -1.00
 
                     if (spin2(1) == spin1(2) .and. spin2(2) == spin1(1)) then
-                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ civs(c1,1) * civs(c2,1) * ep * eg
+                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ civs(c1,state1) * civs(c2,state2) * ep * eg
 
                     endif
                     qorb = diffs2(1)
@@ -288,7 +289,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
                     if (spin1(1) == spin2(2) .and. spin2(1) == spin1(2) ) THEN
                         twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ &
-                                civs(c1,1) * civs(c2,1) * ep * eg
+                                civs(c1,state1) * civs(c2,state2) * ep * eg
 
 
 
@@ -302,7 +303,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
                     if (spin1(2) == spin2(2) .and. spin2(1) == spin1(1)) then
                         twordm(porb , rorb , sorb , qorb )= twordm(porb , rorb , sorb , qorb ) &
-                                + civs(c1,1) * civs(c2,1) * ep * eg
+                                + civs(c1,state1) * civs(c2,state2) * ep * eg
 
                     end if
 
@@ -338,7 +339,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                             qdef = .False.
 
                             twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) &
-                                    + civs(c1,1) * civs(c2,1) * ep * eg
+                                    + civs(c1,state1) * civs(c2,state2) * ep * eg
 
 
 
@@ -377,7 +378,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                             pdef = .False.
                             qdef = .False.
                             twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) + &
-                                    civs(c1,1) * civs(c2,1) * ep * eg
+                                    civs(c1,state1) * civs(c2,state2) * ep * eg
 
 
                         else
@@ -413,7 +414,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                             pdef = .False.
                             qdef = .False.
                             twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) +&
-                                    civs(c1,1) * civs(c2,1) * ep * eg
+                                    civs(c1,state1) * civs(c2,state2) * ep * eg
 
 
 
@@ -450,7 +451,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                             pdef = .False.
 
                             twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) &
-                                    + civs(c1,1) * civs(c2,1) * ep * eg
+                                    + civs(c1,state1) * civs(c2,state2) * ep * eg
 
 
 
@@ -485,7 +486,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                                     eg = -1.00
 
                                     twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb ) &
-                                            + civs(c1,1) * civs(c2,1) * ep * eg
+                                            + civs(c1,state1) * civs(c2,state2) * ep * eg
 
 
                                 end if
@@ -494,7 +495,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                                 eg = 1.00
 
                                 twordm(porb , rorb , sorb , qorb )  = twordm(porb , rorb , sorb , qorb ) &
-                                        + civs(c1,1) * civs(c2,1) * ep * eg
+                                        + civs(c1,state1) * civs(c2,state2) * ep * eg
                             endif
                         end if
 

@@ -1,13 +1,12 @@
 
 GEOMETRY
 Angstrom
-2
-C    0.0000000000        0.0000000000       -0.6443045972
-O    0.0000000000        0.0000000000        0.4836895456
+1
+He 0.00 0.00 0.00
 RUN
 Yes
 MLD
-molpro.mld
+molden.mld
 PUNCH
 molpro.pun
 METHOD
@@ -16,19 +15,19 @@ SYM
 OFF
 NONE
 BASIS
-6-31G
+d-avqz
 OCC
-14
+10
 CLOSED
-2
+0
 COM
 True
 NEL
-14
+2
 MULTIPLICITY
-singlet
+Singlet
 NSTATES
-1
+2
 STATESYM
 1
 XSCATSTATES
