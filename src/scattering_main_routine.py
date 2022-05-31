@@ -168,9 +168,9 @@ def main():
         #print(sum(np.asarray(civs) ** 2))
     elif not jeremyR and hf:
         civs = 1.000
-        confs = ['ab' * 25]
+        confs = ['ab' * 7]
         print(confs)
-        Nmo_max = 25
+        Nmo_max = 18
     else:
         Nmo_max = 18
     print('Max_nmos,', Nmo_max)
@@ -207,15 +207,15 @@ def main():
         # cut off epsilon; if H < epsilon, use P0 cases
         cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
         # the cutoff for the Z integral
-        cutoffz = 1e-30  # suggested: cutoffz = 1E-9;
+        cutoffz = 1e-09  # suggested: cutoffz = 1E-9;
         # the cutoff for the product of the MD coefficients
-        cutoffmd = 1e-30  # suggested: cutoffmd = 1E-20;
+        cutoffmd = 1e-10  # suggested: cutoffmd = 1E-20;
     else:
         cutoffcentre = input("Input cut off epsilon; if H < epsilon, use P0 cases")
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
         cutoffz = input("Input the cutoff for the Z integral")
     # reshape q to a column vector
-    q = np.linspace(0.00000000001, 10, 100)
+    q = np.linspace(0.00000000001, 10, 50)
     # set q t0 E-10 if q = 0
     if q[0] < 1E-10:
         q[0] = 1E-10
@@ -268,7 +268,7 @@ def main():
 
                 f.write(str(i + 1) + ' ' + str(civs[i]) + ' ' + str(int(alpha)) + ' ' + str(int(beta)) + '\n')
 
-        q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 2, maxl,
+        q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1, 1, maxl,
                                                                            Ngto, ng,
                                                                            ga, l, m, n, xx, yy, zz, mmod,
                                                                            q, nq,
@@ -303,7 +303,7 @@ def main():
         count = 0
         fci = False
         read2rdm = True
-        fileJeremy = 'COeq_631G_2FrozenCASorbs_bigcutoff/NonZero2RDM_MO_Coeffs'
+        fileJeremy = 'HF_NonZero2RM_MO_Coeffs'
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
@@ -535,7 +535,7 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-nameoffile = 'CO_CAS.mat'
+nameoffile = 'QD_try.mat'
 sci.savemat(nameoffile, {'q': q, 'I': res})
 
 print(nameoffile)

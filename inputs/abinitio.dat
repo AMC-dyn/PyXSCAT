@@ -4,20 +4,20 @@ Angstrom
 1
 He 0.00 0.00 0.00
 RUN
-Yes
+No
 MLD
-molden.mld
+qc.molden
 PUNCH
-molpro.pun
+qc.pun
 METHOD
 CAS
 SYM
 OFF
 NONE
 BASIS
-d-avqz
+avdz
 OCC
-10
+3
 CLOSED
 0
 COM
