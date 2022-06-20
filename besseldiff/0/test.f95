@@ -45,13 +45,13 @@
          write(*,*) "value of z:"
          write(*,*) z
 
-         call rrdj0(lmax,x,ax)
+         call rrdj0(2,0.5d0,ax)
          call rrdj0(lmax,y,ay)
          call rrdj0(lmax,z,az)
          
          write(*,*) "coefficients ax:"
          do i = 1, lmax+1
-             write(*,*) ax(i,1:i)
+             write(*,*) i,ax(i,1:i)
          enddo
          write(*,*) "coefficients ay:"
          do i = 1, lmax+1
