@@ -2139,7 +2139,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
         call Hermite_like_coeffs(a_try,2,0.5d0)
-        print*,'Prueba Hermite ', a_try(1,3)
+        print*,'Prueba Hermite ', a_try(7,5)
         call Hermite_like_coeffs(a, LLmax, Hx)
         call Hermite_like_coeffs(b, LLmax, Hy)
         call Hermite_like_coeffs(c, LLmax, Hz)
