@@ -64,9 +64,9 @@ module integrals
         tsi=0.0_dp
         if (any(isnan(p0matrix))) print*,'ouch'
 
-       !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
+      ! !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+      !  !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
 
         do i=1,ncap
             do j=i+1,ncap
@@ -156,7 +156,7 @@ module integrals
             end do
         end do
 
-       !$OMP END parallel DO
+      ! !$OMP END parallel DO
 
 
         print*,'la rata ', tsi(1)
@@ -2113,7 +2113,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z11,z22
         INTEGER(kind=ikind), parameter :: dim = 13
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
-        REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c,a_try
+        REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
         REAL(kind=dp), DIMENSION(dim, dim, dim, dim)  :: h_pre2
         REAL(kind=dp), DIMENSION(dim)               :: BD
@@ -2137,9 +2137,10 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
             stop
         end if
 
+        a=0.0_dp
+        b=0.0_dp
+        c=0.0_dp
 
-        call Hermite_like_coeffs(a_try,2,0.5d0)
-        print*,'Prueba Hermite ', a_try(7,5)
         call Hermite_like_coeffs(a, LLmax, Hx)
         call Hermite_like_coeffs(b, LLmax, Hy)
         call Hermite_like_coeffs(c, LLmax, Hz)
@@ -2830,13 +2831,13 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         SUBROUTINE Hermite_like_coeffs(a, LLmax, Hx)
                   INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-        REAL(kind=dp), INTENT(out), DIMENSION(LLmax+1,LLmax+1) :: a
+        REAL(kind=dp), INTENT(out), DIMENSION(13,13) :: a
         INTEGER(kind=ikind), INTENT(in)     :: LLmax
         REAL(kind=dp), INTENT(in)           :: Hx
 
         ! loop vars
         INTEGER(kind=ikind)     :: L, ka
-        a = 0
+        a = 0.0_dp
         a(1,1)=1;               ! L=0
 
         if (LLmax>0) a(2,2)=-Hx ! L=1
@@ -2848,9 +2849,36 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
                 a(L+1,ka+1)=-Hx*a(L,ka)-(L-1)*a(L-1,ka+1);
             end do
         end do
-
     END SUBROUTINE Hermite_like_coeffs
 
+    SUBROUTINE rrdj0(lmax,x,a)
+    ! This subroutine uses a recurrence relation to calculate the
+    ! first set of expansion coefficients, a, at given coordinate
+    ! x (or y or z) up to an angular momentum of L
+
+        integer, parameter    :: dp = selected_real_kind(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        integer, intent(in)                                        :: lmax
+        integer(kind=ikind)                                                    :: l,p
+        real(kind=dp), intent(in)                                  :: x
+        real(kind=dp), dimension(13,13), intent(out)   :: a
+
+        a=0.0_dp
+
+        a(1,1) = 1.0_dp
+        a(2,2) = -x
+
+        do l = 2, lmax
+            a(l+1,1) = -(l-1) * a(l-1,1)
+        enddo
+
+        do l = 2, lmax
+            do p = 1, l
+                a(l+1,p+1) = -(l-1) * a(l-1,p+1) - x * a(l,p)
+            enddo
+        enddo
+
+    END SUBROUTINE
 
 
 

@@ -1,14 +1,15 @@
 
 GEOMETRY
 Angstrom
-1
-He 0.00 0.00 0.00
+2
+N 0.00 0.00 0.00
+N 0.00 0.00 1.7
 RUN
-No
+yes
 MLD
-qc.molden
+molpro.molden
 PUNCH
-qc.pun
+molpro.pun
 METHOD
 CAS
 SYM
@@ -17,13 +18,13 @@ NONE
 BASIS
 avdz
 OCC
-3
+8
 CLOSED
 0
 COM
 True
 NEL
-2
+14
 MULTIPLICITY
 Singlet
 NSTATES
