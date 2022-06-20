@@ -2113,7 +2113,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z11,z22
         INTEGER(kind=ikind), parameter :: dim = 13
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
-        REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
+        REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c,a_try
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
         REAL(kind=dp), DIMENSION(dim, dim, dim, dim)  :: h_pre2
         REAL(kind=dp), DIMENSION(dim)               :: BD
@@ -2138,10 +2138,13 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         end if
 
 
-
+        call Hermite_like_coeffs(a_try,2,0.5d0)
+        print*,'Prueba Hermite ', a_try(1,3)
         call Hermite_like_coeffs(a, LLmax, Hx)
         call Hermite_like_coeffs(b, LLmax, Hy)
         call Hermite_like_coeffs(c, LLmax, Hz)
+
+
 
 
 
