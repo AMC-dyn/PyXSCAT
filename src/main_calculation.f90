@@ -76,11 +76,18 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
        ! call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
         if (type==1) then
             call cpu_time(time2)
-            P0matrix = 0
-            CALL set_P0(P0matrix, 4*maxval(l), q)
-            write(*,*)
+            P0matrix = 0.0_dp
+           ! CALL set_P0_j2(P0matrix, 4*maxval(l), q)
+            CALL set_P0_j2(P0matrix, 4*maxval(l), q)
+
+            write(*,*) 'maximum value p0', maxval(abs(P0matrix(:,3,1,1)))
+             call cpu_time(time2)
+
+
             call maxcoincidence(confs,ep3,ndiff2)
             call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
+             call cpu_time(time3)
+            print*,'Time 2rdm', time3-time2
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
              m1 = mat(:,1)
              m2 = mat(:,2)
@@ -95,12 +102,12 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             call cpu_time(time3)
             print*,'Time variables', time3-time2
 
-            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+            call tot_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result)
             print*,'here'
         else if (type==2) then
                P0matrix = 0
-               CALL set_P0(P0matrix, 4*maxval(l), q)
+               CALL set_P0_j2(P0matrix, 4*maxval(l), q)
             call maxcoincidence(confs,ep3,ndiff2)
             call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
                print*,'maxnmo',nmomax
@@ -111,7 +118,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                print*,'trace',co
             call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,onerdm_matrix,nmomax,q,nq)
-            call elastic_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+            call elastic_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result)
 
 
@@ -350,7 +357,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             CALL set_P0(P0matrix, 4*maxval(l), q)
           !  call maxcoincidence(confs,ep3,ndiff2)
           !  call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
-            nmomax=15
+            nmomax=27
 
                 if (read2rdm) then
                 sizenmat=numberlines
@@ -366,14 +373,18 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 close(15)
                 else
                     if (fci) then
-                call createtwordm_bit_fci(fileJ,numberlines,newdat,irep1,start,end,mat,total)
+                    call createtwordm_bit_fci(fileJ,numberlines,newdat,irep1,start,end,mat,total)
                 elseif (mcci) then
+                       call cpu_time(time2)
                  fileout_8='newdat.dat'
                 call mcci_to_bit(fileJ,fileout_8,numberlines)
                  print*, 'created new file'
-                call createtwordm_bit(fileout_8,numberlines,&
+                 call createtwordm_bit(fileout_8,numberlines,&
                         mat,total)
+                 call cpu_time(time3)
+                 print*,'Time 2rdm', time3-time2
                 else
+                  call cpu_time(time2)
                     fileout_8='es.dat'
                     print*,fileJ,numberlines
 
@@ -381,6 +392,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                     print*,fileJ,numberlines
                   call createtwordm_bit(fileout_8,numberlines,&
                         mat,total)
+               call cpu_time(time3)
+            print*,'Time 2rdm', time3-time2
             end if
                 end if
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))

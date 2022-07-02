@@ -153,7 +153,7 @@ def main():
     mldfile = 'molpro.mld'
     Nmo_max = 14
     jeremyR = False
-    mcci = False
+    mcci = True
     hf = False
     if not jeremyR and not hf:
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
@@ -172,7 +172,7 @@ def main():
         print(confs)
         Nmo_max = 18
     else:
-        Nmo_max = 18
+        Nmo_max = 27
     print('Max_nmos,', Nmo_max)
     #gtos, atoms = mldreader.read_orbitals('2andres/molcas.rasscf.molden.1', N=Nmo_max, decontract=True)
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
@@ -215,7 +215,7 @@ def main():
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
         cutoffz = input("Input the cutoff for the Z integral")
     # reshape q to a column vector
-    q = np.linspace(0.00000000001, 10, 50)
+    q = np.linspace(0.00000000001, 10, 200)
     # set q t0 E-10 if q = 0
     if q[0] < 1E-10:
         q[0] = 1E-10
@@ -268,7 +268,7 @@ def main():
 
                 f.write(str(i + 1) + ' ' + str(civs[i]) + ' ' + str(int(alpha)) + ' ' + str(int(beta)) + '\n')
 
-        q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom, 1, 1, maxl,
+        q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 1, maxl,
                                                                            Ngto, ng,
                                                                            ga, l, m, n, xx, yy, zz, mmod,
                                                                            q, nq,
@@ -302,8 +302,8 @@ def main():
     elif jeremyR:
         count = 0
         fci = False
-        read2rdm = True
-        fileJeremy = 'HF_NonZero2RM_MO_Coeffs'
+        read2rdm = False
+        fileJeremy = 'stretched/0.00005/civ_out'
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
@@ -404,7 +404,7 @@ def main():
                     confbin2.append(int(NN[3]))
                     count += 1
                 f.close()
-                if count <= 3000:
+                if count <= 30000000:
                     confbin1 = []
                     confbin2 = []
                     f = open(fileJeremy, 'r')
@@ -535,7 +535,7 @@ tic2 = time.time()
 
 res, q, q_alig = main()
 toc = time.time()
-nameoffile = 'QD_try.mat'
+nameoffile = 'Try_J2_OF2_z.mat'
 sci.savemat(nameoffile, {'q': q, 'I': res})
 
 print(nameoffile)

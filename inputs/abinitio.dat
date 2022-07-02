@@ -1,13 +1,15 @@
 
-GEOMETRY
+GEOMETRY6-31G
 Angstrom
-2
-N 0.00 0.00 0.00
-N 0.00 0.00 1.7
+3
+O    0.000000    0.000000    0.000000
+F   -0.874633    0.000000   -1.099560
+F   -0.874633    0.000000    1.099560
+
 RUN
-yes
+Yes
 MLD
-molpro.molden
+molpro.mld
 PUNCH
 molpro.pun
 METHOD
@@ -16,15 +18,15 @@ SYM
 OFF
 NONE
 BASIS
-avdz
+6-31G
 OCC
-8
+14
 CLOSED
-0
+10
 COM
 True
 NEL
-14
+26
 MULTIPLICITY
 Singlet
 NSTATES
@@ -33,3 +35,4 @@ STATESYM
 1
 XSCATSTATES
 1 1 
+6-31G

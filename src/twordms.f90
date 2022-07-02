@@ -208,7 +208,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     nc1=1
     nc2=1
   !  ep=1
-
+    print*, 'starting the twordm'
     do c1=1,size(confs(:,1))
         do c2=1,size(confs(:,1))
             temp=twordm(11,11,12,14)
