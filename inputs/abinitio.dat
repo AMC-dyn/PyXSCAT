@@ -7,7 +7,7 @@ F   -0.874633    0.000000   -1.099560
 F   -0.874633    0.000000    1.099560
 
 RUN
-Yes
+No
 MLD
 molpro.mld
 PUNCH
@@ -18,7 +18,7 @@ SYM
 OFF
 NONE
 BASIS
-6-31G
+avtz
 OCC
 14
 CLOSED
@@ -35,4 +35,3 @@ STATESYM
 1
 XSCATSTATES
 1 1 
-6-31G
