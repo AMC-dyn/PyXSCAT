@@ -59,9 +59,6 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp),dimension(3,size(q)) :: q_al
         real(KIND=dp), dimension(size(q)) :: ss,ss2,Iee,Inn,Ine
 
-        print*, 'here we are '
-
-       ! allocate(ep3(size(confs(:,1)),size(confs(:,1))),ndiff2(size(confs(:,1)),size(confs(:,1))) )
 
         do i = 1, Ng
             do j = 1, Ngto
@@ -73,21 +70,19 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             end do
         end do
         q_abs=0
-       ! call onerdm_creat(confs,civecs,onerdm_matrix,nmomax)
-        if (type==1) then
-            call cpu_time(time2)
+        !Now we explore the different cases
+        select case(type)
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!TOTAL J0 SCATTERING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        CASE(1)
+
             P0matrix = 0.0_dp
-           ! CALL set_P0_j2(P0matrix, 4*maxval(l), q)
-            CALL set_P0_j2(P0matrix, 4*maxval(l), q)
-
-            write(*,*) 'maximum value p0', maxval(abs(P0matrix(:,3,1,1)))
-             call cpu_time(time2)
-
-
+            CALL set_P0(P0matrix, 4*maxval(l), q)
+           ! CALL set_P0(P0matrix, 4*maxval(l), q)
             call maxcoincidence(confs,ep3,ndiff2)
             call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
-             call cpu_time(time3)
-            print*,'Time 2rdm', time3-time2
+
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
              m1 = mat(:,1)
              m2 = mat(:,2)
@@ -99,31 +94,38 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
-            call cpu_time(time3)
-            print*,'Time variables', time3-time2
-
-            call tot_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result)
-            print*,'here'
-        else if (type==2) then
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ELASTIC J0 SCATTERING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+       CASE(2)
                P0matrix = 0
-               CALL set_P0_j2(P0matrix, 4*maxval(l), q)
+
+            CALL set_P0(P0matrix, 4*maxval(l), q)
             call maxcoincidence(confs,ep3,ndiff2)
             call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
-               print*,'maxnmo',nmomax
-               co=0
-               do i=1,nmomax
-                   co=co+onerdm_matrix(i,i)
-               end do
-               print*,'trace',co
+
             call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,onerdm_matrix,nmomax,q,nq)
             call elastic_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result)
 
 
-        else if (type==3) then
-            call cpu_time(time2)
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!TOTAL ALIGNED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+        CASE(3)
+
 
 
             call maxcoincidence(confs,ep3,ndiff2)
@@ -142,7 +144,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
              wl=3.00
                call linspace(0.0_dp,dacos(-1.0_dp)/2,nq,ss);
             ss=(ss-dacos(-1.0_dp))/2.0_dp
-            print*,'linspace calculated', wl
+
             do mm=1,nq
                 k0 = wl*1.889726125*0.529
                 rr=2*k0*cos(ss(mm))
@@ -157,7 +159,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
 
-            print*,'q_al calculated', q_al(1,:)
+
 
 
             do LL=0,maxval(l)*4
@@ -172,26 +174,30 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                      enddo
                 enddo
             enddo
-            print*,'exponents calculated', (exponent1(1,1,1,1))
+
 
             call tot_integration_aligned(ng,px,py,pz,l,m,n,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q_al,e12,exponent1,exponent2,resultaligned)
 
             result=real(resultaligned)
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ELASTIC ALIGNED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-
-         else if (type==4) then
+         CASE(4)
 
 
              call maxcoincidence(confs,ep3,ndiff2)
             call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
-               print*,'maxnmo',nmomax
+
              wl=4.0_dp*dacos(-1.0_dp)/maxval(q)
              wl=3.00
              call linspace(0.0_dp,dacos(-1.0_dp)/2,nq,ss);
             ss=(ss-dacos(-1.0_dp))/2.0_dp
-            print*,'linspace calculated', wl
+
             do mm=1,nq
                 k0 = wl*1.889726125*0.529
                 rr=2*k0*cos(ss(mm))
@@ -202,14 +208,14 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 q_abs(mm)=sqrt(q_al(1,mm)**2.0_dp+q_al(2,mm)**2.0_dp+q_al(3,mm)**2.0_dp)
             end do
              co=0
-             print*,'qvector',size(q_abs),maxval(q_abs),maxval(ss)
+
                do i=1,nmomax
                    co=co+onerdm_matrix(i,i)
                end do
-               print*,'trace',co
+
              call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,onerdm_matrix,nmomax,q_abs,nq)
-            print*, 'variables calculated'
+
             allocate(exponent1(nq,maxval(l)*4+1,maxval(l)*4+1,maxval(l)*4+1))
              do LL=0,maxval(l)*4
                 do MM=0,maxval(m)*4
@@ -221,38 +227,45 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                      enddo
                 enddo
             enddo
-            print*, 'calling elastic'
+
              call elastic_integration_alig(ng,px,py,pz,l,m,n,ddx,ddy,ddz,z,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q_al,e12,exponent1,resultaligned)
                  result=abs(resultaligned)**2
 
 
 
-            !Starting the rotationally averaged elastic electron scattering, in the end 4 different versions must be programmed
 
-            else if (type==5) then
-
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!TOTAL ELECTRON SCATTERING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            CASE(5)
                 P0matrix = 0
                 CALL set_P0(P0matrix, 4*maxval(l), q)
                 call maxcoincidence(confs,ep3,ndiff2)
+                call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
+                allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
+                m1 = mat(:,1)
+                m2 = mat(:,2)
+                m3 = mat(:,3)
+                m4 = mat(:,4)
+                nmat=size(m1)
+                call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+                    mmod,m1,m2,m3,m4,nmat, total,q,nq)
+
+                call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+                    cutoffz,cutoffmd, cutoffcentre,q,e12,Iee)
+
                 call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
 
                 call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
-        mmod,onerdm_matrix,nmomax,q,nq)
+                    mmod,onerdm_matrix,nmomax,q,nq)
 
-                print*,'first Z', Z(1,1)
-
-                call elastic_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
-                cutoffz,cutoffmd, cutoffcentre,q,e12,Iee)
-
-
-
-                print*,Iee(1),geom
 
                 call nuclei_electron_integration(Zn,geom,ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,Ine)
 
-                print*,Ine(1)
 
                 Inn=0.0_dp
                 do i=1,size(Zn)
@@ -265,9 +278,56 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                     enddo
                 end do
 
-                print*,Inn(1)
+                  result=Iee-2*Ine+Inn
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ELASTIC ELECTRON SCATTERING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-                print*,sum(Ine-Iee)
+            CASE(6)
+
+                P0matrix = 0
+                CALL set_P0(P0matrix, 4*maxval(l), q)
+                call maxcoincidence(confs,ep3,ndiff2)
+                call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
+
+                call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+        mmod,onerdm_matrix,nmomax,q,nq)
+
+
+
+                call elastic_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+                cutoffz,cutoffmd, cutoffcentre,q,e12,Iee)
+
+
+
+
+
+                call nuclei_electron_integration(Zn,geom,ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+                cutoffz,cutoffmd, cutoffcentre,q,e12,Ine)
+
+
+                Inn=0.0_dp
+                do i=1,size(Zn)
+                    do j=1,size(Zn)
+                        do k=1,nq
+                         Rij=sqrt(sum((geom(i,:)-geom(j,:))**2) )
+                         Inn(k)=Inn(k)+Zn(i)*Zn(j)* sinc(q(k)*abs(Rij))
+
+                         end do
+                    enddo
+                end do
+
+
+
+
                 result=Iee-2*Ine+Inn
 
 
@@ -275,11 +335,59 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
 
-                !we need three terms here, Inn, Iee and Ine
+
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!TOTAL J2 CASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
+            CASE(7)
 
-        end if
+               P0matrix = 0.0_dp
+                CALL set_P0_j2(P0matrix, 4*maxval(l), q)
+           ! CALL set_P0(P0matrix, 4*maxval(l), q)
+               call maxcoincidence(confs,ep3,ndiff2)
+               call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
+
+               allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
+               m1 = mat(:,1)
+               m2 = mat(:,2)
+               m3 = mat(:,3)
+               m4 = mat(:,4)
+               nmat=size(m1)
+               call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+        mmod,m1,m2,m3,m4,nmat, total,q,nq)
+               call tot_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+                cutoffz,cutoffmd, cutoffcentre,q,e12,result)
+         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ELASTIC J2 CASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           CASE(8)
+                P0matrix = 0
+
+                CALL set_P0(P0matrix, 4*maxval(l), q)
+                call maxcoincidence(confs,ep3,ndiff2)
+                call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
+
+                call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+                     mmod,onerdm_matrix,nmomax,q,nq)
+                call elastic_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+                      cutoffz,cutoffmd, cutoffcentre,q,e12,result)
+
+
+        end select
         end subroutine total_scattering_calculation
 
 
@@ -336,7 +444,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp),dimension(3,size(q)) :: q_al
         real(KIND=dp), dimension(size(q)) :: ss,ss2,Iee,Inn,Ine
 
-        print*, 'here we are '
+
 
        ! allocate(ep3(size(confs(:,1)),size(confs(:,1))),ndiff2(size(confs(:,1)),size(confs(:,1))) )
 
@@ -357,7 +465,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             CALL set_P0(P0matrix, 4*maxval(l), q)
           !  call maxcoincidence(confs,ep3,ndiff2)
           !  call createtwordm(confs,civecs,ndiff2,ep3,mat,total)
-            nmomax=27
+            nmomax=14
 
                 if (read2rdm) then
                 sizenmat=numberlines
@@ -378,7 +486,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                        call cpu_time(time2)
                  fileout_8='newdat.dat'
                 call mcci_to_bit(fileJ,fileout_8,numberlines)
-                 print*, 'created new file'
+
                  call createtwordm_bit(fileout_8,numberlines,&
                         mat,total)
                  call cpu_time(time3)
@@ -386,14 +494,14 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 else
                   call cpu_time(time2)
                     fileout_8='es.dat'
-                    print*,fileJ,numberlines
 
-                    call mcci_to_bit(fileJ,fileout_8,numberlines)
-                    print*,fileJ,numberlines
-                  call createtwordm_bit(fileout_8,numberlines,&
+
+                  !  call mcci_to_bit(fileJ,fileout_8,numberlines)
+
+                  call createtwordm_bit(fileJ,numberlines,&
                         mat,total)
                call cpu_time(time3)
-            print*,'Time 2rdm', time3-time2
+            print*,'Time 2rdm', time3-time2,numberlines
             end if
                 end if
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
@@ -401,11 +509,11 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
              m2 = mat(:,2)
              m3 = mat(:,3)
              m4 = mat(:,4)
-             print*,m1(1), total(1)
+
              nmat=size(m1)
-             print*,'size of nmat',nmat
+
              nmomax=maxval(mat)
-             print*,nmomax
+
 !            call one_rdm_two_rdm(mat,total,onerdm_matrix_2)
 !            co=0
 !            do i=1,nmomax
@@ -428,11 +536,12 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
             call cpu_time(time3)
             print*,'Time variables', time3-time2
+            print*,'size of wavefunction', size(l)
 
             call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result)
 
-            print*,'here'
+
 
 
 
@@ -444,13 +553,13 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                CALL set_P0(P0matrix, 4*maxval(l), q)
            ! call maxcoincidence(confs,ep3,ndiff2)
             !call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
-               nmomax=27
+               nmomax=25
              !  call one_rdm_slow(fileJ,onerdm_matrix,nmomax)
 
                call cpu_time(time3)
                 print*,'time slow one_rdm',time3-time2
 
-                nmomax=27
+                nmomax=25
 
             print*, 'number of lines', numberlines
             if (read2rdm) then
@@ -466,21 +575,22 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 call one_rdm_two_rdm(mat,total,onerdm_matrix_2,24)
 
             else
+                print*,'calling onerdm_bit'
                call one_rdm_bit(fileJ,onerdm_matrix_2,nmomax,numberlines,newdat,irep1)
 
             end if
 
                  call cpu_time(time2)
                 print*,'time bit one_rdm', time2-time3
-               print*,'maxnmo',nmomax
+
                co=0
                do i=1,nmomax
                    co=co+onerdm_matrix_2(i,i)
                end do
-               print*,'trace',co
+
             call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,onerdm_matrix_2,nmomax,q,nq)
-            call elastic_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
+            call elastic_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result)
 
 

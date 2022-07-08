@@ -935,7 +935,7 @@ end do
 implicit none
  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-     character(len=20), intent(in) :: file_read
+     character(len=30), intent(in) :: file_read
 
     real(kind=dp), intent(out), dimension(:), allocatable :: total
     integer(kind=ikind), intent(out), dimension(:,:), allocatable :: mat
@@ -959,7 +959,7 @@ integer newdiff,mytemp,n,count2,count_p,p,q,r,s
   integer*8 buffer_esp1, buffer_esp2, allc1,allc2
   double precision, parameter :: phase_dbl(0:1)=(/1.d0,-1.d0/)
   double precision c_term,temp
-  double precision :: c(length)
+  double precision :: c1(length), c2(length)
   integer icij(2,1,length)
  logical(4), dimension(:), allocatable :: logicaltwordms
     integer(kind=ikind),  dimension(:,:), allocatable :: matdum
@@ -970,8 +970,9 @@ integer newdiff,mytemp,n,count2,count_p,p,q,r,s
 open(15,file=file_read)
 nword=1
  do i=1,length
-     read(15,*)c(i), icij(1,1,i), icij(2,1,i)
- enddo
+            read(15,*)dummy, c1(i),c2(i),icij(1,1,i), icij(2,1,i)
+
+     enddo
 close(15)
 
 
@@ -1003,7 +1004,7 @@ do ici=1,length2
 
 
 !only zero differences by construction  ! could try to make further improvements but there are only length terms for no differences not O(length**2) as for 1 and 2
-c_term=c(ici)**2 !calculate once as  common to all zero differences for this ici
+c_term=c1(ici)*c2(ici) !calculate once as  common to all zero differences for this ici
 do ispin=1,2
 buffer=icij(ispin,1,ici)
 
@@ -1123,7 +1124,7 @@ END IF ! end of check if both are same spin
 
 end do !loop over myspin
 
-  c_term=c(ici)*c(jci)*phase_dbl(iand(nperm,1)) ! calculate once as common to all in this loop
+  c_term=c1(ici)*c2(jci)*phase_dbl(iand(nperm,1)) ! calculate once as common to all in this loop
   ! c_term=c(ici)*c(jci)*ep
    if(samespin.eq.0) THEN
 
@@ -1219,7 +1220,7 @@ nperm=POPCNT(IAND(icij(myspin,1,ici),IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)
 
 
 
-  c_term=c(ici)*c(jci)*phase_dbl(iand(nperm,1)) ! calculate once as common to all in this loop
+  c_term=c1(ici)*c2(jci)*phase_dbl(iand(nperm,1)) ! calculate once as common to all in this loop
     !c_term=c(ici)*c(jci)*ep
 !case 1 and 4 and 2 and 3
 porb=tz

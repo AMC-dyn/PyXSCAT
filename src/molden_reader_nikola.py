@@ -48,7 +48,7 @@ class PrimitiveGTO:
         """Print GTO."""
         temp = (self.atom_idx, self.contraction, self.group, self.ga, self.c,
                 self.l, self.m, self.n)
-        print("%2d %2d %2d %8.2f %8.2f %2d %2d %2d" % temp)
+
 
     def norm(self):
         """Normalise GTO."""
@@ -155,7 +155,7 @@ def _read_contractions(file):
     line = file.readline()
     atms = [int(s) for s in line.split() if s.isdigit()]
     atm = atms[0]
-    print("Reading GTOs on atom: " + str(atm))
+
 
     contraction_counter = 1
     group_counter = 0
@@ -175,11 +175,11 @@ def _read_contractions(file):
                 else:
                     atms = [int(s) for s in line.split() if s.isdigit()]
                     atm = atms[0]
-                    print("Reading GTOs on atom: " + str(atm))
+
                     line = file.readline()
             # read the contraction
             contraction_spec = line.split()
-            print(contraction_spec)
+
             type_of_GTO = contraction_spec[0]
             num_of_primitives = int(contraction_spec[1])
 
@@ -304,33 +304,22 @@ def _read_MO(file, mo_cutoff):
     nMO = len(syms)
     syms_array = np.array([float(i) for i in syms])
     idx1 = np.argsort(syms_array)
-    print(idx1)
+
     syms_array = (syms_array - syms_array.astype(int)) * 1000 + syms_array.astype(int)
-    print(syms_array)
+
     idx = np.argsort(syms_array)
-    print(syms_array[idx])
+
     mo = np.array(mo_table)
-    print(mo)
-    print(idx)
+
     mo = mo[idx, :]
-    print('size Mos ', np.size(mo[1, :]))
+
     energy_array = np.array(energy)
     energy_array = energy_array[idx]
 
     occ_array = np.array(occ)
     occ_array = occ_array[idx]
     print('final occupation is', sum(occ_array))
-    # print the MOs
-    # print("*****************************************************")
-    # print("Molecular orbitals and MO coefficients:")
-    # print(nMO*"%12.1f" % tuple(syms_array))
-    # print(nMO*"%12.6f" % tuple(occ))
-    # print(nMO*"%12.6f" % tuple(energy))
-    # print(nMO*"%s" % tuple(i.rjust(12) for i in spin))
-    # for row in np.transpose(mo):
-    #     print(nMO*"%12.6f" % tuple(row))
 
-    # return a numpy array
     return (np.transpose(mo), occ_array, energy_array, syms_array)
 
 
@@ -350,8 +339,7 @@ def _mo_fill_gto(GTOs, mo_table):
     """
     for gto in GTOs:
         gto.mo = mo_table[gto.contraction - 1, :]
-        # gto.print_gto()
-        # print(gto.mo)
+
 
 
 def _reoder_gto():

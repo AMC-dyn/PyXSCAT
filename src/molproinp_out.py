@@ -148,7 +148,7 @@ def create_input():
         f.write('''gprint,civector,orbitals,angles=-1,distance=-1
  gthresh,twoint=1.0d-13
  gthresh,energy=1.0d-7,gradient=1.0d-2\n
- gthresh,thrpun=0.000000001
+ gthresh,thrpun=0.0000000001
  ''')
 
         f.write('punch,molpro.pun,new\n')
@@ -156,7 +156,7 @@ def create_input():
 
         f.write('''symmetry,nosym;
 orient,noorient;
-angstrom;
+Angstrom;
 geomtype=xyz;
 geom={
         ''')

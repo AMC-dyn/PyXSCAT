@@ -79,109 +79,63 @@ def orbitals_to_integers(vec):
     return alpha, beta
 
 
-class combodemo(QWidget):
-    def __init__(self, parent=None):
-        super(combodemo, self).__init__(parent)
-
-        layout = QHBoxLayout()
-        self.cb = QComboBox()
-        self.cb.addItem("--")
-        self.cb.addItem("Yes")
-        self.cb.addItem("No")
-        self.cb.currentIndexChanged.connect(self.selectionchange)
-        layout.addWidget(self.cb)
-        self.setLayout(layout)
-        self.setWindowTitle("combo box demo")
-
-    def selectionchange(self, i):
-        print("Items in the list are :")
-
-        for count in range(self.cb.count()):
-            print(self.cb.itemText(count))
-        print("Current index", i, "selection changed ", self.cb.currentText())
-
-    def get_property(self):
-        return self.cb.currentText()
-
-
 def main():
-    # app = QApplication(sys.argv)
-    # w = QWidget()
-    # n = combodemo(w)
-    #
-    # b = QLabel(w)
-    # b.setText("Welcome to BREXSCAT")
-    # run = QLabel(w)
-    # run.setText("Run a molpro calculation?")
-    # run.move(50,75)
-    # n.move(50,85)
-    #
-    # w.setGeometry(1000, 1000, 2000, 500)
-    # b.move(50, 20)
-    # font = QFont()
-    # font.setFamily("Arial")
-    # font.setPointSize(30)
-    # b.setFont(font)
-    # w.setWindowTitle("Input")
-    # w.show()
-    # print(n.cb.currentIndex())
-    #
-    # sys.exit(app.exec_())
+    # This function creates the input and produces the molpro output or just does not run if it is specified in abinitio.dat
+    # Also it copies the outputs into molpro.mld and molpro.pun automatically
 
-    tic1 = time.time()
-    # INPUT:
-    # mldfile       string          input molden file name
-    # outifle       string          molpro output file name
-    # state1        int             state1 to consider (NOT USED!)
-    # state2        int             if state2 == state1, total; else coherences (NOT USED!)
-    # nstates       int             the number of states in the state-averaged calculation found in the molpro file
-    #                               (NOT USED!)
-    # q[0:nq]       vec             scattering vector in ATOMIC UNITS; q[0] must be different from 0
-    # cutoff[0:2]   vec             the set of cutoff values: centre, Zijkr integral, MD part of Z
-
-    # OUTPUT:
-    # tsi[0:nq]     column vec      scattering signal
-
-    # We need to make the molpro execution voluntary, otherwise the punch file and the molden file
-    # are copied into molpro.pun and molpro.mld
-    inputime1 = time.time()
     mp.create_input()
-    inputime2 = time.time()
-
-    print('input time', inputime2 - inputime1, 's')
-
     mldfile = 'molpro.mld'
-    Nmo_max = 14
-    jeremyR = False
-    mcci = True
+
+    # If there is an external file with CIvecs or 2rdms JeremyR==True
+    jeremyR = True
+    # If we convert form a MCCI calculation to a bitwise operation mcci==True
+    mcci = False
+    # If we have a HF calculation and our Civector is represented by a single determinant hf==True
     hf = False
+    # States involved
+    state1 = 1
+    state2 = 5
+    # Largeconf is used when the det space is very large but we have still no external file so we need to create one
+    largeconf = True
+    #Type of calculation
+    #TOTAL--> 1
+    #ELASTIC --> 2
+    #TOTAL ALIGNED --> 3
+    #ELASTIC ALIGNED --> 4
+    # TOTAL ELECTRON--> 5
+    # ELASTIC ELECTRON --> 6
+    # TOTAL J2 --> 7
+    # ELASTIC J2 --> 8
+    Type=1
+    # Ouput name (is a mat file, needs to be changed to make it general)
+    nameoffile = 'NO_CMS_12.mat'
+
     if not jeremyR and not hf:
+
+        # This routine reads the CIvectors and the configurations
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
 
-        print(civs)
+        # confs, civs = Molcas.reading_molcas("big_AS/molcas.log", 1)
 
-       #confs, civs = Molcas.reading_molcas("big_AS/molcas.log", 1)
-        print(confs)
         Nmo_max = len(confs[0]) / 2
         print('Nmo_max:', Nmo_max)
-        # civs=np.asarray(civs)/np.sqrt(sum(np.asarray(civs)**2))
-        #print(sum(np.asarray(civs) ** 2))
+
     elif not jeremyR and hf:
         civs = 1.000
-        confs = ['ab' * 7]
+        # The number of occupied orbs or he configuration used must be specified by the user in hf
+        norbs = 7
+        confs = ['ab' * norbs]
         print(confs)
         Nmo_max = 18
     else:
-        Nmo_max = 27
+        # If the 2rdm or Civector is constructed in a bit-wise manner, the number or orbitals needs to be specified here by the user
+        Nmo_max = 14
+
     print('Max_nmos,', Nmo_max)
-    #gtos, atoms = mldreader.read_orbitals('2andres/molcas.rasscf.molden.1', N=Nmo_max, decontract=True)
+    # gtos, atoms = mldreader.read_orbitals('2andres/molcas.rasscf.molden.1', N=Nmo_max, decontract=True)
+
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
-
     geom = atoms.geometry()
-    print(atoms.atomic_numbers())
-
-    print(np.size(gtos.ga))
-
     xx = gtos.x
     yy = gtos.y
     zz = gtos.z
@@ -197,8 +151,8 @@ def main():
     n = np.asarray(n)
     ga = np.asarray(ga)
     mmod = np.asarray(mmod, dtype=np.float64)
-   # mmod = np.delete(mmod, range(1, mmod.shape[0], 2), axis=0)
-    print(mmod)
+
+    # Reading and transforming the molden part (basis, geometry and MOs)
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
     # condit = input("Do you want to continue Y/N?")
@@ -207,9 +161,9 @@ def main():
         # cut off epsilon; if H < epsilon, use P0 cases
         cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
         # the cutoff for the Z integral
-        cutoffz = 1e-09  # suggested: cutoffz = 1E-9;
+        cutoffz = 1e-15  # suggested: cutoffz = 1E-9;
         # the cutoff for the product of the MD coefficients
-        cutoffmd = 1e-10  # suggested: cutoffmd = 1E-20;
+        cutoffmd = 1e-20  # suggested: cutoffmd = 1E-20;
     else:
         cutoffcentre = input("Input cut off epsilon; if H < epsilon, use P0 cases")
         cutoffmd = input("Input the cutoff for the product of the MD coefficients")
@@ -220,30 +174,48 @@ def main():
     if q[0] < 1E-10:
         q[0] = 1E-10
 
-    # reading the 2-particle RDM from MOLPRO output
-
-    # mattry, total = td2.twordmconst()
-
-    print('twordm constructed')
-
     # total number of primitive GTOs
     ncap = l.size
     print('The number of primitive GTOs before reduction: ', str(ncap))
 
     # generate table with GTO descriptors
 
-    print(l)
-
-    potime1 = time.time()
-
-    potime2 = time.time()
-    print('p0time ', potime2 - potime1, 's')
     # Calculation of the prexponential factors Z and Z2 for all N^2 GTO products and N_orb
     Ngto = np.size(l)
     ng = max(group)
     maxl = max(l)
     nq = np.size(q)
 
+    ###### FIRST CASE###################
+    if largeconf:
+        jeremyR = True
+        fileJeremy = 'configurations_bit.dat'
+        confs2 = np.zeros((np.size(confs), len(confs[0])), dtype=np.int64)
+
+        counts = 0
+        for i in confs:
+            lst = []
+            lst = [*i.replace('a', '1').replace('b', '2')]
+            confs2[counts, :] = np.asarray(lst, dtype=np.int64)
+            counts = counts + 1
+
+        with open('configurations_bit.dat', 'w') as f:
+            for i in range(counts - 1):
+                var1 = confs2[i, :]
+                alpha = 0
+                beta = 0
+
+                for j in range(len(var1)):
+                    if var1[j] != 0:
+                        if np.mod(j, 2) == 0:
+                            alpha = alpha + 2 ** (j / 2)
+                        else:
+                            beta = beta + 2 ** ((j - 1) / 2)
+
+                f.write(str(i + 1) + ' ' + str(civs[i][state1 - 1]) + ' ' + str(civs[i][state2 - 1]) + ' ' + str(
+                    int(alpha)) + ' ' + str(int(beta)) + '\n')
+
+    ## There is not file specified and
     if not jeremyR:
         confs2 = np.zeros((np.size(confs), len(confs[0])), dtype=np.int64)
         counts = 0
@@ -252,62 +224,26 @@ def main():
             lst = [*i.replace('a', '1').replace('b', '2')]
             confs2[counts, :] = np.asarray(lst, dtype=np.int64)
             counts = counts + 1
-        print(confs2[0, :])
 
-        with open('configurations_bit.dat', 'w') as f:
-            for i in range(counts - 1):
-                var1 = confs2[i, :]
-                alpha = 0
-                beta = 0
-                for j in range(len(var1)):
-                    if var1[j] != 0:
-                        if np.mod(j, 2) == 0:
-                            alpha = alpha + 2 ** (j / 2)
-                        else:
-                            beta = beta + 2 ** ((j - 1) / 2)
-
-                f.write(str(i + 1) + ' ' + str(civs[i]) + ' ' + str(int(alpha)) + ' ' + str(int(beta)) + '\n')
-
-        q_alig, resultado2 = main_calculation.total_scattering_calculation(2, atoms.atomic_numbers(), geom, 1, 1, maxl,
+        q_alig, resultado2 = main_calculation.total_scattering_calculation(Type, atoms.atomic_numbers(), geom, state1, state2, maxl,
                                                                            Ngto, ng,
                                                                            ga, l, m, n, xx, yy, zz, mmod,
                                                                            q, nq,
                                                                            group,
                                                                            cutoffz, cutoffmd, cutoffcentre, confs2,
                                                                            civs)
-        # newdat=0
-        # start=0
-        # end=0
-        # start_2=0
-        # end_2=0
-        # fci=False
-        # nnn=0
-        # nnn2=0
-        # ordering1=0
-        # ordering2=0
-        # q_alig, resultado2 = main_calculation.total_scattering_calculation_2(2, atoms.atomic_numbers(), geom, 1,
-        #                                                                      1,
-        #                                                                      maxl,
-        #                                                                      Ngto, ng,
-        #                                                                      ga, l, m, n, xx, yy, zz, mmod,
-        #                                                                      q, nq,
-        #                                                                      group,
-        #                                                                      cutoffz, cutoffmd, cutoffcentre,
-        #                                                                      'configurations_bit.dat', counts-1, newdat, start,
-        #                                                                      end, start_2, end_2, fci, nnn,
-        #                                                                      nnn2, ordering1, ordering2)
-
-
 
     elif jeremyR:
         count = 0
         fci = False
         read2rdm = False
-        fileJeremy = 'stretched/0.00005/civ_out'
+        if not fileJeremy:
+            fileJeremy = 'configurations_bit.dat'
+
         if fci:
             civs, alphas, betas = read_fci(fileJeremy)
             test = np.sum(civs ** 2)
-            print(test)
+
             # matrix2 = np.asarray([alphas, betas])
             # matrix2 = np.sort(matrix2, axis=0)
             # print(matrix2[:, 4763253])
@@ -336,12 +272,9 @@ def main():
                 nnn2[i] = np.size(var)
                 start_2[i] = int(var[0] + 1)
                 end_2[i] = int(var[-1] + 1)
-            print('CHecking this start, end')
-            print(nnn[0], end[0] - start[0], end[0])
-            print(newdat[0], alphas[start[0] - 1:end[0] - 1])
-            print(np.sum(newdat[irep1] - alphas))
+
             irep1 = nnn
-            print(np.size(newdat), np.size(newdat2))
+
             if np.size(newdat) < np.size(newdat2):
                 newarray = np.zeros(np.size(newdat2) - np.size(newdat))
                 newdat = np.append(newdat, newarray)
@@ -349,22 +282,8 @@ def main():
                 newarray = np.zeros(np.size(newdat) - np.size(newdat2))
                 newdat2 = np.append(newdat2, newarray)
             newdat = np.transpose(np.asarray([newdat, newdat2]))
-            print(np.size(newdat))
 
             test = np.sum(civs[abs(civs) != 1E-6] ** 2)
-            print(test)
-            # alphas = alphas[ipos]
-            # betas = betas[ipos]
-
-            # df = pd.DataFrame({'x': alphas, 'y': betas})
-            # print('dataframe created')
-            # df_new = df.apply(sorted,axis=1)
-            #
-            # print(df_new.iloc[[4763254]])
-            # print('dataframe sorted')
-            # df_final = df_new.drop_duplicates()
-            # print('dataframe unique')
-            # print(np.size(matrix2[0, :]))
 
             print('dataframe created')
             f = open('fci_calc.dat', 'w')
@@ -379,8 +298,8 @@ def main():
             # count = len(civs)
             ordering1 = np.zeros(np.size(alphas))
             ordering2 = np.zeros(np.size(alphas))
-            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1,
-                                                                                 1,
+            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(type, atoms.atomic_numbers(), geom, state1,
+                                                                                 state2,
                                                                                  maxl,
                                                                                  Ngto, ng,
                                                                                  ga, l, m, n, xx, yy, zz, mmod,
@@ -400,11 +319,11 @@ def main():
                 f = open(fileJeremy, 'r')
                 for line in f:
                     NN = line.strip().split()
-                    confbin1.append(int(NN[2]))
-                    confbin2.append(int(NN[3]))
+                    confbin1.append(int(NN[3]))
+                    confbin2.append(int(NN[4]))
                     count += 1
                 f.close()
-                if count <= 30000000:
+                if count <= 300:
                     confbin1 = []
                     confbin2 = []
                     f = open(fileJeremy, 'r')
@@ -428,9 +347,9 @@ def main():
                             confs2[i, 2 * j + 1] = confbin2[i, j]
                     print('confs2', len(confs2))
 
-                    q_alig, resultado2 = main_calculation.total_scattering_calculation(1, atoms.atomic_numbers(), geom,
-                                                                                       1,
-                                                                                       1,
+                    q_alig, resultado2 = main_calculation.total_scattering_calculation(Type, atoms.atomic_numbers(), geom,
+                                                                                       state1,
+                                                                                       state2,
                                                                                        maxl,
                                                                                        Ngto, ng,
                                                                                        ga, l, m, n, xx, yy, zz, mmod,
@@ -477,9 +396,9 @@ def main():
 
                     print(np.shape(newdat))
 
-                    q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(),
-                                                                                         geom, 1,
-                                                                                         1,
+                    q_alig, resultado2 = main_calculation.total_scattering_calculation_2(Type, atoms.atomic_numbers(),
+                                                                                         geom, state1,
+                                                                                         state2,
                                                                                          maxl,
                                                                                          Ngto, ng,
                                                                                          ga, l, m, n, xx, yy, zz, mmod,
@@ -508,8 +427,8 @@ def main():
                 with open(fileJeremy, 'r') as f:
                     for lines in f:
                         count = count + 1
-                q_alig, resultado2 = main_calculation.total_scattering_calculation_2(1, atoms.atomic_numbers(), geom, 1,
-                                                                                     1,
+                q_alig, resultado2 = main_calculation.total_scattering_calculation_2(Type, atoms.atomic_numbers(), geom, state1,
+                                                                                     state2,
                                                                                      maxl,
                                                                                      Ngto, ng,
                                                                                      ga, l, m, n, xx, yy, zz, mmod,
@@ -528,14 +447,14 @@ def main():
 
     print(resultado2)
     # print(q)
-    return resultado2, q, q_alig
+    return resultado2, q, q_alig,nameoffile
 
 
 tic2 = time.time()
 
-res, q, q_alig = main()
+res, q, q_alig,nameoffile = main()
 toc = time.time()
-nameoffile = 'Try_J2_OF2_z.mat'
+
 sci.savemat(nameoffile, {'q': q, 'I': res})
 
 print(nameoffile)
