@@ -88,13 +88,14 @@ def main():
 
     # If there is an external file with CIvecs or 2rdms JeremyR==True
     jeremyR = True
+    fileJeremy = 'configurations_bit.dat'
     # If we convert form a MCCI calculation to a bitwise operation mcci==True
     mcci = False
     # If we have a HF calculation and our Civector is represented by a single determinant hf==True
     hf = False
     # States involved
     state1 = 1
-    state2 = 5
+    state2 = 2
     # Largeconf is used when the det space is very large but we have still no external file so we need to create one
     largeconf = True
     #Type of calculation
@@ -106,9 +107,9 @@ def main():
     # ELASTIC ELECTRON --> 6
     # TOTAL J2 --> 7
     # ELASTIC J2 --> 8
-    Type=1
+    Type=9
     # Ouput name (is a mat file, needs to be changed to make it general)
-    nameoffile = 'NO_CMS_12.mat'
+    nameoffile = 'NO_CMS_12_j1.mat'
 
     if not jeremyR and not hf:
 
@@ -187,7 +188,7 @@ def main():
     nq = np.size(q)
 
     ###### FIRST CASE###################
-    if largeconf:
+    if largeconf and not jeremyR:
         jeremyR = True
         fileJeremy = 'configurations_bit.dat'
         confs2 = np.zeros((np.size(confs), len(confs[0])), dtype=np.int64)
@@ -212,8 +213,8 @@ def main():
                         else:
                             beta = beta + 2 ** ((j - 1) / 2)
 
-                f.write(str(i + 1) + ' ' + str(civs[i][state1 - 1]) + ' ' + str(civs[i][state2 - 1]) + ' ' + str(
-                    int(alpha)) + ' ' + str(int(beta)) + '\n')
+
+
 
     ## There is not file specified and
     if not jeremyR:

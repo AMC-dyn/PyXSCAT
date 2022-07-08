@@ -1,7 +1,7 @@
 Module variables
 
    use uniquemodule
-    use integrals
+   use p0_cases
     implicit none
     contains
 
