@@ -1,7 +1,9 @@
 
 #/bin/bash 
 
-f1='ifort -O3  -fPIC -fopenmp -heap-arrays  -qmkl  -c'
+# -qmkl is the 2022 version, but doesn't work in 2021 intel - change to -mkl for time being
+
+f1='ifort -O3  -fPIC -fopenmp -heap-arrays  -mkl  -c'
 
 rm -rf *.mod *.o
 $f1 bessel_calcs.f90
@@ -20,5 +22,5 @@ $f1 total_j2.f90
 $f1 p0_cases.f90
 $f1 Variables.f90
 
-f2py3 -c --fcompiler=ifort --f90flags='-qopenmp -qmkl -O3  -heap-arrays -std=f2003' -I.  *.o main_calculation.f90 -m integrals_wrapper
+f2py3 -c --fcompiler=ifort --f90flags='-qopenmp -mkl -O3  -heap-arrays -std=f2003' -I.  *.o main_calculation.f90 -m integrals_wrapper
 
