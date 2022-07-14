@@ -85,14 +85,29 @@ def orbitals_to_integers(vec):
 
 
 def main():
+
+
+    # Decide which program you are using
+
+    molpro = False
+    molcas = True
+    caspt2 = False
+
+    if molpro and molcas:
+        print('Error - more than one program specified! Defaulting to molpro')
+        molcas = False
+
     # This function creates the input and produces the molpro output or just does not run if it is specified in abinitio.dat
     # Also it copies the outputs into molpro.mld and molpro.pun automatically
 
-    mp.create_input()
-    mldfile = 'molpro.mld'
+    if molpro:
+        mp.create_input()
+        mldfile = 'molpro.mld'
+    if molcas:
+        mldfile = 'molcas.rasscf.molden'
 
     # If there is an external file with CIvecs or 2rdms JeremyR==True
-    jeremyR = True
+    jeremyR = False
     fileJeremy = 'configurations_bit.dat'
     # If we convert form a MCCI calculation to a bitwise operation mcci==True
     mcci = False
@@ -100,26 +115,30 @@ def main():
     hf = False
     # States involved
     state1 = 1
-    state2 = 2
+    state2 = 1
     # Largeconf is used when the det space is very large but we have still no external file so we need to create one
-    largeconf = True
+    largeconf = False
     #Type of calculation
-    #TOTAL--> 1
-    #ELASTIC --> 2
-    #TOTAL ALIGNED --> 3
-    #ELASTIC ALIGNED --> 4
+    # TOTAL--> 1
+    # ELASTIC --> 2
+    # TOTAL ALIGNED --> 3
+    # ELASTIC ALIGNED --> 4
     # TOTAL ELECTRON--> 5
     # ELASTIC ELECTRON --> 6
     # TOTAL J2 --> 7
     # ELASTIC J2 --> 8
-    Type=9
+    Type=1
     # Ouput name (is a mat file, needs to be changed to make it general)
     nameoffile = 'NO_CMS_12_j1.mat'
 
     if not jeremyR and not hf:
-
+    
+        if molpro:
         # This routine reads the CIvectors and the configurations
-        civs, confs = td.twordmconst()  # state1 and state2 should be used here
+            civs, confs = td.twordmconst()  # state1 and state2 should be used here
+        elif molcas:
+            logfile = 'molcas.log' # input log file for molcas
+            civs, confs = mc.get_civs_and_confs(logfile, caspt2)
 
         # confs, civs = Molcas.reading_molcas("big_AS/molcas.log", 1)
 
@@ -140,7 +159,11 @@ def main():
     print('Max_nmos,', Nmo_max)
     # gtos, atoms = mldreader.read_orbitals('2andres/molcas.rasscf.molden.1', N=Nmo_max, decontract=True)
 
-    gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+    if molpro: # add decisions to allow the molcas input
+        gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+    elif molcas:
+        gtos, atoms = mcmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+
     geom = atoms.geometry()
     xx = gtos.x
     yy = gtos.y
@@ -192,6 +215,16 @@ def main():
     maxl = max(l)
     nq = np.size(q)
 
+
+
+    # Some checks for normalisations, I found them useful
+    print('Normalisations')
+    for i in range(len(civs[1])):
+        a = 0
+        for j in range(len(civs)):
+            a += float(civs[j][i])**2
+        print('State ', i, ' normalisation = ', a)
+
     ###### FIRST CASE###################
     if largeconf and not jeremyR:
         jeremyR = True
@@ -230,6 +263,7 @@ def main():
             lst = [*i.replace('a', '1').replace('b', '2')]
             confs2[counts, :] = np.asarray(lst, dtype=np.int64)
             counts = counts + 1
+
 
         q_alig, resultado2 = main_calculation.total_scattering_calculation(Type, atoms.atomic_numbers(), geom, state1, state2, maxl,
                                                                            Ngto, ng,

@@ -1,21 +1,22 @@
-import numpy as np
 import itertools as it
 import re
 import sys
 
-#converter
+import numpy as np
+
+# converter
 
 
 def csf_to_slater_basis_conversion(csfs, civs, S):
-    sds = [            ]
+    sds = []
     civecinsd = []
     # convert csfs into sds, and then multiply the coeff in csf basis by conversion
     for i in range(len(csfs)):
         conv = csf2sd(csfs[i], S)
         for j in conv:
             # if this is slow, I know a way to fix it
-            # Use the binary format to create a index, and then use that as the index - it will be much quicker. 
-         
+            # Use the binary format to create a index, and then use that as the index - it will be much quicker.
+
             if j[1] not in sds:
                 sds.append(j[1])
                 civecinsd.append(0.)
@@ -200,9 +201,9 @@ def get_civecs_in_csfs(filename, caspt2):
                             intvar = f.readline()[30:].split()
                             csfs.append(intvar[0])
                             data.append(intvar[1])
-                            count+=float(intvar[1])**2
+                            count += float(intvar[1])**2
                         civs.append(data)
-                print('Normalisation for root ',root,' = ', count)
+                print('Normalisation for root ', root, ' = ', count)
 
         else:
             for line in f:
@@ -226,9 +227,9 @@ def get_civecs_in_csfs(filename, caspt2):
                             intvar = f.readline().split()[1:3]
                             csfs.append(intvar[0])
                             data.append(intvar[1])
-                            count+=float(intvar[1])**2
+                            count += float(intvar[1])**2
                         civs.append(data)
-                print('Normalisation for root ',root,' = ', count)
+                print('Normalisation for root ', root, ' = ', count)
 
     return no_roots, S, no_closed, csfs, civs
 
@@ -243,6 +244,21 @@ def sd_formatter(sds, no_closed):
 def transposer(array):
 
     return list(zip(*array))
+
+
+def get_civs_and_confs(logfile, caspt2):
+    no_roots, S, no_closed, csfs, civs = get_civecs_in_csfs(
+        logfile, caspt2)
+    sds = []
+    newcivec = []
+    for i in range(no_roots):
+        a, b = csf_to_slater_basis_conversion(csfs, civs[i], S)
+        sds = a
+        newcivec.append(b)
+
+    civs = transposer(newcivec)
+    confs = sd_formatter(sds, no_closed)
+    return civs, confs
 
 
 def main():
