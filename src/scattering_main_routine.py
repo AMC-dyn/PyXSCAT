@@ -5,6 +5,11 @@ import twordm as td2
 from integrals_wrapper import main_calculation_mod as main_calculation
 import time
 import molden_reader_nikola as mldreader
+
+# joe molcas imports
+import molden_reader_nikola_molcas as mcmldreader
+import molcas_ci_reader as mc
+
 import Molcas_output_reader as Molcas
 import scipy.io as sci
 from PyQt5.QtCore import *
