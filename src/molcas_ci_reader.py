@@ -38,7 +38,6 @@ def create_sym_csf(string, frozen, inact, ras2, second):
             csf += string[j]
             j +=1
         csf += second[i]*'0'
-    print(csf)
     return csf
 
 
@@ -254,7 +253,6 @@ def get_civecs_in_csfs(filename, caspt2):
                             # beter would be to use the index, but for small active space cases this is probably fine.
                             for j in range(no_csfs):
                                 intvar = f.readline()[30:].split()
-                                print(intvar)
                                 csfs.append(create_sym_csf(intvar[:-2], no_frozen,no_inact,no_ras2, no_second))
                                 data.append(intvar[-2])
                                 count+=float(intvar[-2])**2
@@ -281,7 +279,6 @@ def get_civecs_in_csfs(filename, caspt2):
                             f.readline()
                             for j in range(no_csfs):
                                 intvar = f.readline().split()[1:2+no_act_irreps]
-                                print(intvar)
                                 csfs.append(create_sym_csf(intvar[:-1],no_frozen, no_inact, no_ras2, no_second))
                                 data.append(intvar[-1])
                                 count+=float(intvar[-1])**2
