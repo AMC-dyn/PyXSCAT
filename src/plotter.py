@@ -12,7 +12,6 @@ from matplotlib import pyplot as plt
 AU2ANG = 1 / 0.5291772103
 
 
-
 def read(filename):
     extension = filename.split('.')[-1]
     if extension == 'mat':
@@ -55,8 +54,8 @@ def check_arrays_the_same(q1, q2):
 def plotter(files):
     fig, ax = plt.subplots(figsize=(4, 4))
     cyc = cycler(color=[
-        '#332288', '#88ccee', '#44aa99', '#117733', '#999933', '#ddcc77', '#cc6677',
-        '#882255', '#aa4499'
+        '#332288', '#88ccee', '#44aa99', '#117733', '#999933', '#ddcc77',
+        '#cc6677', '#882255', '#aa4499'
     ])
     ax.set_prop_cycle(cyc)
 
@@ -64,18 +63,16 @@ def plotter(files):
     qmax = -np.inf
     resmin = np.inf
     resmax = -np.inf
-    
+
     print('Detected %i files to plot' % len(files))
 
     for i, j in enumerate(files):
         print('Reading %s' % j)
         q, res = read(j)
-        print(q,res)
+        print(q, res)
 
         qmin = min(np.min(q), qmin)
         qmax = max(np.max(q), qmax)
-        resmin = min(np.min(res), resmin)
-        resmax = max(np.max(res), resmax)
 
         ax.set_xlabel('q / $\AA$')
 
@@ -89,8 +86,18 @@ def plotter(files):
                 # check that q is the same for all graphs
                 if (not check_arrays_the_same(q, ref_q)) and (pd or diff):
                     print(
-                        'Trying to compare two arrays with different qs, failing')
+                        'Trying to compare two arrays with different qs, failing'
+                    )
                     sys.exit()
+                if pd:
+                    resmin = min(np.min(perc_diff(res, ref_data, 1.)), resmin)
+                    resmax = max(np.max(perc_diff(res, ref_data, 1.)), resmin)
+                else:
+                    resmin = min(np.min(res - ref_data), resmin)
+                    resmax = max(np.max(res - ref_data), resmin)
+        else:
+            resmin = min(np.min(res), resmin)
+            resmax = max(np.max(res), resmax)
 
         if pd:
             ax.set_ylabel('Percentage difference')
@@ -119,10 +126,9 @@ def main():
     plotter(sys.argv[1:])
 
 
-
 if __name__ == '__main__':
     diff = False
-    pd = False
+    pd = True
 
     if pd and diff:
         print(
