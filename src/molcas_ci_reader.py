@@ -370,6 +370,24 @@ def transposer(array):
     return list(zip(*array))
 
 
+def get_civs_and_confs(logfile, caspt2):
+    no_roots, S, no_closed, csfs, civs = get_civecs_in_csfs(
+        logfile, caspt2)
+    sds = []
+    newcivec = []
+    for i in range(no_roots):
+        a, b = csf_to_slater_basis_conversion(csfs, civs[i], S)
+        sds = a
+        newcivec.append(b)
+
+    civs = transposer(newcivec)
+    confs = sd_formatter(sds, no_closed)
+    return civs, confs
+
+
+
+
+
 def main():
     filename = 'molcas.log'
     caspt2 = True
