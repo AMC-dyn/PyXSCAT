@@ -12,10 +12,10 @@ def writer(filename, q, data):
 
     elif extension == 'npy':
         print('Detected that .npy file requested, saving to %s' % filename)
-        np.save(filename, np.c_(q, data))
+        np.save(filename, np.c_[q, data])
 
     else:
         print('Saving file as .txt into %s' % filename)
-        np.savetxt(filename, np.c_(q, data), fmt='%.18e')
+        np.savetxt(filename, np.c_[q, data], fmt='%.18e')
 
 
