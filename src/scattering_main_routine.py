@@ -10,6 +10,9 @@ import molden_reader_nikola as mldreader
 import molden_reader_nikola_molcas as mcmldreader
 import molcas_ci_reader as mc
 
+# Writer
+import writer_scattering as writer
+
 import Molcas_output_reader as Molcas
 import scipy.io as sci
 from PyQt5.QtCore import *
@@ -495,7 +498,7 @@ tic2 = time.time()
 res, q, q_alig,nameoffile = main()
 toc = time.time()
 
-sci.savemat(nameoffile, {'q': q, 'I': res})
+writer.writer(nameoffile, q, res)
 
 print(nameoffile)
 print(toc - tic2)
