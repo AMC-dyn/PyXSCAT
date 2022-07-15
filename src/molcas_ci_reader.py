@@ -1,22 +1,21 @@
+import numpy as np
 import itertools as it
 import re
 import sys
 
-import numpy as np
-
-# converter
+#converter
 
 
 def csf_to_slater_basis_conversion(csfs, civs, S):
-    sds = []
+    sds = [            ]
     civecinsd = []
     # convert csfs into sds, and then multiply the coeff in csf basis by conversion
     for i in range(len(csfs)):
         conv = csf2sd(csfs[i], S)
         for j in conv:
             # if this is slow, I know a way to fix it
-            # Use the binary format to create a index, and then use that as the index - it will be much quicker.
-
+            # Use the binary format to create a index, and then use that as the index - it will be much quicker. 
+         
             if j[1] not in sds:
                 sds.append(j[1])
                 civecinsd.append(0.)
@@ -26,8 +25,21 @@ def csf_to_slater_basis_conversion(csfs, civs, S):
     for i in range(len(civecinsd)):
         civecinsd[i] = str(civecinsd[i])
 
-    print('Number of SDs = ', len(sds))
     return sds, civecinsd
+
+def create_sym_csf(string, frozen, inact, ras2, second):
+    no_irreps = len(frozen)
+    csf = ''
+    j=0
+    for i in range(no_irreps):
+        csf += frozen[i]*'2'
+        csf += inact[i]*'2'
+        if ras2[i] > 0:
+            csf += string[j]
+            j +=1
+        csf += second[i]*'0'
+    print(csf)
+    return csf
 
 
 def csf2sd(csfvec, m_s):
@@ -159,6 +171,18 @@ def get_civecs_in_csfs(filename, caspt2):
     with open(filename) as f:
         civs = []
         for line in f:
+            if re.search('.*Symmetry species.*', line):
+                no_irreps = len(line.split()) -2
+                if no_irreps > 1:
+                    print('Using symmetry in the calculations')
+                    sym = True
+                    line = f.readline()
+                    irrep_numbers = [ int(a) for a in line.split()[2:] ] 
+                    no_irreps = len(irrep_numbers)
+                else:
+                    sym = False
+                break
+        for line in f:
             if re.search('.*Number of closed shell electrons.*', line):
                 no_closed = int(line.split()[5]) // 2
                 print('no_closed', no_closed)
@@ -167,69 +191,169 @@ def get_civecs_in_csfs(filename, caspt2):
             if re.search('.*Spin quantum number.*', line):
                 S = int(float(line.split()[3]))
                 break
-        for line in f:
-            if re.search('.*Number of CSFs.*', line, re.IGNORECASE):
-                no_csfs = int(line.split()[3])
-                break
 
-        if caspt2:  # read a bit further on in the file to ensure CASPT2
+        if sym:
             for line in f:
-                if re.search('.*Number of CI roots used.*', line,
-                             re.IGNORECASE):
-                    no_roots = int(line.split()[5])
+                if re.search('.*Frozen orbitals.*', line, re.IGNORECASE):
+                    no_frozen = [int(x) for x in line.split()[2:]]
+                    print('Frozen',no_frozen)
                     break
-            for root in range(no_roots):
-                count = 0
-                while True:
-                    line = f.readline()
-                    if not line:
+            for line in f:
+                if re.search('.*Inactive orbitals.*', line, re.IGNORECASE):
+                    no_inact = [int(x) for x in line.split()[2:]]
+                    print('Inactive',no_inact)
+                    break
+            for line in f:
+                if re.search('.*RAS2 orbitals.*', line, re.IGNORECASE):
+                    no_ras2 = [int(x) for x in line.split()[2:]]
+                    print('Ras2',no_ras2)
+                    no_act_irreps = sum(i>0 for i in no_ras2)
+                    print(no_act_irreps,' active irreps')
+                    break
+            for line in f:
+                if re.search('.*Secondary orbitals.*', line, re.IGNORECASE):
+                    no_second = [int(x) for x in line.split()[2:]]
+                    print('Secondary',no_second)
+                    break
+            # Check to see if they add up
+            check_var = [sum(i)  for i in zip(no_frozen,no_inact, no_ras2, no_second) ] 
+            print(check_var)
+            if check_var != irrep_numbers:
+                print('Help! Things dont add up')
+                print(check_var)
+                print(irrep_numbers)
+                sys.exit()
+            for line in f:
+                if re.search('.*Number of CSFs.*', line, re.IGNORECASE):
+                    no_csfs = int(line.split()[3])
+                    break
+            if caspt2:  # read a bit further on in the file to ensure CASPT2
+                for line in f:
+                    if re.search('.*Number of CI roots used.*', line,
+                                 re.IGNORECASE):
+                        no_roots = int(line.split()[5])
                         break
-                    if re.search(
-                            '.*The CI coefficients for the MIXED state nr.',
-                            line):
-                        csfs = []
-                        data = []
-                        f.readline()  # line of '-----...'
-                        f.readline(
-                        )  # line of 'CI COEFFICIENTS LARGER THAN...'
-                        f.readline()  # line of 'Occupation..'
-                        f.readline()  # line of 'of open shells'
-                        f.readline()  # line of 'SGUGA info...'
-                        f.readline()  # line of 'Conf  SGUGA...'
-                        # beter would be to use the index, but for small active space cases this is probably fine.
-                        for j in range(no_csfs):
-                            intvar = f.readline()[30:].split()
-                            csfs.append(intvar[0])
-                            data.append(intvar[1])
-                            count += float(intvar[1])**2
-                        civs.append(data)
-                print('Normalisation for root ', root, ' = ', count)
+                for root in range(no_roots):
+                    count = 0
+                    while True:
+                        line = f.readline()
+                        if not line:
+                            break
+                        if re.search(
+                                '.*The CI coefficients for the MIXED state nr.',
+                                line):
+                            csfs = []
+                            data = []
+                            f.readline()  # line of '-----...'
+                            f.readline(
+                            )  # line of 'CI COEFFICIENTS LARGER THAN...'
+                            f.readline()  # line of 'Occupation..'
+                            f.readline()  # line of 'of open shells'
+                            f.readline()  # line of 'SGUGA info...'
+                            f.readline()  # line of 'Conf  SGUGA...'
+                            # beter would be to use the index, but for small active space cases this is probably fine.
+                            for j in range(no_csfs):
+                                intvar = f.readline()[30:].split()
+                                print(intvar)
+                                csfs.append(create_sym_csf(intvar[:-2], no_frozen,no_inact,no_ras2, no_second))
+                                data.append(intvar[-2])
+                                count+=float(intvar[-2])**2
+                            civs.append(data)
+                    print('Normalisation for root ',root,' = ', count)
 
+            else:
+                for line in f:
+                    if re.search('.*Number of root\(s\) required.*', line,
+                                 re.IGNORECASE):
+                        no_roots = int(line.split()[4])
+                        break
+                for root in range(no_roots):
+                    count = 0
+                    while True:
+                        line = f.readline()
+                        if not line:
+                            break
+                        if re.search('.*printout of CI-coefficients larger than.*',
+                                     line):
+                            csfs = []
+                            data = []
+                            energy = f.readline().split()[1]
+                            f.readline()
+                            for j in range(no_csfs):
+                                intvar = f.readline().split()[1:2+no_act_irreps]
+                                print(intvar)
+                                csfs.append(create_sym_csf(intvar[:-1],no_frozen, no_inact, no_ras2, no_second))
+                                data.append(intvar[-1])
+                                count+=float(intvar[-1])**2
+                            civs.append(data)
+                    print('Normalisation for root ',root,' = ', count)
         else:
             for line in f:
-                if re.search('.*Number of root\(s\) required.*', line,
-                             re.IGNORECASE):
-                    no_roots = int(line.split()[4])
+                if re.search('.*Number of CSFs.*', line, re.IGNORECASE):
+                    no_csfs = int(line.split()[3])
                     break
-            for root in range(no_roots):
-                count = 0
-                while True:
-                    line = f.readline()
-                    if not line:
+            if caspt2:  # read a bit further on in the file to ensure CASPT2
+                for line in f:
+                    if re.search('.*Number of CI roots used.*', line,
+                                 re.IGNORECASE):
+                        no_roots = int(line.split()[5])
                         break
-                    if re.search('.*printout of CI-coefficients larger than',
-                                 line):
-                        csfs = []
-                        data = []
-                        energy = f.readline().split()[1]
-                        f.readline()
-                        for j in range(no_csfs):
-                            intvar = f.readline().split()[1:3]
-                            csfs.append(intvar[0])
-                            data.append(intvar[1])
-                            count += float(intvar[1])**2
-                        civs.append(data)
-                print('Normalisation for root ', root, ' = ', count)
+                for root in range(no_roots):
+                    count = 0
+                    while True:
+                        line = f.readline()
+                        if not line:
+                            break
+                        if re.search(
+                                '.*The CI coefficients for the MIXED state nr.',
+                                line):
+                            csfs = []
+                            data = []
+                            f.readline()  # line of '-----...'
+                            f.readline(
+                            )  # line of 'CI COEFFICIENTS LARGER THAN...'
+                            f.readline()  # line of 'Occupation..'
+                            f.readline()  # line of 'of open shells'
+                            f.readline()  # line of 'SGUGA info...'
+                            f.readline()  # line of 'Conf  SGUGA...'
+                            # beter would be to use the index, but for small active space cases this is probably fine.
+                            for j in range(no_csfs):
+                                intvar = f.readline()[30:].split()
+                                csfs.append(intvar[0])
+                                data.append(intvar[1])
+                                count+=float(intvar[1])**2
+                            civs.append(data)
+                    print('Normalisation for root ',root,' = ', count)
+
+            else:
+                for line in f:
+                    if re.search('.*Number of root\(s\) required.*', line,
+                                 re.IGNORECASE):
+                        no_roots = int(line.split()[4])
+                        break
+                for root in range(no_roots):
+                    count = 0
+                    while True:
+                        line = f.readline()
+                        if not line:
+                            break
+                        if re.search('.*printout of CI-coefficients larger than',
+                                     line):
+                            csfs = []
+                            data = []
+                            energy = f.readline().split()[1]
+                            f.readline()
+                            for j in range(no_csfs):
+                                intvar = f.readline().split()[1:3]
+                                csfs.append(intvar[0])
+                                data.append(intvar[1])
+                                count+=float(intvar[1])**2
+                            civs.append(data)
+                    print('Normalisation for root ',root,' = ', count)
+
+    # Very important! leave
+    if sym:
+        no_closed = 0
 
     return no_roots, S, no_closed, csfs, civs
 
@@ -246,24 +370,9 @@ def transposer(array):
     return list(zip(*array))
 
 
-def get_civs_and_confs(logfile, caspt2):
-    no_roots, S, no_closed, csfs, civs = get_civecs_in_csfs(
-        logfile, caspt2)
-    sds = []
-    newcivec = []
-    for i in range(no_roots):
-        a, b = csf_to_slater_basis_conversion(csfs, civs[i], S)
-        sds = a
-        newcivec.append(b)
-
-    civs = transposer(newcivec)
-    confs = sd_formatter(sds, no_closed)
-    return civs, confs
-
-
 def main():
     filename = 'molcas.log'
-    caspt2 = False
+    caspt2 = True
 
     no_roots, S, no_closed, csfs, civs = get_civecs_in_csfs(filename, caspt2)
 
@@ -280,5 +389,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print(csf2sd('ud0222ud2', 0))
-    #  main()
+    main()
