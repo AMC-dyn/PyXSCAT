@@ -6,7 +6,7 @@ From the former we read the ci vector, and the from the latter we read the orbit
 
 These both have special readers - molcas_ci_reader.py and molden_reader_nikola_molcas.py.
 
-The interface can currently read both the CASSCF/RASSCF output (of the program `rasscf`) and the CASPT2 output (of the eponymous program). The CASPT2 orbitals are *without* the PMCAS perturbative correction, and so represent an approximation of the total wavefunction in the reference space, i.e. the set of configurations generated in the CAS/RAS calculation.
+The interface can currently read both the CASSCF/RASSCF output (of the program `rasscf`) and the CASPT2 output (of the eponymous program). The CASPT2 orbitals are *without* the PMCAS perturbative correction, and so represent an approximation of the total wavefunction in the reference space, i.e. the set of states generated in the CAS/RAS calculation.
 
 The program should automatically detect the symmetry, but does not run using the symmetry - it takes the symmetric wavefunctions/ci vectors and runs as if they were not symmetric. This still represents a computational speed up as the total space of configurations/determinants is reduced.
 
