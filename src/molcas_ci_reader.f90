@@ -12,18 +12,16 @@ program molcas_ci_reader
    character(len=100) :: filename
 
    ! csfvec='22ud00'
-   filename = 'NEON_scfvspt2vsfullci/molcas.log'
+   filename = 'molcas.log'
 
-   call get_civecs_in_csfs(trim(filename), .false., csfs, civs)
-   call csf_to_slater_basis_conversion(csfs, civs, sds, civecinsd, 0)
-   call format_sd(sds, 1, finalsds)
+   call get_civs_and_confs(filename, .false., finalsds, civecinsd)
    ! write(*,*) finalsds
 
 contains
 
   subroutine get_civs_and_confs(logfile, caspt2, finalsds, civecinsd)
     implicit none
-    character(len=:), intent(IN)  :: logfile
+    character(len=*), intent(IN)  :: logfile
     logical, intent(IN) :: caspt2
    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
@@ -90,6 +88,7 @@ contains
 
       running_total = 1
       do i = 1, no_csfs
+        if (csfs(i) .ne. '') then
          call csf2sd(csfs(i), S, coeffs, sdvec, no_mo)
 
          do j = 1, size(coeffs)
@@ -113,6 +112,7 @@ contains
          end if
          end do
          deallocate (coeffs, sdvec)
+       endif
       end do
 
       write (*, *) 'Converted to ', no_sds, ' determinants'
@@ -172,6 +172,19 @@ contains
       ! this is a bunch of similar things which look for things in the output file.
 
       ! They loop through the file, and when they find something (using index), then they read the correct thing
+      do
+         read (1, '(A)', iostat=io) str
+         if (io .lt. 0) then
+            write (*, *) 'Stopping'
+            stop
+         end if
+         if (index(str, 'Symmetry species') .gt. 0) then
+            if (len_trim(str) .gt. 35 ) then
+              write(*,*) 'Looks like this might be a calculation with symmetry. Continuing, but if it fails that is probably why.'
+            endif
+            exit
+         end if
+      end do
       do
          read (1, '(A)', iostat=io) str
          if (io .lt. 0) then
