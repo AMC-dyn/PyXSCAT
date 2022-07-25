@@ -11,7 +11,6 @@ program molcas_ci_reader
    integer :: no_active_orbs
    character(len=100) :: filename
 
-   ! csfvec='22ud00'
    filename = 'molcas.log'
 
    call get_civs_and_confs(filename, .false., finalsds, civecinsd)
@@ -20,6 +19,8 @@ program molcas_ci_reader
 contains
 
   subroutine get_civs_and_confs(logfile, caspt2, finalsds, civecinsd)
+
+    ! main function
     implicit none
     character(len=*), intent(IN)  :: logfile
     logical, intent(IN) :: caspt2
@@ -29,16 +30,20 @@ contains
    real(kind=dp), allocatable :: civs(:, :)
    real(kind=dp), allocatable :: coeffs(:)
    character(len=:), allocatable:: sds(:)
-   character(len=:), allocatable:: finalsds(:)
-   real(kind=dp), allocatable ::civecinsd(:, :)
-   integer :: no_active_orbs
+   character(len=:), allocatable, intent(out):: finalsds(:)
+   real(kind=dp), allocatable, intent(out) ::civecinsd(:, :)
+   integer :: no_closed
    character(len=100) :: filename
 
-   ! csfvec='22ud00'
 
-   call get_civecs_in_csfs(logfile, caspt2, csfs, civs)
+   ! get the csfs  from the output file
+   call get_civecs_in_csfs(logfile, caspt2, csfs, civs, no_closed)
+
+   ! convert to sd
    call csf_to_slater_basis_conversion(csfs, civs, sds, civecinsd, 0)
-   call format_sd(sds, 1, finalsds)
+
+   ! format the output so that the it includes the number of closed
+   call format_sd(sds, no_closed, finalsds)
 
    end subroutine
 
@@ -156,16 +161,16 @@ contains
       close (1)
    end subroutine
 
-   subroutine get_civecs_in_csfs(filename, caspt2, csfs, civs)
+   subroutine get_civecs_in_csfs(filename, caspt2, csfs, civs, no_closed)
       implicit none
 
-      integer :: no_active
-      character(len=*) :: filename
-      logical :: caspt2
+      integer, intent(out):: no_closed
+      character(len=*), intent(in) :: filename
+      logical, intent(in) :: caspt2
       character(len=100) :: str, tempstr
-      character(:), allocatable :: csfs(:)
-      real(kind=dp), allocatable :: civs(:, :)
-      integer :: io, no_closed, S, no_csfs, no_roots, root, idx, q, j, i
+      character(:), allocatable, intent(out) :: csfs(:)
+      real(kind=dp), allocatable, intent(out) :: civs(:, :)
+      integer :: io, no_active, S, no_csfs, no_roots, root, idx, q, j, i
 
       open (1, file=trim(filename))
 
