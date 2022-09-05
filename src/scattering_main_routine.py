@@ -87,7 +87,7 @@ def main():
     mldfile = 'molpro.mld'
 
     # If there is an external file with CIvecs or 2rdms JeremyR==True
-    jeremyR = False
+    jeremyR = True
     fileJeremy = 'configurations_bit.dat'
     # If we convert form a MCCI calculation to a bitwise operation mcci==True
     mcci = False
@@ -95,21 +95,21 @@ def main():
     hf = False
     # States involved
     state1 = 1
-    state2 = 1
+    state2 = 2
     # Largeconf is used when the det space is very large but we have still no external file so we need to create one
-    largeconf = False
-    # Type of calculation
-    # TOTAL--> 1
-    # ELASTIC --> 2
-    # TOTAL ALIGNED --> 3
-    # ELASTIC ALIGNED --> 4
+    largeconf = True
+    #Type of calculation
+    #TOTAL--> 1
+    #ELASTIC --> 2
+    #TOTAL ALIGNED --> 3
+    #ELASTIC ALIGNED --> 4
     # TOTAL ELECTRON--> 5
     # ELASTIC ELECTRON --> 6
     # TOTAL J2 --> 7
     # ELASTIC J2 --> 8
-    Type = 2
+    Type=9
     # Ouput name (is a mat file, needs to be changed to make it general)
-    nameoffile = 'lif_aligned_30.mat'
+    nameoffile = 'NO_CMS_12_j1.mat'
 
     if not jeremyR and not hf:
 
@@ -153,17 +153,6 @@ def main():
     ga = np.asarray(ga)
     mmod = np.asarray(mmod, dtype=np.float64)
 
-    with open('basis.dat', 'w') as f:
-        f.write(str(np.size(l)) + '\n')
-        for i in range(np.size(l)):
-            f.write(str(xx[i]) + ' ' + str(yy[i]) + ' ' + str(zz[i]) + ' ' + str(ga[i]) + ' ' + str(l[i]) + ' ' + str(
-                m[i]) + ' ' + str(n[i]) + '\n')
-    with open('MOs.dat', 'w') as f:
-        f.write(str(np.size(mmod[:, 0])) + ' ' + str(np.size(mmod[0, :])))
-        for i in range(np.size(mmod[:, 0])):
-            for j in range(np.size(mmod[:, 0])):
-                f.write(str(mmod[i, j]) + ' ')
-            f.write('\n')
     # Reading and transforming the molden part (basis, geometry and MOs)
 
     print("Cutoff values are specified by default as 0.01, 1E-9, 1E-20\n")
@@ -171,7 +160,7 @@ def main():
     x = True
     if x:
         # cut off epsilon; if H < epsilon, use P0 cases
-        cutoffcentre = 0.001  # suggested: cutoffcentre = 0.01;
+        cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
         # the cutoff for the Z integral
         cutoffz = 1e-15  # suggested: cutoffz = 1E-9;
         # the cutoff for the product of the MD coefficients
@@ -237,8 +226,7 @@ def main():
             confs2[counts, :] = np.asarray(lst, dtype=np.int64)
             counts = counts + 1
 
-        q_alig, resultado2 = main_calculation.total_scattering_calculation(Type, atoms.atomic_numbers(), geom, state1,
-                                                                           state2, maxl,
+        q_alig, resultado2 = main_calculation.total_scattering_calculation(Type, atoms.atomic_numbers(), geom, state1, state2, maxl,
                                                                            Ngto, ng,
                                                                            ga, l, m, n, xx, yy, zz, mmod,
                                                                            q, nq,
@@ -311,8 +299,7 @@ def main():
             # count = len(civs)
             ordering1 = np.zeros(np.size(alphas))
             ordering2 = np.zeros(np.size(alphas))
-            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(Type, atoms.atomic_numbers(), geom,
-                                                                                 state1,
+            q_alig, resultado2 = main_calculation.total_scattering_calculation_2(type, atoms.atomic_numbers(), geom, state1,
                                                                                  state2,
                                                                                  maxl,
                                                                                  Ngto, ng,
@@ -361,8 +348,7 @@ def main():
                             confs2[i, 2 * j + 1] = confbin2[i, j]
                     print('confs2', len(confs2))
 
-                    q_alig, resultado2 = main_calculation.total_scattering_calculation(Type, atoms.atomic_numbers(),
-                                                                                       geom,
+                    q_alig, resultado2 = main_calculation.total_scattering_calculation(Type, atoms.atomic_numbers(), geom,
                                                                                        state1,
                                                                                        state2,
                                                                                        maxl,
@@ -442,8 +428,7 @@ def main():
                 with open(fileJeremy, 'r') as f:
                     for lines in f:
                         count = count + 1
-                q_alig, resultado2 = main_calculation.total_scattering_calculation_2(Type, atoms.atomic_numbers(), geom,
-                                                                                     state1,
+                q_alig, resultado2 = main_calculation.total_scattering_calculation_2(Type, atoms.atomic_numbers(), geom, state1,
                                                                                      state2,
                                                                                      maxl,
                                                                                      Ngto, ng,
@@ -463,12 +448,12 @@ def main():
 
     print(resultado2)
     # print(q)
-    return resultado2, q, q_alig, nameoffile
+    return resultado2, q, q_alig,nameoffile
 
 
 tic2 = time.time()
 
-res, q, q_alig, nameoffile = main()
+res, q, q_alig,nameoffile = main()
 toc = time.time()
 
 sci.savemat(nameoffile, {'q': q, 'I': res})
