@@ -110,6 +110,7 @@ def _read_atoms_file(file):
             y = float(columns[4]) / AU2ANG
             z = float(columns[5]) / AU2ANG
             atoms.add_atom(mol.Atom(atmnum, x, y, z))
+            print("Atoms read")
     else:
         print("Something went wrong! Can't find [GTO]")
 
@@ -151,10 +152,12 @@ def _read_contractions(file):
     # starting writing the GTOs into lists
     GTOs = []
 
-    # read the firt atom
+    # read the first atom
     line = file.readline()
     atms = [int(s) for s in line.split() if s.isdigit()]
+    print(atms)
     atm = atms[0]
+    print(atm)
 
 
     contraction_counter = 1
@@ -166,6 +169,7 @@ def _read_contractions(file):
         else:
             # skip if line is blank or whitspace
             if not line or line.isspace():
+
                 line = file.readline()
                 # if the second line is blank or whitespace just go the the MO
                 # condition
@@ -179,7 +183,7 @@ def _read_contractions(file):
                     line = file.readline()
             # read the contraction
             contraction_spec = line.split()
-
+            print(contraction_spec[0])
             type_of_GTO = contraction_spec[0]
             num_of_primitives = int(contraction_spec[1])
 
@@ -276,7 +280,10 @@ def _read_MO(file, mo_cutoff):
             mo_counter += 1
             if mo_counter <= mo_cutoff:
                 s = re.findall("\d+\.\d+", line)
-                syms.append(s[0])
+                if s:
+                    syms.append(s[0])
+                else:
+                    syms.append(1.1)
             if mo_this:
                 mo_table.append(mo_this)
             # the coefficient for this orbitals

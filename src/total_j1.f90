@@ -55,7 +55,7 @@ module total_j1
         nq= size(q)
 
        ! print*,OMP_get_num_threads()
-        call omp_set_num_threads(32)
+        call omp_set_num_threads(9)
        ! print*,OMP_get_num_threads()
         !First big loop
 
@@ -136,18 +136,14 @@ module total_j1
                             call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, k, r, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
-                            if (maxval(abs(f))>1E3) then
-                           !   print*, 'pzero maxval-> ', maxval(abs(f))
-                            endif
+
                         else
 
                             call tot_integral_k_ijkr_j1(q,l,m,n,group_start, group_count, hx, hy, hz, h,dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, k, r, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
 
-                            if (maxval(abs(f))>1E3) then
-                              print*, 'normal int maxval-> ', maxval(abs(f))
-                            endif
+
 
 
 
@@ -530,14 +526,13 @@ module total_j1
             stop
         end if
 
-        a=0.0_dp
-        b=0.0_dp
-        c=0.0_dp
+
 
 
         call rrdj1xy(LLmax,Hx,a)
         call rrdj1xy(LLmax,Hy,b)
         call rrdj1z(LLmax,Hz,c)
+        print*,'coefficients a,b,c calculated'
         bd=0.0_dp
         h_pre2=0.0_dp
 
@@ -557,7 +552,7 @@ module total_j1
 
 ! loop through all possible ways to get total angular momentum lmax1
 
-
+        print*,'BD calculated',dim, LLMAX
         posI=1
 
 
@@ -628,8 +623,8 @@ module total_j1
             end do
         posi=posi+1
         end do
-
+        print*,'Loop calculated'
        call bessels1rr(F,LLMAX,mu,H, h_saved)
-
+         print*,'bessels calculated'
     end subroutine
 end module total_j1

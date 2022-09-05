@@ -278,7 +278,8 @@ subroutine maxcoincidence(confs, ep2,ndiff)
                     eg = -1.00
 
                     if (spin2(1) == spin1(2) .and. spin2(2) == spin1(1)) then
-                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )+ civs(c1,state1) * civs(c2,state2) * ep * eg
+                        twordm(porb , rorb , sorb , qorb ) = twordm(porb , rorb , sorb , qorb )&
++ civs(c1,state1) * civs(c2,state2) * ep * eg
 
                     endif
                     qorb = diffs2(1)
@@ -568,7 +569,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
      character(len=30), intent(in) :: file_read
-     integer(kind=ikind):: norbs
+     integer :: norbs
 
 
     real(kind=dp), intent(out), dimension(:), allocatable :: total
@@ -1033,7 +1034,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
   end function
 
         function integer2binary_orbs(i) result(b_orbs_r)
-    integer*8,intent(in) :: i
+    integer,intent(in) :: i
     integer :: b(32),count,count_orbs,b_orbs(32)
     integer, allocatable,dimension(:):: b_real,b_orbs_r
     integer k,j
@@ -1091,7 +1092,7 @@ function integer2binary_orbs_bit(i,maxnmo) result(b_orbs)
 subroutine combine_alpha_beta(alpha,beta, result)
     implicit none
     integer, intent(in):: alpha, beta
-    integer :: buffer,z
+    integer*8 :: buffer,z
     integer*8,intent(out) :: result
 
     result=0

@@ -419,7 +419,8 @@ enddo
     integer(kind=ikind),  dimension(:,:), allocatable :: matdum
     real(kind=dp), dimension(:), allocatable :: totaldum
     integer*8, dimension(:,:), allocatable :: single_exc,hole_exc, particle_exc,phases,counter_exc,starts,ends
-    integer*8, dimension(:,:), allocatable :: double_exc,hole_exc_1,hole_exc_2, particle_exc_1,particle_exc_2, phases_2, counter_exc_2,starts_2,ends_2
+    integer*8, dimension(:,:), allocatable :: double_exc,hole_exc_1,hole_exc_2
+integer*8, dimension(:,:),allocatable :: particle_exc_1,particle_exc_2, phases_2, counter_exc_2,starts_2,ends_2
     integer*8, dimension(:,:,:), allocatable :: beta_excs
     integer*8 :: buffer_prime, buffer_prime_2, tz,tz2, count_p,n,ss,ee,spin11,spin22,buffer2,buffer_3,buffer_4,newdat_1,len_rm
 
@@ -534,7 +535,7 @@ enddo
                       ep=1
                       mylow=min(j+1,k+1)
                       myhigh=max(j+1,k+1)
-                      ep=POPCNT(IAND(newdat(i,1),IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+                      ep=POPCNT(IAND(newdat(i,1),IAND(ibset(0_8,myhigh-1_8)-1_8,ibclr(-1,mylow)+1_8)))
 !                      buffer_prime=newdat(i,1)
 !                      buffer_prime_2=particle_int
 !
@@ -945,9 +946,10 @@ double precision, allocatable :: SpinFree2RDM(:,:,:,:)
 integer porb,rorb,sorb,qorb
 integer spins,spinq,spinp,spinr
 double precision dtemp,ep,eg
-integer ici,jci,ndiff,idiff1,idiff2
+integer ici,jci,ndiff,idiff1,idiff2,countcivs
 integer i,i1,i2,l,l2,k,k2
 double precision Eone_e,Etwo_e,TwoRDM_e,cutoff
+double precision civ1, civ2
 integer newdiff,mytemp,n,count2,count_p,p,q,r,s
   integer hole,part,tz,tz2,buffer,nword
   integer myhigh,mylow,nperm
@@ -969,7 +971,11 @@ integer newdiff,mytemp,n,count2,count_p,p,q,r,s
 
 open(15,file=file_read)
 nword=1
+print*,'reading ', length, ' lines'
+
  do i=1,length
+
+
             read(15,*)dummy, c1(i),c2(i),icij(1,1,i), icij(2,1,i)
 
      enddo
@@ -1472,15 +1478,15 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
                             mylow=min(porb,qorb)
                             myhigh=max(porb,qorb)
                             ep=POPCNT(IAND(Nalphbet(1,1,c1),&
-                                IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+                                IAND(ibset(0_8,myhigh-1_8)-1_8,ibclr(-1_8,mylow)+1_8)))
 !                            ep=ep+POPCNT(IAND(Nalphbet(1,2,c1),&
 !                               IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow))))
 
 
 
-                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
-                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
                     end if
 
@@ -1492,16 +1498,16 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
                             mylow=min(porb,qorb)
                             myhigh=max(porb,qorb)
                             ep=POPCNT(IAND(Nalphbet(1,2,c1),&
-                                IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+                                IAND(ibset(0_8,myhigh-1_8)-1_8,ibclr(-1,mylow)+1_8)))
                              !ep=ep+POPCNT(IAND(Nalphbet(1,1,c1),&
                              !   IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
 
 
                           !  if (c1<=20) print*,'conguration of interest',c1,c2,ep
 
-                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
-                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
                     end if
 
@@ -1768,14 +1774,14 @@ enddo
            integer(kind=SELECTED_INT_KIND(8)),intent(in):: numberlines
            integer*8:: icij(2,1,numberlines), j, k,i,nbft,itemp,ici,ntotal,phase,iperm
            integer*8, allocatable, dimension(:,:):: list
-           real(kind=SELECTED_REAL_KIND(15)):: c(numberlines)
+           real(kind=SELECTED_REAL_KIND(15)):: c1(numberlines), c2(numberlines)
            double precision, parameter :: phase_dbl(0:1) = (/ 1.d0, -1.d0 /)
 
 
            open(file=file_read,unit=15)
 
            do i=1,numberlines
-               read(15,*)ici, c(i), icij(1,1,i), icij(2,1,i)
+               read(15,*)ici, c1(i), c2(i), icij(1,1,i), icij(2,1,i)
            enddo
            close(15)
 
@@ -1832,11 +1838,12 @@ enddo
                end do
 
 
-               phase=phase_dbl(iand(iperm,1))
+               phase=phase_dbl(iand(iperm,1_8))
 
-               c(ici)=phase*c(ici)
+               c1(ici)=phase*c1(ici)
+               c2(ici)=phase*c2(ici)
 
-               write(17,"(E30.16, 2I20)") c(ici), icij(1,1,ici),icij(2,1,ici)
+               write(17,"(I15, 2E20.10, 2I20)")ici,c1(ici),c2(ici), icij(1,1,ici),icij(2,1,ici)
 
 
            end do !end of loop over ici

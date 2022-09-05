@@ -1,0 +1,37 @@
+***,LiF
+memory,800,m
+gprint,civector,orbitals,angles=-1,distance=-1
+gthresh,twoint=1.0d-13
+gthresh,energy=1.0d-7,gradient=1.0d-2
+gthresh,thrpun=0.000000001
+punch,lif_eq.pun,new
+
+orient,noorient
+symmetry,nosym
+angstrom
+geomtyp=xyz
+geometry={
+2
+LiF
+Li   0.0000000000   0.0000000000  -0.7918000000
+F    0.0000000000   0.0000000000   0.7918000000
+}
+
+basis,f=avtz,li=vtz
+
+{hf
+wf,12,1
+}
+
+{multi
+failsafe
+maxit,40
+config,det
+occ,7
+closed,3
+wf,12,1
+state,4
+orbital,2140.3
+}
+
+put,molden,lif_eq.mld
