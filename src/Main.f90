@@ -1,5 +1,6 @@
 program main
 
+    use omp_lib
     use main_calculation_mod
     use linspace
     implicit none
@@ -62,8 +63,12 @@ program main
     read(15,*)Typec
     read(15,*)state1,state2
     read(15,*)file_out
-    read(15,*)molpro
-    print*,'molpro is ', molpro
+  read(15,*)molpro
+  read(15,*)molcas
+  read(15,*)bagel
+  print*,'molpro is ', molpro
+  print*,'molcas is ', molcas
+  print*,'bagel is ', bagel
     if (molpro.eqv..True.) then
         read(15,*)nconfs
         read(15,*)lconfs
@@ -81,6 +86,16 @@ program main
           file_bit='bitwise.dat'
         end if
 
+  else if (molcas.eqv..True.) then
+    read(15,*)nconfs
+    read(15,*)lconfs
+    read(15,*)ncivs
+    allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
+
+    do i=1,nconfs
+
+    read(15,*)(confs(i,j),j=1,lconfs),(civs(i,j), j=1,ncivs)
+    end do
 
     else
             read(15,*) var

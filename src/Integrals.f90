@@ -1467,9 +1467,9 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         call omp_set_num_threads(9)
         tsi=0.0_dp
 
-       ! !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q_al,l,m,n), &
-       ! !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
+        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q_al,l,m,n), &
+        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
 
         print*,'allocation is BS'
         do i=1,ncap
@@ -1548,7 +1548,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
                 end do
             end do
         end do
-       ! !$OMP END parallel DO
+        !$OMP END parallel DO
 
 
 
@@ -1616,10 +1616,10 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         !First big loop
         print*,'posits allocated'
         tsi=0.0_dp
-      ! !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,za,zb), &
-       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-      !  !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi), &
-       ! !$OMP& schedule(dynamic)
+      !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,za,zb), &
+       !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+       !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi), &
+       !$OMP& schedule(dynamic)
 
         do i=1,ncap
             do j=i+1,ncap
@@ -1690,7 +1690,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
             end do
         end do
 
-      !!$OMP END parallel DO
+      !$OMP END parallel DO
 
         print*,'first loop finished', tsi(1)
 
@@ -2345,9 +2345,9 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         !First big loop
 
         tsi=(0.0_dp,0.0_dp)
-     !  !$OMP PARALLEL do private(posI,posJ,spi,spj,za), &
-      !  !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,dx1,dy1,dz1) shared(q_al,l,m,n), &
-     !   !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi)
+     !$OMP PARALLEL do private(posI,posJ,spi,spj,za), &
+      !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,dx1,dy1,dz1) shared(q_al,l,m,n), &
+      !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi)
         print*,Z(2,9), E12(1,16,16)
         counter1=0
 
@@ -2403,7 +2403,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
                     end do
                 end do
         print*,tsi(1),q_al(1,1), q_al(2,1), q_al(3,1)
-      ! !$OMP END parallel DO
+      !$OMP END parallel DO
 
 
 

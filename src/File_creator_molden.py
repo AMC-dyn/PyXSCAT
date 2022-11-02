@@ -1,11 +1,15 @@
 import numpy as np
 import molden_reader_nikola as mldreader
+import molden_reader_nikola_molcas as mcmldreader
+import molcas_ci_reader as mc
 import twordm_red as td
+from textwrap import wrap
 
 # If there is an external file with CIvecs or 2rdms JeremyR==True
 molpro = True
 bagel = False
 molcas = False
+caspt2 = False
 jeremyR = False
 fileJeremy = 'configurations_bit.dat'
 # If we convert form a MCCI calculation to a bitwise operation mcci==True
@@ -43,9 +47,16 @@ file_read_twordm= '2rdm.txt'
 if not jeremyR and not hf:
 
     # This routine reads the CIvectors and the configurations
-    civs, confs = td.twordmconst()  # state1 and state2 should be used here
+    if molcas:
+        logfile = 'molcas.log'
+        civs, confs = mc.get_civs_and_confs(logfile, caspt2)
 
-    # confs, civs = Molcas.reading_molcas("big_AS/molcas.log", 1)
+    elif bagel:
+        print('will be implemented soon')
+
+    elif molpro:
+        civs, confs = td.twordmconst()  # state1 and state2 should be used here
+
 
     Nmo_max = len(confs[0]) / 2
     print('Nmo_max:', Nmo_max)
@@ -64,8 +75,12 @@ else:
     Nmo_max = 100
 civs = np.array(civs)
 
-mldfile = 'EQ-Y/lif_eq_y.mld'
-gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+if molcas:
+    mldfile = 'molcas.rasscf.molden'
+    gtos, atoms= mcmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+elif molpro:
+    mldfile = 'EQ-Y/lif_eq_y.mld'
+    gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:
     f.write(str(np.size(atoms.atomic_numbers())) + '\n')
@@ -85,8 +100,8 @@ with open('options.dat', 'w') as f:
     f.write(str(state1) + ' ' + str(state2) + '\n')
     f.write(nameoffile + '\n')
     f.write(str(molpro) + '\n')
-    #f.write(str(molcas) + '\n')
-    #f.write(str(bagel) + '\n')
+    f.write(str(molcas) + '\n')
+    f.write(str(bagel) + '\n')
     if molpro and not readtwordm:
         f.write(str(np.size(confs)) + '\n')
         print(str(np.size(civs[:, 0])))
@@ -127,7 +142,18 @@ with open('options.dat', 'w') as f:
     elif bagel:
         f.write('bagel')
     elif molcas:
-        f.write('molcas')
+        f.write(str(np.size(confs)) + '\n')
+        print(str(np.size(civs[:, 0])))
+        f.write(str(len(confs[0])) + '\n')
+        f.write(str(np.size(civs[0, :])) + '\n')
+        #  f.write('molcas')
+        for i in range(np.size(confs)):
+            lst = wrap(confs[i].replace('a', '1').replace('b', '2'),1)
+            confs2 = [int(i) for i in lst]
+            f.write(str(confs2)[1:-1].replace(',',''))
+            for j in range(np.size(civs[0, :])):
+                f.write(' ' + str(civs[i, j]) + ' ')
+            f.write(str('\n'))
     elif readtwordm:
         f.write('readtwordm'+'\n')
         f.write(file_read_twordm)
