@@ -8,36 +8,37 @@ Created on Sun Jul 11 17:06:33 2021
 import numpy as np
 
 
-def twordmconst():
+def twordmconst(closed,fileread):
     count = 0
     confs = []
     civs = []
-    closed = 'none'
-    with open('../inputs/abinitio.dat', 'r') as fh2:
-        for line in fh2:
-            read = False
-            running = False
-            runlogic = 'none'
-            if line.startswith('RUN'):
-                running = True
-            if running and not line.startswith('RUN'):
-                runlogic = line.strip().split()
-                running = False
 
-            if not runlogic == 'none' and 'Y' in runlogic:
-                if line.startswith('CLOSED'):
-                    read = True
-                if read and not line.startswith('CLOSED'):
-                    closed = line.strip().split()
-            else:
-                closed = 2
+    # with open('../inputs/abinitio.dat', 'r') as fh2:
+    #     for line in fh2:
+    #         read = False
+    #         running = False
+    #         runlogic = 'none'
+    #         if line.startswith('RUN'):
+    #             running = True
+    #         if running and not line.startswith('RUN'):
+    #             runlogic = line.strip().split()
+    #             running = False
+    #
+    #         if not runlogic == 'none' and 'Y' in runlogic:
+    #             if line.startswith('CLOSED'):
+    #                 read = True
+    #             if read and not line.startswith('CLOSED'):
+    #                 print(closed)
+                    #closed = line.strip().split()
+
+                #closed = 23
     print('closed orbitals', closed)
     # if 'none' in closed:
     #     # closed = input('Specify the number of closed orbitals \n')
     #     closed = 0
     countcivs=0
     closed = int(closed)
-    with open('molpro.pun', 'r') as fh:
+    with open(fileread, 'r') as fh:
         for line in fh:
             if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
                 NN = line.strip().split()

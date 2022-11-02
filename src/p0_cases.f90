@@ -364,12 +364,12 @@ contains
         ! however one should be careful with the precision as there is nasty
         ! divisions and exponentiations. Needs to be retested if it works well
         ! with the current data kinds.
-       if (mod(L+M+N,2)==0 .or. mod(N,2)==0) then
+      if (mod(L+M+N,2)==0 .or. mod(N,2)==0) then
     P0(:,L+1,M+1,N+1)=0.0_dp
 elseif (mod(L,2)/=0 .and. mod(M,2)/=0 .and. mod(N,2)/=0) then
     P0(:,L+1,M+1,N+1)=0.0_dp
 elseif (L==0 .and. M==0 .and. N==1) then
-    P0(:,L+1,M+1,N+1)=(1.0_dp/6.0_dp)*q**1.0_dp
+    P0(:,L+1,M+1,N+1)=(1.0_dp/6.0_dp)*q
 elseif (L==2 .and. M==0 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/30.0_dp)*q**3.0_dp
 elseif (L==0 .and. M==2 .and. N==1) then
@@ -474,6 +474,8 @@ elseif (L==2 .and. M==0 .and. N==9) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/286.0_dp)*q**11.0_dp
 elseif (L==0 .and. M==2 .and. N==9) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/286.0_dp)*q**11.0_dp
+elseif (L==10 .and. M==0 .and. N==1) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/286.0_dp)*q**11.0_dp
 elseif (L==0 .and. M==10 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/286.0_dp)*q**11.0_dp
 elseif (L==0 .and. M==0 .and. N==11) then
@@ -498,6 +500,8 @@ elseif (L==8 .and. M==2 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/12870.0_dp)*q**13.0_dp
 elseif (L==2 .and. M==8 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/12870.0_dp)*q**13.0_dp
+elseif (L==8 .and. M==4 .and. N==1) then
+    P0(:,L+1,M+1,N+1)=(1.0_dp/12870.0_dp)*q**13.0_dp
 elseif (L==4 .and. M==8 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/12870.0_dp)*q**13.0_dp
 elseif (L==6 .and. M==0 .and. N==7) then
@@ -514,13 +518,19 @@ elseif (L==4 .and. M==0 .and. N==9) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/1430.0_dp)*q**13.0_dp
 elseif (L==0 .and. M==4 .and. N==9) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/1430.0_dp)*q**13.0_dp
+elseif (L==10 .and. M==2 .and. N==1) then
+    P0(:,L+1,M+1,N+1)=(1.0_dp/4290.0_dp)*q**13.0_dp
 elseif (L==2 .and. M==10 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/4290.0_dp)*q**13.0_dp
+elseif (L==10 .and. M==0 .and. N==3) then
+    P0(:,L+1,M+1,N+1)=(1.0_dp/1430.0_dp)*q**13.0_dp
 elseif (L==0 .and. M==10 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/1430.0_dp)*q**13.0_dp
 elseif (L==2 .and. M==0 .and. N==11) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/390.0_dp)*q**13.0_dp
 elseif (L==0 .and. M==2 .and. N==11) then
+    P0(:,L+1,M+1,N+1)=(1.0_dp/390.0_dp)*q**13.0_dp
+elseif (L==12 .and. M==0 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/390.0_dp)*q**13.0_dp
 elseif (L==0 .and. M==12 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(1.0_dp/390.0_dp)*q**13.0_dp
@@ -534,6 +544,8 @@ elseif (L==6 .and. M==6 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/102102.0_dp)*q**15.0_dp
 elseif (L==4 .and. M==4 .and. N==7) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/72930.0_dp)*q**15.0_dp
+elseif (L==8 .and. M==4 .and. N==3) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/72930.0_dp)*q**15.0_dp
 elseif (L==4 .and. M==8 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/72930.0_dp)*q**15.0_dp
 elseif (L==6 .and. M==2 .and. N==7) then
@@ -544,11 +556,15 @@ elseif (L==8 .and. M==2 .and. N==5) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/43758.0_dp)*q**15.0_dp
 elseif (L==2 .and. M==8 .and. N==5) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/43758.0_dp)*q**15.0_dp
+elseif (L==8 .and. M==6 .and. N==1) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/43758.0_dp)*q**15.0_dp
 elseif (L==6 .and. M==8 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/43758.0_dp)*q**15.0_dp
 elseif (L==4 .and. M==2 .and. N==9) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/24310.0_dp)*q**15.0_dp
 elseif (L==2 .and. M==4 .and. N==9) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/24310.0_dp)*q**15.0_dp
+elseif (L==10 .and. M==2 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/24310.0_dp)*q**15.0_dp
 elseif (L==2 .and. M==10 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/24310.0_dp)*q**15.0_dp
@@ -556,11 +572,15 @@ elseif (L==8 .and. M==0 .and. N==7) then
     P0(:,L+1,M+1,N+1)=(-7.0_dp/43758.0_dp)*q**15.0_dp
 elseif (L==0 .and. M==8 .and. N==7) then
     P0(:,L+1,M+1,N+1)=(-7.0_dp/43758.0_dp)*q**15.0_dp
+elseif (L==10 .and. M==4 .and. N==1) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/24310.0_dp)*q**15.0_dp
 elseif (L==4 .and. M==10 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/24310.0_dp)*q**15.0_dp
 elseif (L==6 .and. M==0 .and. N==9) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/4862.0_dp)*q**15.0_dp
 elseif (L==0 .and. M==6 .and. N==9) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/4862.0_dp)*q**15.0_dp
+elseif (L==10 .and. M==0 .and. N==5) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/4862.0_dp)*q**15.0_dp
 elseif (L==0 .and. M==10 .and. N==5) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/4862.0_dp)*q**15.0_dp
@@ -570,13 +590,19 @@ elseif (L==4 .and. M==0 .and. N==11) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/2210.0_dp)*q**15.0_dp
 elseif (L==0 .and. M==4 .and. N==11) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/2210.0_dp)*q**15.0_dp
+elseif (L==12 .and. M==2 .and. N==1) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/6630.0_dp)*q**15.0_dp
 elseif (L==2 .and. M==12 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/6630.0_dp)*q**15.0_dp
+elseif (L==12 .and. M==0 .and. N==3) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/2210.0_dp)*q**15.0_dp
 elseif (L==0 .and. M==12 .and. N==3) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/2210.0_dp)*q**15.0_dp
 elseif (L==2 .and. M==0 .and. N==13) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/510.0_dp)*q**15.0_dp
 elseif (L==0 .and. M==2 .and. N==13) then
+    P0(:,L+1,M+1,N+1)=(-1.0_dp/510.0_dp)*q**15.0_dp
+elseif (L==14 .and. M==0 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/510.0_dp)*q**15.0_dp
 elseif (L==0 .and. M==14 .and. N==1) then
     P0(:,L+1,M+1,N+1)=(-1.0_dp/510.0_dp)*q**15.0_dp

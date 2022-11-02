@@ -23,7 +23,7 @@ module integrals
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
-        REAL(kind=dp), intent(in), dimension(:) :: q
+        REAL(kind=dp), intent(in), dimension(:),allocatable :: q
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
@@ -57,7 +57,7 @@ module integrals
         nq= size(q)
 
     !    print*,OMP_get_num_threads()
-        call omp_set_num_threads(9)
+        call omp_set_num_threads(20)
      !
         !First big loop
 
@@ -476,7 +476,8 @@ module integrals
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER(kind=ikind), INTENT(IN) :: ncap
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable:: l,m,n,group
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)::group_start,group_count
 
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1,dx2,dy2,dz2
@@ -485,7 +486,7 @@ module integrals
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
-        REAL(kind=dp), intent(in), dimension(:) :: q
+        REAL(kind=dp), intent(in), dimension(:),allocatable :: q
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
@@ -514,11 +515,12 @@ module integrals
 
 
         szo = size(z1(:,1,1))
-
+        print*,szo, 'the mistaken number'
+        stop
         nq= size(q)
 
        ! print*,OMP_get_num_threads()
-        call omp_set_num_threads(32)
+        call omp_set_num_threads(16)
        ! print*,OMP_get_num_threads()
         !First big loop
 
@@ -599,18 +601,14 @@ module integrals
                             call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, k, r, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
-                            if (maxval(abs(f))>1E3) then
-                           !   print*, 'pzero maxval-> ', maxval(abs(f))
-                            endif
+
                         else
 
                             call tot_integral_k_ijkr_j1(q,l,m,n,group_start, group_count, hx, hy, hz, h,dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, k, r, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
 
-                            if (maxval(abs(f))>1E3) then
-                              print*, 'normal int maxval-> ', maxval(abs(f))
-                            endif
+
 
 
 
@@ -939,7 +937,7 @@ module integrals
 
     end subroutine tot_integration_j1
 
-subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_start,group_count,group, &
+subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
 
 
@@ -948,8 +946,9 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-        INTEGER(kind=ikind), INTENT(IN) :: ncap
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+        INTEGER(kind=ikind), INTENT(IN) :: ncap,nq
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:):: group_start,group_count
 
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1,dx2,dy2,dz2
@@ -958,18 +957,18 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
-        REAL(kind=dp), intent(in), dimension(:) :: q
+        REAL(kind=dp), intent(in), dimension(:),allocatable :: q
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
-        REAL(kind=dp), dimension(size(q)) :: f
+        REAL(kind=dp), dimension(nq) :: f
         integer(kind=ikind), dimension(:,:), allocatable :: posits
         real(kind=dp),dimension(:,:), allocatable :: za,zb,cmat
         integer(kind=ikind),dimension(:), allocatable ::posi,posj,posk,posr
-        REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
+        REAL(kind=dp), intent(out), dimension(nq) :: tsi
         real(kind=dp) :: hx,hy,hz,h
-        integer(kind=ikind),dimension(size(l)) :: ll
-        integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj,start1,stop1,start2,stop2
+        integer(kind=ikind),dimension(ncap) :: ll
+        integer(kind=ikind) :: i,j,k,r,count,ng,ii,jj,start1,stop1,start2,stop2
         integer(kind=ikind) :: spi, spj, spk, spr, szo,nt
 
         ng=maxval(group)
@@ -987,11 +986,12 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
 
 
         szo = size(z1(:,1,1))
+        print*,szo,'the mistaken number'
 
-        nq= size(q)
+        !nq= size(q)
 
        ! print*,OMP_get_num_threads()
-        call omp_set_num_threads(32)
+        call omp_set_num_threads(16)
        ! print*,OMP_get_num_threads()
         !First big loop
 
@@ -1072,18 +1072,13 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
                             call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, k, r, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
-                            if (maxval(abs(f))>1E3) then
-                           !   print*, 'pzero maxval-> ', maxval(abs(f))
-                            endif
+
                         else
 
                             call tot_integral_k_ijkr_j2(q,l,m,n,group_start, group_count, hx, hy, hz, h,dx1,dy1,dz1,dx2,&
                                 dy2,dz2,i, j, k, r, &
                                     zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
 
-                            if (maxval(abs(f))>1E3) then
-                              print*, 'normal int maxval-> ', maxval(abs(f))
-                            endif
 
 
 
@@ -1328,9 +1323,9 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
 
 
                 if (h < cutoffcentre) then
-!                    call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, k, k, &
-!                                    zcontrred, zcontrred2,  cutoffz, cutoffmd, f)
+                    call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, k, &
+                                    zcontrred, zcontrred2,  cutoffz, cutoffmd, f)
 
 
                 else
@@ -1417,13 +1412,14 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
             cutoffz,cutoffmd, cutoffcentre,q_al,e12,exponent1,exponent2,tsi)
 
 
-
+        use omp_lib
         implicit none
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER(kind=ikind), INTENT(IN) :: ncap
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) ::group_start,group_count
 
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         complex(kind=dp), intent(in), dimension(:,:,:,:):: exponent1,exponent2
@@ -1433,7 +1429,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
-        REAL(kind=dp), intent(in), dimension(:,:) :: q_al
+        REAL(kind=dp), intent(inout), dimension(:,:) :: q_al
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
@@ -1468,10 +1464,14 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
 
 
         !First big loop
-
+        call omp_set_num_threads(9)
         tsi=0.0_dp
 
+       ! !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q_al,l,m,n), &
+       ! !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
 
+        print*,'allocation is BS'
         do i=1,ncap
             do j=1,ncap
                 do k=1,ncap
@@ -1548,287 +1548,9 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
                 end do
             end do
         end do
+       ! !$OMP END parallel DO
 
 
-
-
-
-
-!        do i=1,ncap
-!            do j=i+1,ncap
-!                do r=i+1,ncap
-!                    hx = px(i, r) - px(i, j)
-!                    hy = py(i, r) - py(i, j)
-!                    hz = pz(i, r) - pz(i, j)
-!                    h = sqrt((hx * hx + hy * hy + hz * hz))
-!                    allocate(posI(size(posits(i,:group_count(i)))),posJ(size(posits(j,:group_count(j)))) &
-!                               ,posR(size(posits(r,:group_count(r)))))
-!
-!
-!                        posI = posits(i,:group_count(i))
-!                        posJ = posits(j,:group_count(j))
-!
-!                        posR = posits(r,:group_count(r))
-!
-!                        spi = size(posI)
-!                        spj = size(posJ)
-!                        spr = size(posR)
-!
-!                        allocate(zcontrred(spj, spi, spr, spi), za(szo, spj), zb(szo, spi), &
-!                       &         cmat(spj, spi), zcontrred2(spr, spi, spj, spi))
-!
-!                          do ii = 1, spi
-!                            do jj = 1, spr
-!                              ! za = transpose(z1(:,posj,posi(ii)))
-!                                za = z1(:,posj,posi(ii))
-!                                zb = z2(:,posi,posr(jj))
-!                               !cmat = matmul(za,zb)
-!                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
-!                               &           szo, zb, szo, 0.0_dp, cmat, spj)
-!                                zcontrred(:,:,jj,ii) = cmat
-!                                  za = z2(:,posj,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                                zb = z1(:,posi,posr(jj))
-!                               ! cmat = matmul(za,zb)
-!                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spj)
-!
-!                                zcontrred2(jj,ii,:,:) = cmat
-!                            enddo
-!                          enddo
-!
-!!
-!                    dx1=>dx(:,:,:,j,i)
-!                    dy1=>dy(:,:,:,j,i)
-!                    dz1=>dz(:,:,:,j,i)
-!                    dx2=>dx(:,:,:,r,i)
-!                    dy2=>dy(:,:,:,r,i)
-!                    dz2=>dz(:,:,:,r,i)
-!
-!
-!
-!
-!
-!                        call tot_integral_k_ijkr_alig(q_al, l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, j, i, r, &
-!                                zcontrred,  zcontrred2,  cutoffz, cutoffmd,f,exponent1,exponent2)
-!
-!
-!
-!
-!                    tsi = tsi + 4.000 * f * e12(:, i, j) * e12(:, i, r)
-!                    count=count+1
-!                    deallocate(posI,posJ,posR,za,zb,cmat)
-!                    deallocate(zcontrred, zcontrred2)
-!                  !   deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
-!
-!                end do
-!            end do
-!
-!        end do
-!
-!        print*,'here'
-!
-!        do i=1,ncap
-!            do k=1,ncap
-!                do r=k+1,ncap
-!                    hx = px(k, r) - px(i, i)
-!                    hy = py(k, r) - py(i, i)
-!                    hz = pz(k, r) - pz(i, i)
-!                    h = sqrt((hx * hx + hy * hy + hz * hz))
-!
-!                    allocate(posI(size(posits(i,:group_count(i)))) &
-!                                ,posK(size(posits(k,:group_count(k)))),posR(size(posits(r,:group_count(r)))))
-!
-!
-!                        posI = posits(i,:group_count(i))
-!
-!                        posK = posits(k,:group_count(k))
-!                        posR = posits(r,:group_count(r))
-!
-!                    spi = size(posI)
-!                    spk = size(posK)
-!                    spr = size(posR)
-!
-!                    allocate(zcontrred(spi, spk, spr, spi), za(szo, spi), zb(szo, spk), &
-!                   &         cmat(spi, spk), zcontrred2(spr, spi, spi, spk))
-!
-!                    do ii = 1, spi
-!                        do jj = 1, spr
-!                          !  za = transpose(z1(:,posi,posi(ii)))
-!                            za = z1(:,posi,posi(ii))
-!                            zb = z2(:,posk,posr(jj))
-!                           ! cmat = matmul(za,zb)
-!                            call  dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                           &           szo, zb, szo, 0.0_dp, cmat, spi)
-!                            zcontrred(:,:,jj,ii) = cmat
-!                             za = z2(:,posi,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                                zb = z1(:,posk,posr(jj))
-!                               ! cmat = matmul(za,zb)
-!                                call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spi)
-!
-!                                zcontrred2(jj,ii,:,:) = cmat
-!                        enddo
-!                    enddo
-!
-!
-!                    dx1=>dx(:,:,:,i,i)
-!                    dy1=>dy(:,:,:,i,i)
-!                    dz1=>dz(:,:,:,i,i)
-!                    dx2=>dx(:,:,:,r,k)
-!                    dy2=>dy(:,:,:,r,k)
-!                    dz2=>dz(:,:,:,r,k)
-!!                    zcontrred=zcontrred
-!!                    zcontrred2=zcontrred2
-!
-!
-!
-!                        call tot_integral_k_ijkr_alig(q_al, l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, k, r, &
-!                                    zcontrred, zcontrred2,  cutoffz, cutoffmd, f,exponent1,exponent2)
-!
-!
-!
-!
-!                    tsi = tsi+ 4.000 * f * e12(:, i, i) * e12(:, k, r)
-!                    count=count+1
-!                    deallocate(posI,posK,posR,za,zb,cmat)
-!                    deallocate(zcontrred, zcontrred2)
-!               !     deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
-!
-!                end do
-!            end do
-!        end do
-!
-!
-!        print*,'here 2'
-!
-!        do i=1,ncap
-!            do k=i+1,ncap
-!
-!                hx = px(k, k) - px(i, i)
-!                hy = py(k, k) - py(i, i)
-!                hz = pz(k, k) - pz(i, i)
-!                h = sqrt((hx * hx + hy * hy + hz * hz))
-!
-!                allocate(posI(size(posits(i,:group_count(i)))), &
-!                        posK(size(posits(k,:group_count(k)))))
-!
-!
-!                posI = posits(i,:group_count(i))
-!
-!                posK = posits(k,:group_count(k))
-!
-!
-!                spi = size(posI)
-!                spk = size(posK)
-!
-!                allocate(zcontrred(spi, spk, spk, spi), za(szo, spi), zb(szo, spk), &
-!               &         cmat(spi, spk), zcontrred2(spk, spi, spi, spk))
-!
-!                do ii = 1, spi
-!                    do jj = 1, spk
-!                       ! za = transpose(z1(:,posi,posi(ii)))
-!                        za = z1(:,posi,posi(ii))
-!                        zb = z2(:,posk,posk(jj))
-!!                        cmat = matmul(za,zb)
-!                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                       &           szo, zb, szo, 0.0_dp, cmat, spi)
-!                        zcontrred(:,:,jj,ii) = cmat
-!                        za = z2(:,posi,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                        zb = z1(:,posk,posk(jj))
-!                               ! cmat = matmul(za,zb)
-!                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spi)
-!
-!                        zcontrred2(jj,ii,:,:) = cmat
-!                    enddo
-!                enddo
-!
-!
-!                dx1=>dx(:,:,:,i,i)
-!                dy1=>dy(:,:,:,i,i)
-!                dz1=>dz(:,:,:,i,i)
-!                dx2=>dx(:,:,:,k,k)
-!                dy2=>dy(:,:,:,k,k)
-!                dz2=>dz(:,:,:,k,k)
-!
-!
-!
-!
-!                    call tot_integral_k_ijkr_alig(q_al,l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, k, k, &
-!                                    zcontrred, zcontrred2,  cutoffz, cutoffmd, f,exponent1,exponent2)
-!
-!                tsi = tsi+ 2.000 * f * e12(:, i, i) * e12(:, k, k)
-!                deallocate(posI,posK,za,zb,cmat)
-!                deallocate(zcontrred, zcontrred2)
-!               ! deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
-!
-!            end do
-!        end do
-!
-!
-!
-!        print*,'here 3'
-!
-!        do i=1,ncap
-!                              allocate(posI(size(posits(i,:group_count(i)))))
-!
-!
-!                        posI = posits(i,:group_count(i))
-!
-!
-!
-!            spi = size(posI)
-!
-!            allocate(zcontrred(spi, spi, spi, spi), za(szo, spi), zb(szo, spi), &
-!           &         cmat(spi, spi), zcontrred2(spi, spi, spi, spi))
-!
-!            do ii = 1, spi
-!                do jj = 1, spi
-!                  !  za = transpose(z1(:,posi,posi(ii)))
-!                    za = z1(:,posi,posi(ii))
-!                    zb = z2(:,posi,posi(jj))
-!                   ! cmat = matmul(za,zb)
-!                    call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
-!                   &           szo, zb, szo, 0.0_dp, cmat, spi)
-!                    zcontrred(:,:,jj,ii) = cmat
-!                     za = z2(:,posi,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                                zb = z1(:,posi,posi(jj))
-!                               ! cmat = matmul(za,zb)
-!                                call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spi)
-!
-!                                zcontrred2(jj,ii,:,:) = cmat
-!                enddo
-!            enddo
-!
-!            dx1=>dx(:,:,:,i,i)
-!            dy1=>dy(:,:,:,i,i)
-!            dz1=>dz(:,:,:,i,i)
-!            dx2=>dx(:,:,:,i,i)
-!            dy2=>dy(:,:,:,i,i)
-!            dz2=>dz(:,:,:,i,i)
-!!            zcontrred=zcontrred/8.0
-!!            zcontrred2=zcontrred2/8.0
-!
-!               call tot_integral_k_ijkr_alig(q_al, l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, i,i , &
-!                                zcontrred,  zcontrred2,  cutoffz, cutoffmd,f,exponent1,exponent2)
-!
-!
-!            tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
-!            count=count+1
-!            deallocate(posI,za,zb,cmat)
-!            deallocate(zcontrred, zcontrred2)
-!
-!
-!        end do
 
 
 
@@ -1844,7 +1566,8 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
               INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER(kind=ikind), INTENT(IN) :: ncap
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: group_start,group_count
 
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1,dx2,dy2,dz2
@@ -1853,7 +1576,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         real(kind=dp), intent(in), dimension(:,:)::z
 
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
-        REAL(kind=dp), intent(in), dimension(:) :: q
+        REAL(kind=dp), intent(in), dimension(:),allocatable :: q
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
@@ -1891,12 +1614,12 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         call omp_set_num_threads(16)
         print*,OMP_get_num_threads()
         !First big loop
-
+        print*,'posits allocated'
         tsi=0.0_dp
-       !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,za,zb), &
-        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi), &
-        !$OMP& schedule(dynamic)
+      ! !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,za,zb), &
+       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+      !  !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi), &
+       ! !$OMP& schedule(dynamic)
 
         do i=1,ncap
             do j=i+1,ncap
@@ -1967,9 +1690,9 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
             end do
         end do
 
-      !$OMP END parallel DO
+      !!$OMP END parallel DO
 
-
+        print*,'first loop finished', tsi(1)
 
 
         !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,za,zb), &
@@ -2209,7 +1932,8 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
               INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER(kind=ikind), INTENT(IN) :: ncap
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: group_start,group_count
 
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1,dx2,dy2,dz2
@@ -2218,7 +1942,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         real(kind=dp), intent(in), dimension(:,:)::z
 
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
-        REAL(kind=dp), intent(in), dimension(:) :: q
+        REAL(kind=dp), intent(in), dimension(:),allocatable :: q
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
@@ -2570,7 +2294,8 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
               INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER(kind=ikind), INTENT(IN) :: ncap
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: group_start,group_count
 
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         complex(kind=dp), intent(in), dimension(:,:,:,:) :: exponent1
@@ -2693,7 +2418,8 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
               INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         INTEGER(kind=ikind), INTENT(IN) :: ncap
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:),allocatable :: l,m,n,group
+         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)::  group_start,group_count
 
         REAL(kind=dp), intent(in), dimension(:,:,:,:,:),target :: dx,dy,dz
         real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1
@@ -2702,7 +2428,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         real(kind=dp), intent(in), dimension(:,:)::z,geom
 
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
-        REAL(kind=dp), intent(in), dimension(:) :: q,Zn
+        REAL(kind=dp), intent(in), dimension(:),allocatable :: q,Zn
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
@@ -2801,7 +2527,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         ! the maximum value of the orbital angular momentum of any GTO times 4
         INTEGER(KIND=ikind), INTENT(IN)                 :: lmax4
         ! the radial component of the scattering vector
-        REAL(KIND=dp), INTENT(IN), DIMENSION(:)         :: q
+        REAL(KIND=dp), INTENT(IN), DIMENSION(:),allocatable         :: q
 
 
         ! loop variables
@@ -2868,7 +2594,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         ! the maximum value of the orbital angular momentum of any GTO times 4
         INTEGER(KIND=ikind), INTENT(IN)                 :: lmax4
         ! the radial component of the scattering vector
-        REAL(KIND=dp), INTENT(IN), DIMENSION(:)         :: q
+        REAL(KIND=dp), INTENT(IN), DIMENSION(:),allocatable         :: q
 
         ! loop variables
         INTEGER(KIND=ikind) :: i, j, k
@@ -2879,7 +2605,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
             do j = 0, lmax4
                 do i = 0, lmax4
 
-                    if ((i+j+k)<16) then
+                    if ((i+j+k)<=16) then
                     ! Fill the current LMN
                     CALL P_LMN_j1(P0, k, j, i, q)
 
@@ -2901,7 +2627,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         ! The value of <qx^L*qy^M*qz^N>
         REAL(KIND=dp), INTENT(INOUT), DIMENSION(:,:,:,:) :: P0
         ! The radial part of the scattering vector
-        REAL(KIND=dp), INTENT(IN), DIMENSION(:)     :: q
+        REAL(KIND=dp), INTENT(IN), DIMENSION(:),allocatable    :: q
 
 
         ! For ordering
@@ -3131,7 +2857,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         ! The value of <qx^L*qy^M*qz^N>
         REAL(KIND=dp), INTENT(INOUT), DIMENSION(:,:,:,:) :: P0
         ! The radial part of the scattering vector
-        REAL(KIND=dp), INTENT(IN), DIMENSION(:)     :: q
+        REAL(KIND=dp), INTENT(IN), DIMENSION(:),allocatable     :: q
         real(kind=dp):: pi
 
         ! For ordering
@@ -3139,6 +2865,7 @@ subroutine tot_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_
         ! helper variable
         !INTEGER(KIND=ikind) :: i
         pi=dacos(-1.0_dp)
+        P0=0.0_dp
         ! Order L, M and N
         A(1) = L
         A(2) = M
@@ -3894,7 +3621,8 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
          real(kind=dp), intent(in),  dimension(:,:) :: za,zb
 
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: gs,gc,l,m,n
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: gs,gc
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:),allocatable::l,m,n
         ! definition of output
         REAL(kind=dp), INTENT(OUT), DIMENSION(nq)             :: f
         ! definition of loop indices
@@ -4004,7 +3732,8 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1
          real(kind=dp), intent(in),  dimension(:,:) :: za
 
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: gs,gc,l,m,n
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)         :: gs,gc
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:),allocatable::l,m,n
         ! definition of output
         REAL(kind=dp), INTENT(OUT), DIMENSION(nq)             :: f
         ! definition of loop indices
@@ -4183,7 +3912,10 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
             end do
         posi=posi+1
          end do
-
+     if (maxval(abs(F))>1E20) then
+            print*, 'pzero is the problem'
+            stop
+        end if
     END SUBROUTINE
      subroutine tot_integral_k_ijkr(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
             zcontr, zcontr2, &
@@ -4201,7 +3933,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: l,m,n,group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
         real(kind=dp), intent(in), dimension(:,:,:,:) :: zcontr,zcontr2
-        real(kind=dp), intent(in), dimension(:)   ::  mu
+        real(kind=dp), intent(in), dimension(:),allocatable   ::  mu
 
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
         !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
@@ -4338,7 +4070,10 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
-        CALL bessels0rr(F, llmax, mu, H,h_saved)
+        !CALL bessels0rr(F, llmax, mu, H,h_saved)
+
+        CALL BesselSum(F, mu, H, LLmax, h_saved)
+
 
     end subroutine
 
@@ -4360,7 +4095,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: l,m,n,group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
         real(kind=dp), intent(in), dimension(:,:,:,:) :: zcontr,zcontr2
-        real(kind=dp), intent(in), dimension(:)   ::  mu
+        real(kind=dp), intent(in), dimension(:),allocatable   ::  mu
 
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
         !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
@@ -4399,12 +4134,6 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
             stop
         end if
 
-        a=0.0_dp
-        b=0.0_dp
-        c=0.0_dp
-        ap=0.0_dp
-        bp=0.0_dp
-        cp=0.0_dp
       !  call rrdj2a(3,0.25_dp,a)
      !   call rrdj2b(a,ap)
 
@@ -4422,7 +4151,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         call rrdj2b(llmax,b,bp)
         call rrdj2b(llmax,c,cp)
 
-
+        cp=-2.0_dp*cp
 
 
 
@@ -4543,10 +4272,11 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
               INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         integer(kind=selected_int_kind(8)), intent(in)  :: gi,gj,gk,gr
-        integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: l,m,n,group_start,group_count
+        integer(kind=selected_int_kind(8)), dimension(:),allocatable, intent(in) :: l,m,n
+        integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
         real(kind=dp), intent(in), dimension(:,:,:,:) :: zcontr,zcontr2
-        real(kind=dp), intent(in), dimension(:)   ::  mu
+        real(kind=dp), intent(in), dimension(:),allocatable   ::  mu
 
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
         !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
@@ -4558,7 +4288,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z11,z22
-        INTEGER(kind=ikind), parameter :: dim = 13
+        INTEGER(kind=ikind), parameter :: dim = 16
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
@@ -4585,14 +4315,16 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
             stop
         end if
 
-        a=0.0_dp
-        b=0.0_dp
-        c=0.0_dp
 
 
-        call rrdj1xy(LLmax,Hx,a)
-        call rrdj1xy(LLmax,Hy,b)
-        call rrdj1z(LLmax,Hz,c)
+        call rrdj1xy(llmax,Hx,a)
+        call rrdj1xy(llmax,hy,b)
+        call rrdj1z(llmax,hz,c)
+!        print*, LLmax,Hy,maxval(b)
+!        if (LLMAX>1 .and. Hy/=0.0_dp) then
+!        stop
+!            endif
+
         bd=0.0_dp
         h_pre2=0.0_dp
 
@@ -4601,7 +4333,6 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
                 do i = 0, LLmax - k - j
                     call BesselDeriv1j(BD,Hz,H, i, j, k, a, b, c,LLmax)
                     h_pre2(:,i+1,j+1,k+1) = BD
-
 
                 end do
             end do
@@ -4684,7 +4415,10 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
+
+
        call bessels1rr(F,LLMAX,mu,H, h_saved)
+
 
     end subroutine
 
@@ -4841,10 +4575,11 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=selected_int_kind(8)), intent(in)  :: gi,gj,gk,gr
-        integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: l,m,n,group_start,group_count
+        integer(kind=selected_int_kind(8)), dimension(:), intent(in),allocatable :: l,m,n
+         integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
         real(kind=dp), intent(in), dimension(:,:) :: za,zb
-        real(kind=dp), intent(in), dimension(:)   ::  mu
+        real(kind=dp), intent(in), dimension(:),allocatable   ::  mu
 
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
         !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
@@ -4987,12 +4722,18 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
            F=0.0_dp
           return
         end if
-        call bessels1rr(F,LLmax,mu,H,h_saved)
+
+
+
+        call bessels0rr(F,LLmax,mu,H,h_saved)
+
 !        do i=1,LLmax+1
 !            F=F+h_saved(i)*bess(i,:)
 !
 !        end do
  !        CALL BesselSum(F, mu, H, LLmax, h_saved)
+
+
 
     end subroutine
 
@@ -5008,10 +4749,11 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=selected_int_kind(8)), intent(in)  :: gi,gj,gk,gr
-        integer(kind=selected_int_kind(8)), dimension(:), intent(in) :: l,m,n,group_start,group_count
+        integer(kind=selected_int_kind(8)), dimension(:), intent(in), allocatable :: l,m,n
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
         real(kind=dp), intent(in), dimension(:,:) :: za,zb
-        real(kind=dp), intent(in), dimension(:)   ::  mu
+        real(kind=dp), intent(in), dimension(:), allocatable   ::  mu
 
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
         !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
@@ -5159,7 +4901,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 !
 !        end do
       !   CALL BesselSum(F, mu, H, LLmax, h_saved)
-       if (sum(h_saved)==0.0_dp) then
+       if (sum(abs(h_saved))==0.0_dp) then
            F=0.0_dp
            return
         end if
@@ -5525,34 +5267,34 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         ! The three nested loops give the formula
         ! in the form of coefficients multiplying the h functions
-        REAL(kind=dp), INTENT(out), DIMENSION(13)  :: BD
+        REAL(kind=dp), INTENT(out), DIMENSION(16)  :: BD
         INTEGER(kind=ikind), INTENT(in)                 :: LL, MM, NN, LLmax
-        REAL(kind=dp), INTENT(in), DIMENSION(13,13)  :: a, b, c
+        REAL(kind=dp), INTENT(in), DIMENSION(16,16)  :: a, b, c
         real(kind=dp),intent(in) :: h,hz
         ! loop and temp variables
         INTEGER(kind=ikind) :: ii, jj, kk, hOrder, temp, ceil
-        REAL(kind=dp)       :: C1, C2, C3,pi,eta
+        REAL(kind=dp)       :: C1, C2, C3,pi
 
 
 
         pi=dacos(-1.0_dp)
-        eta=3.0_dp*hz**2-h**2
+
 
         BD = 0.0_dp
 
-        do ii = 0, LL+2
+        do ii = 0, LL
             C1=a(LL+1,ii+1)
 
 
 
 
-            do jj = 0, MM+2
+            do jj = 0, MM
                 C2=b(MM+1,jj+1)
 
 
 
 
-                do kk = 0, NN+2
+                do kk = 0, NN
                     C3=c(NN+1,kk+1)
 
 
@@ -5607,7 +5349,8 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer:: order2
         integer(kind=ikind)::i,beta,ra,maxord,ind
         integer(kind=ikind), intent(in) :: order
-        real (kind=dp), dimension(:), intent(in) :: mu, h_saved
+        real (kind=dp), dimension(:), intent(in),allocatable :: mu
+        real (kind=dp), dimension(:), intent(in) :: h_saved
         real (kind=dp),  intent(in) :: H
         real(kind=dp):: qrad,hfunc2,sumpmu,coeff,bess1,bess2,bessnew,time1,time2
         real(kind=dp),dimension(size(mu)):: pmu, muOH,h_1,h_0,h_r,hqr,bess
@@ -5623,6 +5366,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
                 if (abs(pmu(i))<0.05) then
                     call van(allbessels(0:6,i),6,pmu(i))
                     allbessels(7:18,i)=0.0_dp
+                elseif(abs(pmu(i))>100) then
+                    print*,'oh my goood'
+
                 else
                     call van(allbessels(0:18,i),18,pmu(i))
                  end if
@@ -5648,13 +5394,16 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
      End Subroutine bessels2rr
 
+
+
      Subroutine bessels1rr(sum,order,mu,H, h_saved)
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         integer:: order2
         integer(kind=ikind)::i,beta,ra,maxord,ind
         integer(kind=ikind), intent(in) :: order
-        real (kind=dp), dimension(:), intent(in) :: mu, h_saved
+        real (kind=dp), dimension(:), intent(in),allocatable :: mu
+        real (kind=dp), dimension(:), intent(in) :: h_saved
         real (kind=dp),  intent(in) :: H
         real(kind=dp):: qrad,hfunc2,sumpmu,coeff,bess1,bess2,bessnew,time1,time2
         real(kind=dp),dimension(size(mu)):: pmu, muOH,h_1,h_0,h_r,hqr,bess
@@ -5678,7 +5427,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
        !  print*,(allbessels(0:18,1))
        ! stop
-        do beta=0,16
+        do beta=0,order
 
                 hqr = mu**(beta-1) / h**beta
                 bess= allbessels(beta,:)
@@ -5701,7 +5450,8 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
         integer:: order2
         integer(kind=ikind)::i,beta,ra,maxord,ind
         integer(kind=ikind), intent(in) :: order
-        real (kind=dp), dimension(:), intent(in) :: mu, h_saved
+        real (kind=dp), dimension(:), intent(in) :: h_saved
+        real (kind=dp), dimension(:), intent(in), allocatable :: mu
         real (kind=dp),  intent(in) :: H
         real(kind=dp):: qrad,hfunc2,sumpmu,coeff,bess1,bess2,bessnew,time1,time2
         real(kind=dp),dimension(size(mu)):: pmu, muOH,h_1,h_0,h_r,hqr,bess
@@ -5835,9 +5585,9 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
         integer, intent(in)                                        :: lmax
         integer                                                    :: l,p
         real(kind=dp), intent(in)                                  :: x
-        real(kind=dp), dimension(:,:), intent(out) :: a
+        real(kind=dp), dimension(16,16), intent(out) :: a
 
-
+        a=0.0_dp
         a(1,2) = 1.0_dp
         a(2,3) = -x
 
@@ -5866,11 +5616,11 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
         integer                                                    :: n,s
         real(kind=dp), intent(in)                                  :: z
         real(kind=dp), dimension(:,:), allocatable                 :: a0
-        real(kind=dp), dimension(:,:), intent(out)   :: a
+        real(kind=dp), dimension(16,16), intent(out)   :: a
 
         allocate( a0(nmax+2,nmax+3) )
-
-
+        a=0.0_dp
+        a0 = 0.0_dp
         a0(1,2) = -1.0_dp
         a0(2,3) = z
 
@@ -5901,7 +5651,7 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
         integer(kind=ikind), intent(in)                                        :: lmax
         integer(kind=ikind)                                                    :: l, p
         real(kind=dp), intent(in)                                  :: x
-        real(kind=dp), dimension(:,:), intent(out)   :: a
+        real(kind=dp), dimension(20,20), intent(out)   :: a
 
         a=0.0_dp
         a(1,3) = 1.0_dp
@@ -5926,8 +5676,8 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
         integer, parameter    :: dp = selected_real_kind(15)
         integer, intent(in)                                                   :: lmax
         integer                                                    :: l, p
-        real(kind=dp), dimension(:,:), intent(in)                  :: a
-        real(kind=dp), dimension(:,:), intent(out)   :: b
+        real(kind=dp), dimension(20,20), intent(in)                  :: a
+        real(kind=dp), dimension(20,20), intent(out)   :: b
         real(kind=dp)                                              :: carg
 
         b=0.0_dp

@@ -945,9 +945,10 @@ double precision, allocatable :: SpinFree2RDM(:,:,:,:)
 integer porb,rorb,sorb,qorb
 integer spins,spinq,spinp,spinr
 double precision dtemp,ep,eg
-integer ici,jci,ndiff,idiff1,idiff2
+integer ici,jci,ndiff,idiff1,idiff2,countcivs
 integer i,i1,i2,l,l2,k,k2
 double precision Eone_e,Etwo_e,TwoRDM_e,cutoff
+double precision civ1, civ2
 integer newdiff,mytemp,n,count2,count_p,p,q,r,s
   integer hole,part,tz,tz2,buffer,nword
   integer myhigh,mylow,nperm
@@ -969,7 +970,11 @@ integer newdiff,mytemp,n,count2,count_p,p,q,r,s
 
 open(15,file=file_read)
 nword=1
+print*,'reading ', length, ' lines'
+
  do i=1,length
+
+
             read(15,*)dummy, c1(i),c2(i),icij(1,1,i), icij(2,1,i)
 
      enddo
@@ -1768,14 +1773,14 @@ enddo
            integer(kind=SELECTED_INT_KIND(8)),intent(in):: numberlines
            integer*8:: icij(2,1,numberlines), j, k,i,nbft,itemp,ici,ntotal,phase,iperm
            integer*8, allocatable, dimension(:,:):: list
-           real(kind=SELECTED_REAL_KIND(15)):: c(numberlines)
+           real(kind=SELECTED_REAL_KIND(15)):: c1(numberlines), c2(numberlines)
            double precision, parameter :: phase_dbl(0:1) = (/ 1.d0, -1.d0 /)
 
 
            open(file=file_read,unit=15)
 
            do i=1,numberlines
-               read(15,*)ici, c(i), icij(1,1,i), icij(2,1,i)
+               read(15,*)ici, c1(i), c2(i), icij(1,1,i), icij(2,1,i)
            enddo
            close(15)
 
@@ -1834,9 +1839,10 @@ enddo
 
                phase=phase_dbl(iand(iperm,1))
 
-               c(ici)=phase*c(ici)
+               c1(ici)=phase*c1(ici)
+               c2(ici)=phase*c2(ici)
 
-               write(17,"(E30.16, 2I20)") c(ici), icij(1,1,ici),icij(2,1,ici)
+               write(17,"(I15, 2E20.10, 2I20)")ici,c1(ici),c2(ici), icij(1,1,ici),icij(2,1,ici)
 
 
            end do !end of loop over ici

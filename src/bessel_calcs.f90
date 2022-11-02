@@ -388,7 +388,7 @@ contains
         real(kind=dp), intent(in)                                  :: x
         real(kind=dp), dimension(:,:), intent(out) :: a
 
-
+        a=0.0_dp
         a(1,2) = 1.0_dp
         a(2,3) = -x
 
@@ -418,7 +418,7 @@ contains
         real(kind=dp), dimension(:,:), intent(out)   :: a
 
         allocate( a0(nmax+2,nmax+3) )
-
+        a=0.0_dp
 
         a0(1,2) = -1.0_dp
         a0(2,3) = z

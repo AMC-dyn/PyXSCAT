@@ -1,7 +1,7 @@
 Module variables
 
    use uniquemodule
-   use p0_cases
+   use integrals
     implicit none
     contains
 
@@ -13,9 +13,9 @@ SUBROUTINE fill_md_table(D, l, x, ga)
         ! The MD table to be populated D(Ngto, Ngto, 2maxl+1,maxl+1,maxl+1)
         REAL(kind=dp), INTENT(OUT), DIMENSION(:,:,:,:,:)    :: D
         ! vectors that contains the x coordinates for all GTOs, and all gammas
-        REAl(kind=dp), INTENT(IN), DIMENSION(:)             :: ga, x
+        REAl(kind=dp), INTENT(IN), DIMENSION(:),allocatable             :: ga, x
         ! vector that contains all the angular momenta (lx) for the GTOs
-        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)       :: l
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:),allocatable       :: l
 
 
         ! loop and temp vars
@@ -488,12 +488,12 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         integer(kind=ikind), intent(in)::ngto,ng, nmat, nq, maxl
-        integer(kind=ikind), intent(in),dimension(:) :: l, m, n, m1, m2, m3, m4,group_start,group,group_count
+        integer(kind=ikind), intent(in),dimension(:),allocatable :: l, m, n, group
+        integer(kind=ikind), intent(in),dimension(:)::m1, m2, m3, m4,group_start,group_count
 
-
-        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, total,q
+        real(kind=dp), intent(in),dimension(:),allocatable :: ga, xx, yy, zz, total,q
         real(kind=dp), dimension(ng):: ga2, xx2, yy2, zz2
-        real(kind=dp), intent(in),dimension(:,:) :: mmod
+        real(kind=dp), intent(in),dimension(:,:),allocatable :: mmod
         real(kind=dp), intent(out), dimension(ng,ng):: px,py,pz
         real(kind=dp), dimension(nmat,ngto,ngto) :: z1
         real(kind=dp), dimension(:,:),allocatable :: za
@@ -502,7 +502,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         real(kind=dp), dimension(ngto,ngto) :: cmat
         !real(kind=dp), intent(out), dimension(ngto,ngto,ngto,ngto) :: zcontr
 
-        real(kind=dp), intent(out), dimension(nq,ngto,ngto) :: e12
+        real(kind=dp), intent(out), dimension(nq,ng,ng) :: e12
 
         real(kind=dp), intent(out), dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
 
@@ -541,7 +541,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
             mat1(i,3:4)=vec2(i,:)
 
         end do
-
+        print*,'wtf',nq,size(q)
         call unique_total(mat1,total,matfin,totalfin)
         print*,sum(total)
         !matfin=mat1
@@ -591,13 +591,10 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         if (counter==ngto**2) then
             print*, 'Las gustones con las muchachas'
             else
-            print*, 'Los gustones de los resultados, muchas',sum(totalfin*mmod(m11,2))
+            print*, 'Los gustones de los resultados, muchas',ngto,maxl,ng
         end if
 
         gap=0.0
-        dx=0.0
-        dy=0.0
-        dz=0.0
         px=0.0
         py=0.0
         pz=0.0
@@ -605,17 +602,22 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         ddx=0.0
         ddy=0.0
         ddz=0.0
+        dx=0.0
+        dy=0.0
+        dz=0.0
+        print*,'hijos de la rata '
+
 
 
         call cpu_time(time3)
 
-
+        print*,'hijos de la rata I'
 
         call fill_md_table(dx,l,xx,ga)
         call fill_md_table(dy,m,yy,ga)
         call fill_md_table(dz,n,zz,ga)
 
-
+         print*,'hijos de la rata II'
        ! allocate( ga2(size(apos)), xx2(size(apos)), yy2(size(apos)), zz2(size(apos)) )
 
 !        ll = l + m + n
@@ -641,6 +643,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
                 Px(ii,jj)=(ga(i)*xx(i) + ga(j)*xx(j))/gaP
                 Py(ii,jj)=(ga(i)*yy(i) + ga(j)*yy(j))/gaP
                 Pz(ii,jj)=(ga(i)*zz(i) + ga(j)*zz(j))/gaP
+
                 E12(:,ii,jj) = (pi/gaP)**1.5 * exp(-q*q*0.25/gaP) &
                     * exp(-ga(i)*ga(j)/gaP*((xx(i)-xx(j))**2. + (yy(i)-yy(j))**2. + (zz(i)-zz(j))**2.))
             end do
@@ -666,9 +669,9 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
             end do
         end do
 
-
-
+    print*,ngto,size(E12(:,1,1)),size(E12(1,:,1)), size(E12(1,1,:))
     print*, 'leaving variables total'
+
     end subroutine variables_total
 
 
@@ -686,9 +689,11 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         integer(kind=ikind), intent(in)::ngto,ng,  nq, maxl,maxnmo
-        integer(kind=ikind), intent(in),dimension(:) :: l, m, n,group_start,group,group_count
-        real(kind=dp), intent(in),dimension(:) :: ga, xx, yy, zz, q
-        real(kind=dp), intent(in),dimension(:,:) :: mmod,onerdm
+        integer(kind=ikind), intent(in),dimension(:),allocatable :: l, m, n,group
+        integer(kind=ikind), intent(in),dimension(:):: group_count,group_start
+        real(kind=dp), intent(in),dimension(:),allocatable :: ga, xx, yy, zz, q
+        real(kind=dp), intent(in),dimension(:,:),allocatable :: mmod
+        real(kind=dp), intent(in),dimension(:,:)::onerdm
         real(kind=dp), intent(out), dimension(ng,ng):: px,py,pz
         real(kind=dp), intent(out), dimension(ngto,ngto) :: z
         real(kind=dp), intent(out), dimension(nq,ngto,ngto) :: e12
@@ -711,7 +716,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
 
 
         z=0.0_dp
-
+        print*,maxval(mmod), maxval(onerdm)
         counter=0
          do  ii=1,ngto
 
@@ -792,8 +797,6 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
             end do
         end do
 
-
-
-
+       print*,maxval(e12)
     end subroutine variables_elastic
 End Module variables
