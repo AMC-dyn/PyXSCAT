@@ -419,7 +419,8 @@ enddo
     integer(kind=ikind),  dimension(:,:), allocatable :: matdum
     real(kind=dp), dimension(:), allocatable :: totaldum
     integer*8, dimension(:,:), allocatable :: single_exc,hole_exc, particle_exc,phases,counter_exc,starts,ends
-    integer*8, dimension(:,:), allocatable :: double_exc,hole_exc_1,hole_exc_2, particle_exc_1,particle_exc_2, phases_2, counter_exc_2,starts_2,ends_2
+    integer*8, dimension(:,:), allocatable :: double_exc,hole_exc_1,hole_exc_2
+integer*8, dimension(:,:),allocatable :: particle_exc_1,particle_exc_2, phases_2, counter_exc_2,starts_2,ends_2
     integer*8, dimension(:,:,:), allocatable :: beta_excs
     integer*8 :: buffer_prime, buffer_prime_2, tz,tz2, count_p,n,ss,ee,spin11,spin22,buffer2,buffer_3,buffer_4,newdat_1,len_rm
 
@@ -534,7 +535,7 @@ enddo
                       ep=1
                       mylow=min(j+1,k+1)
                       myhigh=max(j+1,k+1)
-                      ep=POPCNT(IAND(newdat(i,1),IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+                      ep=POPCNT(IAND(newdat(i,1),IAND(ibset(0_8,myhigh-1_8)-1_8,ibclr(-1,mylow)+1_8)))
 !                      buffer_prime=newdat(i,1)
 !                      buffer_prime_2=particle_int
 !
@@ -1477,15 +1478,15 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
                             mylow=min(porb,qorb)
                             myhigh=max(porb,qorb)
                             ep=POPCNT(IAND(Nalphbet(1,1,c1),&
-                                IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+                                IAND(ibset(0_8,myhigh-1_8)-1_8,ibclr(-1_8,mylow)+1_8)))
 !                            ep=ep+POPCNT(IAND(Nalphbet(1,2,c1),&
 !                               IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow))))
 
 
 
-                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
-                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
                     end if
 
@@ -1497,16 +1498,16 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
                             mylow=min(porb,qorb)
                             myhigh=max(porb,qorb)
                             ep=POPCNT(IAND(Nalphbet(1,2,c1),&
-                                IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
+                                IAND(ibset(0_8,myhigh-1_8)-1_8,ibclr(-1,mylow)+1_8)))
                              !ep=ep+POPCNT(IAND(Nalphbet(1,1,c1),&
                              !   IAND(ibset(0,myhigh-1)-1,ibclr(-1,mylow)+1)))
 
 
                           !  if (c1<=20) print*,'conguration of interest',c1,c2,ep
 
-                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(porb,qorb)=onerdm(porb,qorb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
-                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1))
+                            onerdm(qorb,porb)=onerdm(qorb,porb)+civs(c1)*civs(c2)*phase_dbl(iand(ep,1_8))
 
                     end if
 
@@ -1837,7 +1838,7 @@ enddo
                end do
 
 
-               phase=phase_dbl(iand(iperm,1))
+               phase=phase_dbl(iand(iperm,1_8))
 
                c1(ici)=phase*c1(ici)
                c2(ici)=phase*c2(ici)
