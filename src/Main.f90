@@ -1,5 +1,5 @@
 program main
-
+    use omp_lib
     use main_calculation_mod
     use linspace
     implicit none
@@ -22,7 +22,9 @@ program main
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
-
+     
+     call OMP_set_num_threads(20) 
+     print*,OMP_get_num_threads()    
     open(unit=15, file='basis.dat')
     read(15,*)ngtos
     allocate(xx(ngtos), yy(ngtos), zz(ngtos), ga(ngtos), l(ngtos), m(ngtos), n(ngtos), group(ngtos))

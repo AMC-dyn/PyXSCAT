@@ -37,9 +37,9 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_88.mld'
-punfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_88.pun'
-outfile = 'QD_CAS88_vdz.dat'
+mldfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.mld'
+punfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.pun'
+outfile = 'QD_CAS88_vtz.dat'
 
 readtwordm = False
 file_read_twordm = 'CO_4Bohr_UCCSD2RDM_631G.txt'
