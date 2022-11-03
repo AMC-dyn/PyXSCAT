@@ -4,7 +4,6 @@ import molden_reader_nikola_molcas as mcmldreader
 import molcas_ci_reader as mc
 import twordm_red as td
 from textwrap import wrap
-
 # If there is an external file with CIvecs or 2rdms JeremyR==True
 molpro = True
 bagel = False
@@ -18,10 +17,11 @@ mcci = False
 hf = False
 # States involved
 state1 = 1
-state2 = 4
+state2 = 1
+closed = 21
 qmin = 1E-10
-qmax = 5.0
-npoints = 400
+qmax = 6.5
+npoints = 100
 cutoffcentre = 0.1  # suggested: cutoffcentre = 0.01;
 # the cutoff for the Z integral
 cutoffz = 1e-20  # suggested: cutoffz = 1E-9;
@@ -38,13 +38,15 @@ largeconf = False
 # ELASTIC ELECTRON --> 6
 # TOTAL J2 --> 7
 # ELASTIC J2 --> 8
-Type = 7
-# Ouput name (is a mat file, needs to be changed to make it general)
-nameoffile = 'lif_cms_eq_y_j2.dat'
+Type = 1
+# Ouput name
+mldfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.mld'
+punfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.pun'
+outfile = 'QD_CAS88_vtz.dat'
 
-readtwordm=False
-file_read_twordm= '2rdm.txt'
-if not jeremyR and not hf:
+readtwordm = False
+file_read_twordm = 'CO_4Bohr_UCCSD2RDM_631G.txt'
+if not jeremyR and not hf and not readtwordm:
 
     # This routine reads the CIvectors and the configurations
     if molcas:
@@ -62,12 +64,12 @@ if not jeremyR and not hf:
     print('Nmo_max:', Nmo_max)
 
 elif not jeremyR and hf:
-    civs = 1.000
+    civs = [1.000]
     # The number of occupied orbs or he configuration used must be specified by the user in hf
-    norbs = 7
+    norbs = 25
     confs = ['ab' * norbs]
     print(confs)
-    Nmo_max = 18
+    Nmo_max = 25
 else:
     # If the 2rdm or Civector is constructed in a bit-wise manner, the number or orbitals needs to be specified here by the user
     confs = 0
@@ -98,13 +100,13 @@ with open('options.dat', 'w') as f:
     f.write(str(qmin) + ' ' + str(qmax) + ' ' + str(npoints) + ' \n')
     f.write(str(Type) + '\n')
     f.write(str(state1) + ' ' + str(state2) + '\n')
-    f.write(nameoffile + '\n')
+    f.write(outfile + '\n')
     f.write(str(molpro) + '\n')
     f.write(str(molcas) + '\n')
     f.write(str(bagel) + '\n')
     if molpro and not readtwordm:
         f.write(str(np.size(confs)) + '\n')
-        print(str(np.size(civs[:, 0])))
+
         f.write(str(len(confs[0])) + '\n')
         f.write(str(np.size(civs[0, :])) + '\n')
 
@@ -112,9 +114,12 @@ with open('options.dat', 'w') as f:
             bitwise = False
             print('Normal integration')
             for i in range(np.size(confs)):
-                lst = [*confs[i].replace('a', '1').replace('b', '2')]
+                print(wrap(confs[i].replace('a', '1').replace('b', '2'),1))
+                lst = wrap(confs[i].replace('a', '1').replace('b', '2'),1) #[*confs[i].replace('a', '1').replace('b', '2')]
                 confs2 = np.asarray(lst, dtype=np.int64)
-                f.write(str(confs2)[1:-1])
+                print(confs2)
+                g1 = [int(i) for i in lst]
+                f.write(str(g1)[1:-1].replace(',',' '))
                 for j in range(np.size(civs[0, :])):
                     f.write(' ' + str(civs[i, j]) + ' ')
                 f.write(str('\n'))
@@ -126,6 +131,7 @@ with open('options.dat', 'w') as f:
             beta = 0
             with open('bitwise.dat', 'w') as m:
                 for i in range(np.size(confs)):
+
                     lst = [*confs[i].replace('a', '1').replace('b', '2')]
                     confs2 = np.asarray(lst, dtype=np.int64)
                     alpha = 0
@@ -137,7 +143,7 @@ with open('options.dat', 'w') as f:
                             else:
                                 beta = beta + 2 ** ((j - 1) / 2)
                     m.write(str(i) + ' ' + str(civs[i, state1 - 1]) + ' ' + str(civs[i, state2 - 1]) + ' ' + str(
-                    int(alpha)) + ' ' + str(int(beta)) + '\n')
+                        int(alpha)) + ' ' + str(int(beta)) + '\n')
         f.write(str(bitwise) + '\n')
     elif bagel:
         f.write('bagel')
@@ -155,9 +161,20 @@ with open('options.dat', 'w') as f:
                 f.write(' ' + str(civs[i, j]) + ' ')
             f.write(str('\n'))
     elif readtwordm:
-        f.write('readtwordm'+'\n')
+        f.write('readtwordm' + '\n')
         f.write(file_read_twordm)
+    elif hf:
+        f.write(str(np.size(confs)) + '\n')
 
+        f.write(str(len(confs[0])) + '\n')
+
+        f.write(str(1)+ '\n')
+
+        lst = [*confs[0].replace('a', '1').replace('b', '2')]
+        confs2 = np.asarray(lst, dtype=np.int64)
+        f.write(str(confs2)[1:-1])
+        f.write(' ' + str(1.00000) + ' ')
+        f.write(str('\n'))
 
 Nmo_max = 100
 

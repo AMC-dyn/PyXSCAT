@@ -16,7 +16,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
 
-
+    use omp_lib
     use onerdm
 
     use twordms
@@ -66,7 +66,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp),  dimension(:,:,:,:), allocatable :: zcontr
         real(kind=dp),  dimension(:,:), allocatable :: onerdm_matrix
         real(kind=dp),  dimension(:), allocatable :: total,newtotal
-        real(kind=dp),  dimension(nq,ngto,ngto) :: e12
+        real(kind=dp),  dimension(nq,ng,ng) :: e12
         real(kind=dp),  dimension(3131,ngto,ngto):: E123
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
@@ -495,7 +495,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
-        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k,c1,sizenmat
+        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k,c1,sizenmat,spincont,counter,reads
         real(kind=dp) ::time1,time2,time3,time4,co,wl,rr,k0,rij
         complex(kind=dp), dimension(:,:,:,:), allocatable :: exponent1, exponent2
         complex(kind=dp), dimension(nq):: resultaligned
@@ -527,13 +527,43 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
                 if (read2rdm) then
                 sizenmat=numberlines
+                reads=numberlines
                 print*,sizenmat,fileJ
                 open(file=fileJ,unit=15)
-                allocate(mat(sizenmat,4), total(sizenmat))
-                do i=1,sizenmat
-                    read(15,*)mat(i,1), mat(i,2), mat(i,3), mat(i,4), total(i)
-                end do
+                   do i=1,reads
+                    read(15,*)spincont
+                     if (spincont==1) then
+                        sizenmat=sizenmat+1
+                    end if
 
+                   end do
+                close(15)
+                open(file=fileJ,unit=15)
+                allocate(mat(sizenmat,4), total(sizenmat))
+                counter=1
+                do i=1,reads
+                    read(15,*)spincont,mat(counter,1), mat(counter,2), mat(counter,3), mat(counter,4), total(counter)
+                    if (spincont==1) then
+
+                        mat(counter,1)=mat(counter,1)+18
+                        mat(counter,2)=mat(counter,2)+18
+                        total(counter+1)=total(counter)
+                        mat(counter+1,1)=mat(counter,1)
+                        mat(counter+1,2)=mat(counter,2)
+                        mat(counter+1,3)=mat(counter,3)+18
+                        mat(counter+1,4)=mat(counter,4)+18
+                        counter=counter+2
+                    elseif (spincont==2) then
+                        mat(counter,3)=mat(counter,3)+18
+                        mat(counter,4)=mat(counter,4)+18
+                        mat(counter,2)=mat(counter,2)+18
+                        mat(counter,1)=mat(counter,1)+18
+                        counter=counter+1
+                    else
+                        counter=counter+1
+                    end if
+                end do
+                print*,counter,sizenmat
               !  call mcci_to_bit(fileJ,fileout,numberlines)
               !  print*,'Created new file'
                 !call one_rdm_two_rdm(mat,total,onerdm_matrix_2)

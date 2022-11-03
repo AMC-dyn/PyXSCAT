@@ -106,11 +106,11 @@ def _read_atoms_file(file):
             # symbol = columns[0]
             atmnum = int(columns[2])
             # coordinates in au
-            x = float(columns[3]) / AU2ANG
-            y = float(columns[4]) / AU2ANG
-            z = float(columns[5]) / AU2ANG
+            x = float(columns[3])/AU2ANG
+            y = float(columns[4])/AU2ANG
+            z = float(columns[5])/AU2ANG
             atoms.add_atom(mol.Atom(atmnum, x, y, z))
-            print("Atoms read")
+
     else:
         print("Something went wrong! Can't find [GTO]")
 
@@ -155,9 +155,9 @@ def _read_contractions(file):
     # read the first atom
     line = file.readline()
     atms = [int(s) for s in line.split() if s.isdigit()]
-    print(atms)
+
     atm = atms[0]
-    print(atm)
+
 
 
     contraction_counter = 1
@@ -183,7 +183,7 @@ def _read_contractions(file):
                     line = file.readline()
             # read the contraction
             contraction_spec = line.split()
-            print(contraction_spec[0])
+
             type_of_GTO = contraction_spec[0]
             num_of_primitives = int(contraction_spec[1])
 
@@ -316,6 +316,7 @@ def _read_MO(file, mo_cutoff):
 
     idx = np.argsort(syms_array)
 
+
     mo = np.array(mo_table)
 
     mo = mo[idx, :]
@@ -325,7 +326,7 @@ def _read_MO(file, mo_cutoff):
 
     occ_array = np.array(occ)
     occ_array = occ_array[idx]
-    print('final occupation is', sum(occ_array))
+    print('final occupation is', sum(occ_array), 'with ', np.size(idx))
 
     return (np.transpose(mo), occ_array, energy_array, syms_array)
 

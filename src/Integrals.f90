@@ -1,4 +1,5 @@
 module integrals
+    use omp_lib    
     use calculate_form_factors
     implicit none
     contains
@@ -56,8 +57,9 @@ module integrals
 
         nq= size(q)
 
-    !    print*,OMP_get_num_threads()
-        call omp_set_num_threads(9)
+        print*,OMP_get_num_threads()
+        call OMP_set_num_threads(10)
+        print*,OMP_get_num_threads()
      !
         !First big loop
 
@@ -68,7 +70,6 @@ module integrals
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
         !$OMP& schedule(dynamic)
-
 
 
 
@@ -162,7 +163,7 @@ module integrals
 
       !$OMP END parallel DO
 
-
+      print*,OMP_get_num_threads()
 
 
         !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
@@ -4070,9 +4071,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
-      !  CALL bessels0rr(F, llmax, mu, H,h_saved)
+        !CALL bessels0rr(F, llmax, mu, H,h_saved)
 
-          CALL BesselSum(F, mu, H, LLmax, h_saved)
+        CALL BesselSum(F, mu, H, LLmax, h_saved)
 
 
     end subroutine

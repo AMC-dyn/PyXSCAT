@@ -502,7 +502,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         real(kind=dp), dimension(ngto,ngto) :: cmat
         !real(kind=dp), intent(out), dimension(ngto,ngto,ngto,ngto) :: zcontr
 
-        real(kind=dp), intent(out), dimension(nq,ngto,ngto) :: e12
+        real(kind=dp), intent(out), dimension(nq,ng,ng) :: e12
 
         real(kind=dp), intent(out), dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
 
@@ -591,22 +591,22 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         if (counter==ngto**2) then
             print*, 'Las gustones con las muchachas'
             else
-            print*, 'Los gustones de los resultados, muchas',sum(totalfin*mmod(m11,2))
+            print*, 'Los gustones de los resultados, muchas',ngto,maxl,ng
         end if
 
         gap=0.0
-        dx=0.0
-        dy=0.0
-        dz=0.0
         px=0.0
         py=0.0
         pz=0.0
-        e12=0.0_dp
-        print*,'hijos de la rata ',size(e12(:,1,1))
-
+        e12=0.0
         ddx=0.0
         ddy=0.0
         ddz=0.0
+        dx=0.0
+        dy=0.0
+        dz=0.0
+        print*,'hijos de la rata '
+
 
 
         call cpu_time(time3)
@@ -669,7 +669,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
             end do
         end do
 
-    print*,ngto,size(E12(:,1,1)),size(E12(1,:,1), size(E12(1,1,:)))
+    print*,ngto,size(E12(:,1,1)),size(E12(1,:,1)), size(E12(1,1,:))
     print*, 'leaving variables total'
 
     end subroutine variables_total

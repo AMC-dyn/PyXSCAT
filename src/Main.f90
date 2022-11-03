@@ -1,5 +1,4 @@
 program main
-
     use omp_lib
     use main_calculation_mod
     use linspace
@@ -23,7 +22,9 @@ program main
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
-
+     
+     call OMP_set_num_threads(20) 
+     print*,OMP_get_num_threads()    
     open(unit=15, file='basis.dat')
     read(15,*)ngtos
     allocate(xx(ngtos), yy(ngtos), zz(ngtos), ga(ngtos), l(ngtos), m(ngtos), n(ngtos), group(ngtos))
@@ -123,7 +124,7 @@ program main
               ordering1 = 0
               ordering2 = 0
               end_2 = 0
-              nconfs=5421
+              nconfs=52236
               print*,mmod
               call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
       Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &

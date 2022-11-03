@@ -1,12 +1,12 @@
 ***
-memory,100,m
+memory,300,m
 gprint,civector,orbitals,angles=-1,distance=-1
  gthresh,twoint=1.0d-13
  gthresh,energy=1.0d-7,gradient=1.0d-2
-
  gthresh,thrpun=0.0000000001
- punch,qd_ccsd.pun,new
-basis= 6-31G
+ punch,qd_ccsd_vdz.pun,new
+cartesian
+basis=vdz
 symmetry,nosym;
 orient,noorient;
 Bohr;
@@ -41,14 +41,15 @@ closed,23;
 wf,50,1,0;
 state,1;
 
-        !pspace,10.0        
+pspace,10.0        
 orbital,2140.3;
 !CANORB,2140.3;
 !dont,orbital
-!ORBITAL,IGNORE_ERROR;
+ORBITAL,IGNORE_ERROR;
 !ciguess,2501.2 
 !save,ci=2501.2}
 }
 
-put,molden,qd_ccsd.mld
+put,molden,qd_ccsd_vdz.mld
 ---
+
