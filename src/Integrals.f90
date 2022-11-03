@@ -1468,11 +1468,13 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         call omp_set_num_threads(9)
         tsi=0.0_dp
 
-        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q_al,l,m,n), &
-        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi)
 
-        print*,'allocation is BS'
+
+        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2), &
+        !$OMP& private(f,za,zb,cmat,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2), &
+        !$OMP& shared(q_al,l,m,n), &
+        !$OMP& shared(cutoffz, posits,cutoffmd,group_count,group_start), REDUCTION(+:tsi)
+
         do i=1,ncap
             do j=1,ncap
                 do k=1,ncap
@@ -2346,18 +2348,19 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         !First big loop
 
         tsi=(0.0_dp,0.0_dp)
+        print*,Z(2,9), E12(1,16,16)
+        counter1=0 ! here
+      !ANDRES WHAT THE FUCK DOES THE COUNTER VARIABLE DO?
      !$OMP PARALLEL do private(posI,posJ,spi,spj,za), &
       !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,dx1,dy1,dz1) shared(q_al,l,m,n), &
       !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start,z) REDUCTION(+:tsi)
-        print*,Z(2,9), E12(1,16,16)
-        counter1=0
 
         do i=1,ncap
-             counter1=counter1+group_count(i)
-             counter2=0
+             ! counter1=counter1+group_count(i)  ! here 
+             ! counter2=0 ! here
             do j=1,ncap
 
-                        counter2=counter2+group_count(j)
+                        ! counter2=counter2+group_count(j)
                         hx =  px(i, j)
                         hy =  py(i, j)
                         hz =  pz(i, j)
@@ -2396,15 +2399,15 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
                         tsi = tsi + f * e12(:, i, j)
 
-                        count=count+1
+                        ! count=count+1 ! here
                         deallocate(za)
                !        deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
 
                     end do
                 end do
-        print*,tsi(1),q_al(1,1), q_al(2,1), q_al(3,1)
       !$OMP END parallel DO
+        print*,tsi(1),q_al(1,1), q_al(2,1), q_al(3,1)
 
 
 
