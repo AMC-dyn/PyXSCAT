@@ -5,9 +5,10 @@ import molcas_ci_reader as mc
 import twordm_red as td
 from textwrap import wrap
 # If there is an external file with CIvecs or 2rdms JeremyR==True
-molpro = True
+molpro = False
 bagel = False
-molcas = False
+molcas = True
+extra_precision_molcas = True
 caspt2 = False
 jeremyR = False
 fileJeremy = 'configurations_bit.dat'
@@ -42,7 +43,7 @@ Type = 1
 # Ouput name
 mldfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.mld'
 punfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.pun'
-outfile = 'QD_CAS88_vtz.dat'
+outfile = 'QD_CAS44.dat'
 
 readtwordm = False
 file_read_twordm = 'CO_4Bohr_UCCSD2RDM_631G.txt'
@@ -51,7 +52,7 @@ if not jeremyR and not hf and not readtwordm:
     # This routine reads the CIvectors and the configurations
     if molcas:
         logfile = 'molcas.log'
-        civs, confs = mc.get_civs_and_confs(logfile, caspt2)
+        civs, confs = mc.get_civs_and_confs(logfile, caspt2, extra_precision_molcas)
 
     elif bagel:
         print('will be implemented soon')
@@ -147,7 +148,7 @@ with open('options.dat', 'w') as f:
         f.write(str(bitwise) + '\n')
     elif bagel:
         f.write('bagel')
-    elif molcas:
+    elif molcas and not hf:
         f.write(str(np.size(confs)) + '\n')
         print(str(np.size(civs[:, 0])))
         f.write(str(len(confs[0])) + '\n')

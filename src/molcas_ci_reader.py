@@ -2,6 +2,7 @@ import numpy as np
 import itertools as it
 import re
 import sys
+import h5py
 
 #converter
 
@@ -367,9 +368,19 @@ def transposer(array):
     return list(zip(*array))
 
 
-def get_civs_and_confs(logfile, caspt2):
+def get_civs_and_confs(logfile, caspt2, extra_precision):
     no_roots, S, no_closed, csfs, civs = get_civecs_in_csfs(
         logfile, caspt2)
+    if extra_precision:
+        if caspt2:
+            f = h5py.File('molcas.caspt2.h5','r')
+            civs = list(f['CI_VECTORS'])
+        else:
+            f = h5py.File('molcas.rasscf.h5','r')
+            print(civs)
+            civs = list(f['CI_VECTORS'])
+            print(civs)
+
     sds = []
     newcivec = []
     for i in range(no_roots):
