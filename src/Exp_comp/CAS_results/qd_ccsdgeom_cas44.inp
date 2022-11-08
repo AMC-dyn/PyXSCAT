@@ -6,7 +6,6 @@ gprint,civector,orbitals,angles=-1,distance=-1
  gthresh,thrpun=0.0000000001
  punch,qd_ccsd_vdz.pun,new
 cartesian
-basis=vdz
 symmetry,nosym;
 orient,noorient;
 Bohr;
@@ -30,7 +29,7 @@ geom={
  H  -0.28980778416403      5.45254035680856     -1.46024364742635
  H   3.08104867763450      5.45930927549250     -1.46790498493838
 }
-
+basis=sto-3g
         hf
      
         {multi,failsafe;
@@ -49,6 +48,46 @@ ORBITAL,IGNORE_ERROR;
 !ciguess,2501.2 
 !save,ci=2501.2}
 }
+
+basis=3-21G
+
+   {multi,failsafe;
+maxiter,40;
+config,det
+occ,27;
+closed,23;
+wf,50,1,0;
+state,1;
+
+pspace,10.0        
+orbital,2141.3;
+!CANORB,2140.3;
+!dont,orbital
+ORBITAL,IGNORE_ERROR;
+!ciguess,2501.2 
+!save,ci=2501.2}
+}
+
+basis=vdz
+
+   {multi,failsafe;
+maxiter,40;
+config,det
+occ,27;
+closed,23;
+wf,50,1,0;
+state,1;
+
+pspace,10.0        
+orbital,2142.3;
+!CANORB,2140.3;
+!dont,orbital
+ORBITAL,IGNORE_ERROR;
+!ciguess,2501.2 
+!save,ci=2501.2}
+}
+
+
 
 put,molden,qd_ccsd_vdz.mld
 ---

@@ -38,6 +38,7 @@ def twordmconst(closed,fileread):
     #     closed = 0
     countcivs=0
     closed = int(closed)
+    print(closed)
     with open(fileread, 'r') as fh:
         for line in fh:
             if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
