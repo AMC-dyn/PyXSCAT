@@ -14,7 +14,6 @@ program bagel_ci_reader
    filename = 'out.out'
 
    call get_civs_and_confs(filename, .false., finalsds, civecinsd)
-   write(*,*) finalsds
 
 contains
 
@@ -31,18 +30,23 @@ contains
    real(kind=dp), allocatable :: coeffs(:)
    character(len=:), allocatable:: sds(:)
    character(len=:), allocatable, intent(out):: finalsds(:)
+   character(len=100) :: fmtstring
    real(kind=dp), allocatable, intent(out) ::civecinsd(:, :)
-   integer :: no_closed
+   integer :: no_closed,i
    character(len=100) :: filename
 
 
    ! get the csfs  from the output file
    call get_civecs_in_sds(logfile, caspt2, csfs, civs, no_closed)
 
-   write(*,*) civs
    ! format the output so that the it includes the number of closed
-   call format_sd(sds, no_closed, finalsds)
+   call format_sd(csfs, no_closed, finalsds)
 
+   fmtstring = '(A' // repeat(',2X, f12.9', size(civs(:,1))) // ')'
+
+   do i = 1, size(civs(1,:))
+   write(*,fmtstring ) finalsds(i), civs(:,i) ! this only writes four st
+   end do
    end subroutine
 
 
@@ -52,17 +56,31 @@ contains
     character(len=*), intent(in) :: sds(:)
     integer(kind=ikind), intent(in) :: no_closed
     character(len=:), allocatable, intent(out):: finalsds(:)
+    character :: a
 
-    integer :: total_number, i
+    integer :: total_number, i, j
 
-    total_number = len(sds(1)) + no_closed
+    total_number = (len(sds(1)) + no_closed+1)*4
+    
 
     allocate (character(len=total_number) :: finalsds(size(sds)))
 
     do i = 1, size(sds)
-    finalsds(i) (1:no_closed) = REPEAT('2', no_closed)
-    finalsds(i) (no_closed:total_number) = sds(i)
+    finalsds(i) (1:4*no_closed) = REPEAT('1 2 ', no_closed)
+    do j = 1, len(sds(1))
+    a =sds(i)(j:j) 
+    if (a .eq. '2') then
+      finalsds(i)(4*(no_closed+j):4*(no_closed+j+1))= '1 2 '
+    else if (a .eq. 'a') then
+      finalsds(i)(4*(no_closed+j):4*(no_closed+j+1)) = '1 0 ' 
+    else if (a .eq. 'b') then
+      finalsds(i)(4*(no_closed+j):4*(no_closed+j+1)) = '0 2 ' 
+    else if (a .eq. '.') then
+      finalsds(i)(4*(no_closed+j):4*(no_closed+j+1)) = '0 0 ' 
+    endif 
     end do
+    end do
+    
    end subroutine
 
 
