@@ -696,7 +696,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         real(kind=dp), intent(in),dimension(:,:)::onerdm
         real(kind=dp), intent(out), dimension(ng,ng):: px,py,pz
         real(kind=dp), intent(out), dimension(ngto,ngto) :: z
-        real(kind=dp), intent(out), dimension(nq,ngto,ngto) :: e12
+        real(kind=dp), intent(out), dimension(nq,ng,ng) :: e12
         real(kind=dp), intent(out), dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
 
 
