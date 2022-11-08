@@ -1,13 +1,14 @@
 import numpy as np
 import molden_reader_nikola as mldreader
 import molden_reader_nikola_molcas as mcmldreader
+import molden_reader_nikola_bagel as bgmldreader
 import molcas_ci_reader as mc
 import twordm_red as td
 from textwrap import wrap
 # If there is an external file with CIvecs or 2rdms JeremyR==True
 molpro = False
-bagel = False
-molcas = True
+bagel = True
+molcas = False
 extra_precision_molcas = True
 caspt2 = False
 jeremyR = False
@@ -53,9 +54,15 @@ if not jeremyR and not hf and not readtwordm:
     if molcas:
         logfile = 'molcas.log'
         civs, confs = mc.get_civs_and_confs(logfile, caspt2, extra_precision_molcas)
+        print("civs")
+        print(civs)
+        print("confs")
+        print(confs)
 
     elif bagel:
         print('will be implemented soon')
+        confs = ['abababababababababababababababababab0000' for i in range(36)]
+        civs = np.ones((36,3))
 
     elif molpro:
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
@@ -81,6 +88,10 @@ civs = np.array(civs)
 if molcas:
     mldfile = 'molcas.rasscf.molden'
     gtos, atoms= mcmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+elif bagel:
+    mldfile = 'orbitals.molden'
+    Nmo_max = 20
+    gtos, atoms= bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro:
     mldfile = 'EQ-Y/lif_eq_y.mld'
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
@@ -147,7 +158,18 @@ with open('options.dat', 'w') as f:
                         int(alpha)) + ' ' + str(int(beta)) + '\n')
         f.write(str(bitwise) + '\n')
     elif bagel:
-        f.write('bagel')
+        #  f.write('bagel')
+        f.write(str(np.size(confs)) + '\n')
+        print(str(np.size(civs[:, 0])))
+        f.write(str(len(confs[0])) + '\n')
+        f.write(str(np.size(civs[0, :])) + '\n')
+        lst = [*confs[0].replace('a', '1').replace('b', '2')]
+        confs2 = np.asarray(lst, dtype=np.int64)
+        f.write(str(confs2)[1:-1])
+        f.write(' ' + str(1.00000) + ' ')
+        f.write(str('\n'))
+
+
     elif molcas and not hf:
         f.write(str(np.size(confs)) + '\n')
         print(str(np.size(civs[:, 0])))
@@ -188,6 +210,7 @@ m = gtos.m
 n = gtos.n
 ga = gtos.ga
 group = gtos.group
+print(gtos.mo)
 mmod = np.transpose(gtos.mo)
 
 l = np.asarray(l)
