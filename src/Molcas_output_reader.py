@@ -2,6 +2,7 @@ import itertools as it
 import numpy as np
 
 
+
 def csf2sd(csfvec, m_s):
     ''' takes in a string of form (e.g.) "22ud00", and returns a list containing all of the slater determinents used in expanding that CSF.
 

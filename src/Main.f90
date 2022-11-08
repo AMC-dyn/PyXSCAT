@@ -97,7 +97,16 @@ program main
 
     read(15,*)(confs(i,j),j=1,lconfs),(civs(i,j), j=1,ncivs)
     end do
+  else if (bagel.eqv..True.) then
+    read(15,*)nconfs
+    read(15,*)lconfs
+    read(15,*)ncivs
+    allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
 
+    do i=1,nconfs
+
+    read(15,*)(confs(i,j),j=1,lconfs),(civs(i,j), j=1,ncivs)
+    end do
     else
             read(15,*) var
             print*,var

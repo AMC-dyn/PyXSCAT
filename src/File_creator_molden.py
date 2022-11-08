@@ -5,6 +5,7 @@ import molden_reader_nikola_bagel as bgmldreader
 import molcas_ci_reader as mc
 import twordm_red as td
 from textwrap import wrap
+
 # If there is an external file with CIvecs or 2rdms JeremyR==True
 molpro = False
 bagel = True
@@ -16,7 +17,7 @@ fileJeremy = 'configurations_bit.dat'
 # If we convert form a MCCI calculation to a bitwise operation mcci==True
 mcci = False
 # If we have a HF calculation and our Civector is represented by a single determinant hf==True
-hf = False
+hf = True
 # States involved
 state1 = 1
 state2 = 1
@@ -53,7 +54,7 @@ if not jeremyR and not hf and not readtwordm:
     # This routine reads the CIvectors and the configurations
     if molcas:
         logfile = 'molcas.log'
-        civs, confs = mc.get_civs_and_confs(logfile, caspt2, extra_precision_molcas)
+        civs, confs = mc.get_civs_and_confs(logfile, caspt2)
         print("civs")
         print(civs)
         print("confs")
@@ -61,8 +62,8 @@ if not jeremyR and not hf and not readtwordm:
 
     elif bagel:
         print('will be implemented soon')
-        confs = ['abababababababababababababababababab0000' for i in range(36)]
-        civs = np.ones((36,3))
+        confs = ['ab'*18+'00'*2]
+        civs = [1.000]
 
     elif molpro:
         civs, confs = td.twordmconst()  # state1 and state2 should be used here
@@ -74,10 +75,10 @@ if not jeremyR and not hf and not readtwordm:
 elif not jeremyR and hf:
     civs = [1.000]
     # The number of occupied orbs or he configuration used must be specified by the user in hf
-    norbs = 25
-    confs = ['ab' * norbs]
+    norbs = 18
+    confs = ['ab' * norbs+'0000']
     print(confs)
-    Nmo_max = 25
+    Nmo_max = 20
 else:
     # If the 2rdm or Civector is constructed in a bit-wise manner, the number or orbitals needs to be specified here by the user
     confs = 0
@@ -116,7 +117,7 @@ with open('options.dat', 'w') as f:
     f.write(str(molpro) + '\n')
     f.write(str(molcas) + '\n')
     f.write(str(bagel) + '\n')
-    if molpro and not readtwordm:
+    if molpro and not readtwordm and not hf:
         f.write(str(np.size(confs)) + '\n')
 
         f.write(str(len(confs[0])) + '\n')
@@ -157,7 +158,7 @@ with open('options.dat', 'w') as f:
                     m.write(str(i) + ' ' + str(civs[i, state1 - 1]) + ' ' + str(civs[i, state2 - 1]) + ' ' + str(
                         int(alpha)) + ' ' + str(int(beta)) + '\n')
         f.write(str(bitwise) + '\n')
-    elif bagel:
+    elif bagel and not hf:
         #  f.write('bagel')
         f.write(str(np.size(confs)) + '\n')
         print(str(np.size(civs[:, 0])))
@@ -168,7 +169,15 @@ with open('options.dat', 'w') as f:
         f.write(str(confs2)[1:-1])
         f.write(' ' + str(1.00000) + ' ')
         f.write(str('\n'))
-
+    elif bagel and hf:
+        f.write(str(1) + '\n')
+        f.write(str(40) + '\n')
+        f.write(str(1) + '\n')
+        lst = [*confs[0].replace('a', '1').replace('b', '2')]
+        confs2 = np.asarray(lst, dtype=np.int64)
+        f.write(str(confs2)[1:-1])
+        f.write(' ' + str(1.00000) + ' ')
+        f.write(str('\n'))
 
     elif molcas and not hf:
         f.write(str(np.size(confs)) + '\n')

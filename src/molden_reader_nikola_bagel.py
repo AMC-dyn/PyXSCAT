@@ -314,6 +314,7 @@ def _read_MO(file, mo_cutoff):
 
     mo = np.array(mo_table)
 
+    print('mos before reordering: ',  mo)
 
     energy_array = np.array(energy)
 
@@ -445,7 +446,7 @@ def _read_MO_GTOs(file, N, decontract=False):
     GTOs = _read_contractions(file)
     # read the MO and assign to each primitive
     (mo_table, occ, energy, syms) = _read_MO(file, N)
-
+    print('mos before reordering: ',mo_table )
     _mo_fill_gto(GTOs, mo_table)
     _normalise_gto(GTOs)
 
