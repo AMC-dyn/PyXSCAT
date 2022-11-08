@@ -4074,9 +4074,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
-        !CALL bessels0rr(F, llmax, mu, H,h_saved)
+        CALL bessels0rr(F, llmax, mu, H,h_saved)
 
-        CALL BesselSum(F, mu, H, LLmax, h_saved)
+        !CALL BesselSum(F, mu, H, LLmax, h_saved)
 
 
     end subroutine
