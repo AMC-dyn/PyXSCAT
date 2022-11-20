@@ -7,8 +7,8 @@ import twordm_red as td
 from textwrap import wrap
 
 # If there is an external file with CIvecs or 2rdms JeremyR==True
-molpro = False
-bagel = True
+molpro = True
+bagel = False
 molcas = False
 extra_precision_molcas = True
 caspt2 = False
@@ -17,7 +17,7 @@ fileJeremy = 'configurations_bit.dat'
 # If we convert form a MCCI calculation to a bitwise operation mcci==True
 mcci = False
 # If we have a HF calculation and our Civector is represented by a single determinant hf==True
-hf = True
+hf = False
 # States involved
 state1 = 1
 state2 = 1
@@ -66,7 +66,7 @@ if not jeremyR and not hf and not readtwordm:
         civs = [1.000]
 
     elif molpro:
-        civs, confs = td.twordmconst()  # state1 and state2 should be used here
+        civs, confs = td.twordmconst(21,punfile)  # state1 and state2 should be used here
 
 
     Nmo_max = len(confs[0]) / 2
