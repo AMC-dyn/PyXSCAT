@@ -7,8 +7,8 @@ import twordm_red as td
 from textwrap import wrap
 
 # If there is an external file with CIvecs or 2rdms JeremyR==True
-molpro = False
-bagel = True
+molpro = True
+bagel = False
 molcas = False
 extra_precision_molcas = True
 caspt2 = False
@@ -17,11 +17,11 @@ fileJeremy = 'configurations_bit.dat'
 # If we convert form a MCCI calculation to a bitwise operation mcci==True
 mcci = False
 # If we have a HF calculation and our Civector is represented by a single determinant hf==True
-hf = True
+hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 21
+closed = 23
 qmin = 1E-10
 qmax = 6.5
 npoints = 100
@@ -43,8 +43,8 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.mld'
-punfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.pun'
+mldfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.mld'
+punfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.pun'
 outfile = 'QD_CAS44.dat'
 
 readtwordm = False
@@ -54,7 +54,7 @@ if not jeremyR and not hf and not readtwordm:
     # This routine reads the CIvectors and the configurations
     if molcas:
         logfile = 'molcas.log'
-        civs, confs = mc.get_civs_and_confs(logfile, caspt2)
+        civs, confs = mc.get_civs_and_confs(logfile, caspt2,extra_precision_molcas)
         print("civs")
         print(civs)
         print("confs")
@@ -66,7 +66,7 @@ if not jeremyR and not hf and not readtwordm:
         civs = [1.000]
 
     elif molpro:
-        civs, confs = td.twordmconst()  # state1 and state2 should be used here
+        civs, confs = td.twordmconst(21,punfile)  # state1 and state2 should be used here
 
 
     Nmo_max = len(confs[0]) / 2
@@ -94,7 +94,7 @@ elif bagel:
     Nmo_max = 20
     gtos, atoms= bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro:
-    mldfile = 'EQ-Y/lif_eq_y.mld'
+
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:
