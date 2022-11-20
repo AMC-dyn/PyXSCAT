@@ -485,6 +485,7 @@ module integrals
         REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
+
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
         REAL(kind=dp), intent(in), dimension(:),allocatable :: q
@@ -502,25 +503,85 @@ module integrals
         integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj
         integer(kind=ikind), save :: inicap[*],endcap[*]
         integer(kind=ikind) :: numchunks,newncapi
-        integer(kind=ikind) :: spi, spj, spk, spr, szo,nt
+        integer(kind=ikind) :: spi, spj, spk, spr, nt
+        integer(kind=ikind) :: szo
 
-          nq= size(q)
-          allocate(tsi(nq)[*])
+
+
         sync all
+         nq= size(q)
+         allocate(tsi(nq)[*])
+
+
         numchunks=num_images()
-        newncapi=ncap/numchunks
-        print*,'chunks', newncapi
-        inicap=(this_image()-1)*newncapi+1
-        endcap=(this_image())*newncapi
-        if (this_image()==num_images()) then
-            endcap=ncap
+
+        newncapi=CEILING(1.d0/24.d0*(ncap-2)*(ncap-1)*(3*ncap-1)*ncap/numchunks)
+
+        if (this_image()==1) then
+            inicap=1
+            endcap=2
+        elseif(this_image()==2)  then
+            inicap=3
+            endcap=4
+        elseif(this_image()==3) then
+            inicap=5
+            endcap=6
+        elseif(this_image()==4) then
+            inicap=7
+            endcap=8
+        elseif(this_image()==5) then
+            inicap=9
+            endcap=11
+        elseif(this_image()==6) then
+            inicap=12
+            endcap=14
+        elseif(this_image()==7) then
+            inicap=15
+            endcap=17
+        elseif(this_image()==8) then
+            inicap=18
+            endcap=20
+        elseif(this_image()==9) then
+            inicap=21
+            endcap=24
+        elseif(this_image()==10) then
+            inicap=25
+            endcap=28
+        elseif(this_image()==11) then
+            inicap=29
+            endcap=33
+        elseif(this_image()==12) then
+            inicap=34
+            endcap=38
+        elseif(this_image()==13) then
+            inicap=39
+            endcap=44
+        elseif (this_image()==14)  then
+            inicap=45
+            endcap=52
+        elseif (this_image()==15) then
+            inicap=53
+            endcap=70
+        elseif(this_image()==16) then
+            inicap=70
+            endcap=138
         end if
 
 
-        print*,this_image(),inicap,endcap
+
+!        print*,'chunks', newncapi
+!        inicap=(this_image()-1)*newncapi+1
+!        endcap=(this_image())*newncapi
+!        if (this_image()==num_images()) then
+!            endcap=ncap
+!        end if
 
 
 
+
+
+
+        szo = size(z1(:,1,1))
 
 
         ng=maxval(group)
@@ -538,18 +599,23 @@ module integrals
 
 
 
-        szo = size(z1(:,1,1))
+
 
 
 
         print*,OMP_get_num_threads()
-        call OMP_set_num_threads(10)
+        call OMP_set_num_threads(6)
         print*,OMP_get_num_threads()
      !
         !First big loop
 
         tsi=0.0_dp
         if (any(isnan(p0matrix))) print*,'ouch'
+
+       !  !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2, inicap,endcap) shared(q,l,m,n, p0matrix), &
+      !  !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
+      !  !$OMP& schedule(dynamic)
 
 
         do i=inicap,endcap
@@ -640,14 +706,14 @@ module integrals
             end do
         end do
 
-      !!$OMP END parallel DO
+     ! !$OMP END parallel DO
 
-      print*,OMP_get_num_threads()
+      print*,this_image(),' intermediate calc'
 
 
        ! !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-       ! !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
+       !  !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+       !  !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
         do i=inicap,endcap
             do j=i+1,ncap
                 do r=i+1,ncap
@@ -723,11 +789,11 @@ module integrals
             end do
 
         end do
-    !!$OMP END parallel DO
+   ! !$OMP END parallel DO
 
-      !!$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-       ! !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
+     ! !$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+     !   !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+      !  !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
         do i=inicap,endcap
             do k=1,ncap
                 do r=k+1,ncap
@@ -940,7 +1006,7 @@ module integrals
 
         end do
         !!$OMP END parallel DO
-
+        print*,this_image(),'fin calc'
         sync all
 
         call CO_SUM(tsi,result_image=1)
@@ -1029,7 +1095,6 @@ module integrals
         do i=1,ncap
             do j=i+1,ncap
                 do k=i+1,ncap
-
                     do r=k+1,ncap
                         hx = px(k, r) - px(i, j)
                         hy = py(k, r) - py(i, j)

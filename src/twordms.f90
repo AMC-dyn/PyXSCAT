@@ -580,7 +580,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
     integer(kind=ikind) :: i,i1,i2,n,count2,eg, ndiff1,N1a,N1b,N2a,N2b
 
-    integer*8, dimension(:), allocatable :: mat1,mat2,Nalpha,Nbeta
+    integer, dimension(:), allocatable :: mat1,mat2,Nalpha,Nbeta
     logical(4) :: sdef, rdef, pdef, qdef
     logical(4), dimension(:), allocatable :: logicaltwordms
     real(kind=dp) :: cutoff,civ1,civ2
@@ -613,7 +613,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
         enddo
         close(15)
 
-     norbs=maxval(integer2binary_orbs(maxval(Nalpha)))
+     norbs=int(maxval(integer2binary_orbs(maxval(Nalpha))))
      print*,'Number of orbitals',norbs
     print*, 'read file'
     allocate(twordm(norbs,norbs,norbs,norbs))

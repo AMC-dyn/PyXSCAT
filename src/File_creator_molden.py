@@ -21,7 +21,7 @@ hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 21
+closed = 24
 qmin = 1E-10
 qmax = 6.5
 npoints = 100
@@ -43,8 +43,8 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.mld'
-punfile = 'Exp_comp/CAS_results/qd_ccsd_vtz_88.pun'
+mldfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.mld'
+punfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.pun'
 outfile = 'QD_CAS44.dat'
 
 readtwordm = False
@@ -66,7 +66,7 @@ if not jeremyR and not hf and not readtwordm:
         civs = [1.000]
 
     elif molpro:
-        civs, confs = td.twordmconst(21,punfile)  # state1 and state2 should be used here
+        civs, confs = td.twordmconst(closed,punfile)  # state1 and state2 should be used here
 
 
     Nmo_max = len(confs[0]) / 2
@@ -94,7 +94,7 @@ elif bagel:
     Nmo_max = 20
     gtos, atoms= bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro:
-    mldfile = 'EQ-Y/lif_eq_y.mld'
+
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:
