@@ -109,21 +109,25 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
             call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
 
-            allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
-             m1 = mat(:,1)
-             m2 = mat(:,2)
-             m3 = mat(:,3)
-             m4 = mat(:,4)
-             nmat=size(m1)
 
-            print*,'size nmat', nmat
-            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
-            call tot_integration_parallel(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
-                cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
+            nmat=size(mat(:,1))
 
-            result=result2
+
+                allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
+                m1 = mat(:,1)
+                m2 = mat(:,2)
+                m3 = mat(:,3)
+                m4 = mat(:,4)
+
+
+                print*,'size nmat', nmat
+                call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+            mmod,m1,m2,m3,m4,nmat, total,q,nq)
+
+                call tot_integration_parallel(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+                    cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
+
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

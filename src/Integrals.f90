@@ -485,6 +485,7 @@ module integrals
         REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
+         real(kind=dp),allocatable,  dimension(:,:,:)::z1t,z2t
 
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
@@ -495,18 +496,21 @@ module integrals
         REAL(kind=dp), dimension(size(q)) :: f
         integer(kind=ikind), dimension(:,:), allocatable :: posits
         real(kind=dp),dimension(:,:), allocatable :: za,zb,cmat
-        integer(kind=ikind),dimension(:), allocatable ::posi,posj,posk,posr
+        integer(kind=ikind),dimension(:), allocatable::posi,posj,posk,posr
+
         REAL(kind=dp),allocatable,dimension(:):: tsi[:]
         real(kind=dp), dimension(size(q)), intent(out)::tsi2
-        real(kind=dp) :: hx,hy,hz,h
+        real(kind=dp) :: hx,hy,hz,h,time1,time2
         integer(kind=ikind),dimension(size(l)) :: ll
         integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj
-        integer(kind=ikind), save :: inicap[*],endcap[*]
+        integer(kind=ikind), save :: inicap[*],endcap[*],countini[*], countfin[*]
+
         integer(kind=ikind) :: numchunks,newncapi
-        integer(kind=ikind) :: spi, spj, spk, spr, nt
-        integer(kind=ikind) :: szo
+        integer(kind=ikind) :: spi, spj, spk, spr, nt,nmat,ngtos
+        integer(kind=ikind) :: szo,bigiter,deltai,bigfrog,mxchunk
+        integer(kind=ikind), allocatable,dimension(:,:)::vec
 
-
+        call cpu_time(time2)
 
         sync all
          nq= size(q)
@@ -515,57 +519,95 @@ module integrals
 
         numchunks=num_images()
 
-        newncapi=CEILING(1.d0/24.d0*(ncap-2)*(ncap-1)*(3*ncap-1)*ncap/numchunks)
+        newncapi=CEILING(1.d0/24.d0*(ncap-2)*(ncap-1)*(3*ncap-1)*ncap)
 
-        if (this_image()==1) then
-            inicap=1
-            endcap=2
-        elseif(this_image()==2)  then
-            inicap=3
-            endcap=4
-        elseif(this_image()==3) then
-            inicap=5
-            endcap=6
-        elseif(this_image()==4) then
-            inicap=7
-            endcap=8
-        elseif(this_image()==5) then
-            inicap=9
-            endcap=11
-        elseif(this_image()==6) then
-            inicap=12
-            endcap=14
-        elseif(this_image()==7) then
-            inicap=15
-            endcap=17
-        elseif(this_image()==8) then
-            inicap=18
-            endcap=20
-        elseif(this_image()==9) then
-            inicap=21
-            endcap=24
-        elseif(this_image()==10) then
-            inicap=25
-            endcap=28
-        elseif(this_image()==11) then
-            inicap=29
-            endcap=33
-        elseif(this_image()==12) then
-            inicap=34
-            endcap=38
-        elseif(this_image()==13) then
-            inicap=39
-            endcap=44
-        elseif (this_image()==14)  then
-            inicap=45
-            endcap=52
-        elseif (this_image()==15) then
-            inicap=53
-            endcap=70
-        elseif(this_image()==16) then
-            inicap=70
-            endcap=138
+
+        count=1
+        allocate(vec(4,newncapi))
+          do i=1,ncap
+            do j=i+1,ncap
+                do k=i+1,ncap
+                    do r=k+1,ncap
+
+                        vec(1,count)=i
+                        vec(2,count)=j
+                        vec(3,count)=k
+                        vec(4,count)=r
+                        count=count+1
+                        end do
+                        end do
+                        end do
+                    end do
+
+         deltai=ceiling((newncapi)*1.0_dp/(numchunks))
+
+        print*,'taking ', deltai,' from ',newncapi
+
+
+        inicap=((this_image()-1)*deltai)+1
+        endcap=((this_image())*deltai)
+
+
+         if (this_image()==num_images()) then
+            endcap=newncapi
         end if
+
+
+        nmat=size(z1(:,1,1))
+        ngtos=size(z1(1,:,1))
+     !   allocate(z1t(ngtos,nmat,ngtos))
+     !   z1t=reshape(z1,(/ngtos,nmat,ngtos/))
+      !  z2t=reshape(z2,(/ngtos,nmat,ngtos/))
+        print*,'this image ', this_image(),' is calculating ', endcap-inicap, ' iterations ', inicap,endcap
+!        if (this_image()==1) then
+!            inicap=1
+!            endcap=2
+!        elseif(this_image()==2)  then
+!            inicap=3
+!            endcap=4
+!        elseif(this_image()==3) then
+!            inicap=5
+!            endcap=6
+!        elseif(this_image()==4) then
+!            inicap=7
+!            endcap=8
+!        elseif(this_image()==5) then
+!            inicap=9
+!            endcap=11
+!        elseif(this_image()==6) then
+!            inicap=12
+!            endcap=14
+!        elseif(this_image()==7) then
+!            inicap=15
+!            endcap=17
+!        elseif(this_image()==8) then
+!            inicap=18
+!            endcap=20
+!        elseif(this_image()==9) then
+!            inicap=21
+!            endcap=24
+!        elseif(this_image()==10) then
+!            inicap=25
+!            endcap=28
+!        elseif(this_image()==11) then
+!            inicap=29
+!            endcap=33
+!        elseif(this_image()==12) then
+!            inicap=34
+!            endcap=38
+!        elseif(this_image()==13) then
+!            inicap=39
+!            endcap=44
+!        elseif (this_image()==14)  then
+!            inicap=45
+!            endcap=52
+!        elseif (this_image()==15) then
+!            inicap=53
+!            endcap=70
+!        elseif(this_image()==16) then
+!            inicap=71
+!            endcap=138
+!        end if
 
 
 
@@ -596,32 +638,87 @@ module integrals
                 count=count+1
             end do
         end do
+        count=1
+
+        do bigfrog=1,newncapi
+             i=vec(1,bigfrog)
+             j=vec(2,bigfrog)
+             k=vec(3,bigfrog)
+             r=vec(4,bigfrog)
+            count=count+group_count(i)+group_count(j)+group_count(k)+group_count(r)
+        end do
+
+
+        mxchunk=count/num_images()
+
+        countini=1
+        countfin=1
+
+
+        do ii=1,num_images()
+            count=1
+            do bigfrog=countini[ii],newncapi
+             i=vec(1,bigfrog)
+             j=vec(2,bigfrog)
+             k=vec(3,bigfrog)
+             r=vec(4,bigfrog)
+             count=count+group_count(i)+group_count(j)+group_count(k)+group_count(r)
+             if (count>=mxchunk) then
+                 countfin[ii]=bigfrog
+                if (ii<num_images()) then
+
+                 countini[ii+1]=bigfrog+1
+
+                end if
+                 exit
+             elseif (ii==num_images() .and. bigfrog==newncapi) then
+                 countfin[ii]=bigfrog
+
+             end if
+        end do
+       enddo
 
 
 
+!       if (this_image()==16) then
+!           countini=countfin[num_images()-1]+1
+!           countfin=newncapi
+!        end if
 
 
+        print*,this_image(),' starts in ', countini, 'and finishes on ', countfin, ' with ', countfin-countini
 
-
-        print*,OMP_get_num_threads()
-        call OMP_set_num_threads(6)
-        print*,OMP_get_num_threads()
+        inicap=countini[this_image()]
+        endcap=countfin[this_image()]
      !
         !First big loop
 
+
+
+
+
         tsi=0.0_dp
         if (any(isnan(p0matrix))) print*,'ouch'
+         sync all
+        call cpu_time(time1)
+        if (this_image()==1) then
+            print*,'time to do previous calculations ', time1-time2
+        end if
 
-       !  !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2, inicap,endcap) shared(q,l,m,n, p0matrix), &
-      !  !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
-      !  !$OMP& schedule(dynamic)
+        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2,bigiter,inicap,endcap) shared(q,l,m,n, p0matrix), &
+        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
+        !$OMP& schedule(dynamic)
 
 
-        do i=inicap,endcap
-            do j=i+1,ncap
-                do k=i+1,ncap
-                    do r=k+1,ncap
+
+        do bigiter=inicap,endcap
+
+                        i=vec(1,bigiter)
+                        j=vec(2,bigiter)
+                        k=vec(3,bigiter)
+                        r=vec(4,bigiter)
+
                         hx = px(k, r) - px(i, j)
                         hy = py(k, r) - py(i, j)
                         hz = pz(k, r) - pz(i, j)
@@ -641,33 +738,32 @@ module integrals
                         spk = size(posK)
                         spr = size(posR)
 
-                        allocate(zcontrred(spj, spk, spr, spi), za(szo, spj), zb(szo, spk), &
-                       &         cmat(spj, spk), zcontrred2(spr, spi, spj, spk))
+                        allocate(zcontrred(spj, spk, spr, spi),zcontrred2(spr, spi, spj, spk))
 
                           do ii = 1, spi
                             do jj = 1, spr
-                                za = z1(:,posj,posi(ii))
-                              !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z2(:,posk,posr(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spj)
-                                zcontrred(:,:,jj,ii) = cmat
 
-                                za = z2(:,posj,posi(ii))
                               !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z1(:,posk,posr(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spj)
 
-                                zcontrred2(jj,ii,:,:) = cmat
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z1(:,posj,posi(ii)), &
+                              &           szo, z2(:,posk,posr(jj)), szo, 0.0_dp, zcontrred(:,:,jj,ii), spj)
+
+
+
+                              !  za = transpose(z1(:,posj,posi(ii)))
+
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z2(:,posj,posi(ii)), &
+                              &           szo, z1(:,posk,posr(jj)), szo, 0.0_dp, zcontrred2(jj,ii,:,:), spj)
+
+
                             enddo
                           enddo
 
 
 
-                         deallocate(posI,posJ,posK,posR,za,zb,cmat)
+                         deallocate(posI,posJ,posK,posR)
                          dx1=>dx(:,:,:,j,i)
                          dy1=>dy(:,:,:,j,i)
                          dz1=>dz(:,:,:,j,i)
@@ -701,18 +797,18 @@ module integrals
                !        deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
 
-                    end do
-                end do
-            end do
-        end do
+    enddo
 
-     ! !$OMP END parallel DO
+      !$OMP END parallel DO
+      call cpu_time(time2)
 
-      print*,this_image(),' intermediate calc'
+      print*,this_image(),' intermediate calc', time2-time1
+        sync all
+        stop
 
 
-       ! !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-       !  !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+      !  !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+      !   !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
        !  !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
         do i=inicap,endcap
             do j=i+1,ncap
@@ -789,11 +885,11 @@ module integrals
             end do
 
         end do
-   ! !$OMP END parallel DO
+      ! !$OMP END parallel DO
 
-     ! !$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-     !   !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-      !  !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
+      !!$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+      !  !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+      ! !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
         do i=inicap,endcap
             do k=1,ncap
                 do r=k+1,ncap
@@ -871,10 +967,10 @@ module integrals
             end do
         end do
 
-        !!$OMP END parallel DO
+       ! !$OMP END parallel DO
 
-        !  !$OMP PARALLEL do private(posI,posK,spi,spk,zcontrred,zcontrred2,za,zb,cmat), &
-        !!$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+       !  !$OMP PARALLEL do private(posI,posK,spi,spk,zcontrred,zcontrred2,za,zb,cmat), &
+       ! !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !  !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
         do i=inicap,endcap
             do k=i+1,ncap
@@ -947,11 +1043,11 @@ module integrals
         end do
 
 
-        !!$OMP END parallel DO
+      !  !$OMP END parallel DO
 
        ! !$OMP PARALLEL do private(posI,spi,zcontrred,zcontrred2,za,zb,cmat), &
-        !!$OMP& private(f,ii,jj,h,hx,hy,hz,i,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,ll, p0matrix), &
-        !  !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
+      !  !$OMP& private(f,ii,jj,h,hx,hy,hz,i,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,ll, p0matrix), &
+       ! !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
         do i=inicap,endcap
                               allocate(posI(size(posits(i,:group_count(i)))))
 
@@ -1005,7 +1101,7 @@ module integrals
 
 
         end do
-        !!$OMP END parallel DO
+      !  !$OMP END parallel DO
         print*,this_image(),'fin calc'
         sync all
 
@@ -4626,9 +4722,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
-        CALL bessels0rr(F, llmax, mu, H,h_saved)
+       ! CALL bessels0rr(F, llmax, mu, H,h_saved)
 
-        !CALL BesselSum(F, mu, H, LLmax, h_saved)
+        CALL BesselSum(F, mu, H, LLmax, h_saved)
 
 
     end subroutine
@@ -6022,7 +6118,7 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
          do i=1,size(mu)
                 if (abs(pmu(i))<0.05) then
                     call van(allbessels(0:6,i),6,pmu(i))
-                    allbessels(7:18,i)=0.0_dp
+                    allbessels(7:16,i)=0.0_dp
                 else
                     call van(allbessels(0:16,i),16,pmu(i))
                  end if
@@ -6042,6 +6138,12 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
 
 
      End Subroutine bessels0rr
+
+
+
+
+
+
 
 
 
