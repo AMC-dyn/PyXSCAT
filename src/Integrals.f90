@@ -804,6 +804,11 @@ module integrals
 
       print*,this_image(),' intermediate calc', time2-time1
         sync all
+        call CO_SUM(tsi,result_image=1)
+        if (this_image() == 1) then
+            write(*,*) "The sum is ", tsi(1) !
+
+        end if
         stop
 
 
@@ -4722,9 +4727,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         posi=posi+1
         end do
 
-       ! CALL bessels0rr(F, llmax, mu, H,h_saved)
+        CALL bessels0rr(F, llmax, mu, H,h_saved)
 
-        CALL BesselSum(F, mu, H, LLmax, h_saved)
+       ! CALL BesselSum(F, mu, H, LLmax, h_saved)
 
 
     end subroutine
@@ -6096,7 +6101,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
      End Subroutine bessels1rr
 
-Subroutine bessels0rr(sum,order,mu,H, h_saved)
+Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         integer:: order2
@@ -6106,33 +6111,80 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
         real (kind=dp), dimension(:), intent(in), allocatable :: mu
         real (kind=dp),  intent(in) :: H
         real(kind=dp):: qrad,hfunc2,sumpmu,coeff,bess1,bess2,bessnew,time1,time2
-        real(kind=dp),dimension(size(mu)):: pmu, muOH,h_1,h_0,h_r,hqr,bess
-        real(kind=dp), dimension(size(mu)), intent(out) :: sum
-        real(kind=dp), dimension(0:16, size(mu)):: allbessels, allbessels2
+        real(kind=dp),dimension(size(mu)):: pmu, muOH,h_2,h_1,h_0,h_r,hqr,bess,sinpmu,cospmu,invpmu
+
+        real(kind=dp),dimension(size(mu))::h_3,h_4,h_5
+        real(kind=dp), dimension(size(mu)), intent(out) :: h_sum
+        real(kind=dp), dimension(30, size(mu)):: allbessels, allbessels2
         allbessels=0.0_dp
-            sum=0.0_dp
+
             Pmu=H * mu
+            invpmu=mu/H
+            sinpmu=sin(pmu)
+            cospmu=cos(pmu)
+            h_sum=sinpmu*invpmu*h_saved(1)
+
+        if (order==1) then
+        h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu ! could be written in more efficient way by deleting mu
+
+        h_sum=h_sum+h_saved(2)*h_1
+
+        elseif (order==2) then
+            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2*cospmu)*invpmu**2
+            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2
+        elseif(order==3) then
 
 
+            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
+            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3
+!        elseif(order==4) then
+!            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
+!&             + pmu**4)*sinpmu)/pmu**5*invpmu**4
+!            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+!            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2*cospmu)*invpmu**2
+!            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+!            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4
+!        elseif (order==5) then
+!             h_5 = (-(pmu*(945.0d0 - 105.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu) + 15.0d0*(63.0d0 - 28.0d0*pmu**2.0d0 &
+!&             + pmu**4.0d0)*sinpmu)/pmu**6.0d0
+!            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
+!&             + pmu**4.0d0)*sinpmu)/pmu**5.0d0*invpmu**4.0d0
+!            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+!            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
+!            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+!            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4+h_5*h_saved(6)
+        elseif(order>=4) then
+!            h_5 = (-(pmu*(945.0d0 - 105.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu) + 15.0d0*(63.0d0 - 28.0d0*pmu**2.0d0 &
+!&             + pmu**4.0d0)*sinpmu)/pmu**6.0d0
+!            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
+!&             + pmu**4.0d0)*sinpmu)/pmu**5.0d0*invpmu**4.0d0
+!            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+!            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
+!            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+!            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3
+            call dphrec(pmu,allbessels,30,16,size(mu))
+            do beta=1,order
+                h_sum=h_sum+allbessels(beta+1,:)*invpmu**beta*h_saved(beta+1)
+          enddo
 
-         do i=1,size(mu)
-                if (abs(pmu(i))<0.05) then
-                    call van(allbessels(0:6,i),6,pmu(i))
-                    allbessels(7:16,i)=0.0_dp
-                else
-                    call van(allbessels(0:16,i),16,pmu(i))
-                 end if
+        end if
 
-         enddo
+
+!         do i=1,size(mu)
+!                if (abs(pmu(i))<0.05) then
+!                    call van(allbessels(0:6,i),6,pmu(i))
+!                    allbessels(7:16,i)=0.0_dp
+!                else
+!                    call van(allbessels(0:16,i),16,pmu(i))
+!                 end if
+!
+!         enddo
 
        !  print*,(allbessels(0:18,1))
        ! stop
-        do beta=0,order
-                hqr = (mu / h)**beta
-                bess= allbessels(beta,:)
-                sum=sum+bess*hqr*h_saved(beta+1)
-        enddo
-
 
 
 
@@ -6545,4 +6597,45 @@ Subroutine bessels0rr(sum,order,mu,H, h_saved)
        enddo
 
       end function kron
+    subroutine dphrec(x,rbes,leps1,lmax1,nq)
+
+IMPLICIT REAL(kind=8)(A-H,o-Z)
+implicit integer(kind=8)(i-n)
+DIMENSION RBES(LEPS1,nq), RNEU(LEPS1,nq)
+DIMENSION X(nq), XX(nq), CX(nq), DX(nq), CU(nq), A(nq),SX(nq)
+
+XX=X*X
+!LEPS=0.5D0*dsqrt(XX/EPSL**(1.D0/3.00)+9.00) + 0.5D0
+!IF(LEPS>=LEPS1) GOTO 101
+
+rbes=0.0d0
+rneu=0.0d0
+RBES(LEPS1,:) =1.0D0
+RBES(LEPS1-1,:)=1.0D0
+CX=DCOS(X)
+SX=DSIN(X)
+RNEU(1,:)=CX
+RNEU(2,:)=CX+X*SX
+
+DO K=3,LEPS1
+LU=LEPS1-K+2
+RBES(LU-1,:)=RBES(LU,:)-XX/(4.D0*LU**2-1.D0)*RBES(LU+1,:)
+end do
+A=RBES(1,:)*RNEU(2,:)-XX/3.0d0*RBES(2,:)*CX
+DO K=1, LEPS1
+RBES(K,:)=RBES(K,:)/A
+end do
+CU= 1.0D0/X
+
+DO K=1, LMAX1
+W=2.D0*(K-1)
+CU=X/(W+1.D0)*CU
+RBES(K,:)= CU*RBES(K,:)
+end do
+
+message=0
+END
+
+
+
 end module integrals
