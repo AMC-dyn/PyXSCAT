@@ -6122,7 +6122,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
             invpmu=mu/H
             sinpmu=sin(pmu)
             cospmu=cos(pmu)
-            h_sum=sinpmu*invpmu*h_saved(1)
+            h_sum=sinpmu/pmu*h_saved(1)
 
         if (order==1) then
         h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu ! could be written in more efficient way by deleting mu
