@@ -45,7 +45,7 @@ Type = 1
 # Ouput name
 mldfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.mld'
 punfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.pun'
-outfile = 'QD_CAS44.dat'
+outfile = 'QD_CAS22_newbes.dat'
 
 readtwordm = False
 file_read_twordm = 'CO_4Bohr_UCCSD2RDM_631G.txt'
@@ -66,7 +66,7 @@ if not jeremyR and not hf and not readtwordm:
         civs = [1.000]
 
     elif molpro:
-        civs, confs = td.twordmconst(21,punfile)  # state1 and state2 should be used here
+        civs, confs = td.twordmconst(closed,punfile)  # state1 and state2 should be used here
 
 
     Nmo_max = len(confs[0]) / 2
