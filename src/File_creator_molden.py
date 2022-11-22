@@ -21,7 +21,7 @@ hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 23
+closed = 24
 qmin = 1E-10
 qmax = 6.5
 npoints = 100
