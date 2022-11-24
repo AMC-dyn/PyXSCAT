@@ -572,12 +572,12 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
 
 
                         temp1 = totalfin * (mmod(m11, ii) * mmod(m22, jj) + mmod(m11, jj) * mmod(m22, ii))
-                        temp2 = mmod(m33, ii) * mmod(m44, jj) + mmod(m33, jj) * mmod(m44, ii)
+                        temp2 = (mmod(m33, ii) * mmod(m44, jj) + mmod(m33, jj) * mmod(m44, ii))
 
                         z11(:,ii, jj) =  temp1
                         z22(:, ii, jj) = temp2
 
-                        if (sum(abs(temp1-temp2))<1E-10) then
+                        if (sum(abs(temp1))<1E-10) then
                             counter=counter+1
                         end if
 
@@ -586,7 +586,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
             enddo
         enddo
 
-
+        print*,'number of zero Zs',counter
         obwohl = sum(abs(z11-z22))
         if (counter==ngto**2) then
             print*, 'Las gustones con las muchachas'

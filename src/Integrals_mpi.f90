@@ -2,6 +2,8 @@ module integrals
     use omp_lib    
     use calculate_form_factors
     implicit none
+
+
     contains
 
 
@@ -475,8 +477,12 @@ module integrals
         use omp_lib
         implicit none
 
+        include 'mpif.h'
+
+        integer:: ierror,rank, totalranks
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        real(kind=kind(1.d0)), external :: ddot
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
 
@@ -493,17 +499,17 @@ module integrals
         REAL(kind=dp), intent(in) :: cutoffz, cutoffmd,cutoffcentre
 
 
-        REAL(kind=dp), dimension(:), allocatable :: f[:]
+        REAL(kind=dp), dimension(:), allocatable :: f
         integer(kind=ikind), dimension(:,:), allocatable,target :: posits
         real(kind=dp),dimension(:,:), allocatable :: za,zb,cmat
         integer(kind=ikind),dimension(:),pointer::posi,posj,posk,posr
 
-        REAL(kind=dp),allocatable,dimension(:):: tsi[:]
+        REAL(kind=dp),allocatable,dimension(:):: tsi
         real(kind=dp), dimension(size(q)), intent(out)::tsi2
         real(kind=dp) :: hx,hy,hz,h,time1,time2
         integer(kind=ikind),dimension(size(l)) :: ll
         integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj
-        integer(kind=ikind), save :: inicap[*],endcap[*],countini[*], countfin[*]
+        integer(kind=ikind) :: inicap,endcap,countini, countfin
 
         integer(kind=ikind) :: numchunks,newncapi
         integer(kind=ikind):: spi, spj, spk, spr, nt,nmat,ngtos
@@ -511,13 +517,15 @@ module integrals
         integer(kind=ikind), allocatable,dimension(:,:)::vec
 
         call cpu_time(time2)
-        allocate(f(size(q))[*])
-        sync all
+        allocate(f(size(q)))
+
          nq= size(q)
-         allocate(tsi(nq)[*])
+         allocate(tsi(nq))
+        call MPI_COMM_SIZE(MPI_COMM_WORLD, totalranks, ierror)
+        call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierror)
 
-
-        numchunks=num_images()
+        print*,'rank ', rank, ' calculating shit'
+        numchunks=totalranks
 
         newncapi=CEILING(1.d0/24.d0*(ncap-2)*(ncap-1)*(3*ncap-1)*ncap)
 
@@ -533,6 +541,7 @@ module integrals
                         vec(2,count)=j
                         vec(3,count)=k
                         vec(4,count)=r
+
                         count=count+1
                         end do
                         end do
@@ -544,11 +553,11 @@ module integrals
         print*,'taking ', deltai,' from ',newncapi
 
 
-        inicap=((this_image()-1)*deltai)+1
-        endcap=((this_image())*deltai)
+        inicap=((rank)*deltai)+1
+        endcap=(rank+1)*deltai
 
 
-         if (this_image()==num_images()) then
+         if (rank+1==totalranks) then
             endcap=newncapi
         end if
 
@@ -558,7 +567,7 @@ module integrals
      !   allocate(z1t(ngtos,nmat,ngtos))
      !   z1t=reshape(z1,(/ngtos,nmat,ngtos/))
       !  z2t=reshape(z2,(/ngtos,nmat,ngtos/))
-        print*,'this image ', this_image(),' is calculating ', endcap-inicap, ' iterations ', inicap,endcap
+!        print*,'this image ', this_image(),' is calculating ', endcap-inicap, ' iterations ', inicap,endcap
 !        if (this_image()==1) then
 !            inicap=1
 !            endcap=2
@@ -640,75 +649,75 @@ module integrals
         end do
         count=1
 
-        do bigfrog=1,newncapi
-             i=vec(1,bigfrog)
-             j=vec(2,bigfrog)
-             k=vec(3,bigfrog)
-             r=vec(4,bigfrog)
-            count=count+group_count(i)+group_count(j)+group_count(k)+group_count(r)
-        end do
+!        do bigfrog=1,newncapi
+!             i=vec(1,bigfrog)
+!             j=vec(2,bigfrog)
+!             k=vec(3,bigfrog)
+!             r=vec(4,bigfrog)
+!            count=count+group_count(i)+group_count(j)+group_count(k)+group_count(r)
+!        end do
+!
 
-
-        mxchunk=count/num_images()
+        mxchunk=count/totalranks
 
         countini=1
         countfin=1
 
 
-        do ii=1,num_images()
-            count=1
-            do bigfrog=countini[ii],newncapi
-             i=vec(1,bigfrog)
-             j=vec(2,bigfrog)
-             k=vec(3,bigfrog)
-             r=vec(4,bigfrog)
-             count=count+group_count(i)+group_count(j)+group_count(k)+group_count(r)
-             if (count>=mxchunk) then
-                 countfin[ii]=bigfrog
-                if (ii<num_images()) then
-
-                 countini[ii+1]=bigfrog+1
-
-                end if
-                 exit
-             elseif (ii==num_images() .and. bigfrog==newncapi) then
-                 countfin[ii]=bigfrog
-
-             end if
-        end do
-       enddo
-
-
-
-!       if (this_image()==16) then
-!           countini=countfin[num_images()-1]+1
-!           countfin=newncapi
+!        do ii=1,totalranks
+!            count=1
+!            do bigfrog=countini,newncapi
+!             i=vec(1,bigfrog)
+!             j=vec(2,bigfrog)
+!             k=vec(3,bigfrog)
+!             r=vec(4,bigfrog)
+!             count=count+group_count(i)+group_count(j)+group_count(k)+group_count(r)
+!             if (count>=mxchunk) then
+!                 countfin[ii]=bigfrog
+!                if (ii<num_images()) then
+!
+!                 countini[ii+1]=bigfrog+1
+!
+!                end if
+!                 exit
+!             elseif (ii==num_images() .and. bigfrog==newncapi) then
+!                 countfin[ii]=bigfrog
+!
+!             end if
+!        end do
+!       enddo
+!
+!
+!
+!!       if (this_image()==16) then
+!!           countini=countfin[num_images()-1]+1
+!!           countfin=newncapi
+!!        end if
+!
+!
+!        print*,this_image(),' starts in ', countini, 'and finishes on ', countfin, ' with ', countfin-countini
+!
+!        inicap=countini[this_image()]
+!        endcap=countfin[this_image()]
+!     !
+!        !First big loop
+!
+!
+!
+!
+!
+!        tsi=0.0_dp
+!        if (any(isnan(p0matrix))) print*,'ouch'
+!         sync all
+!        call cpu_time(time1)
+!        if (this_image()==1) then
+!            print*,'time to do previous calculations ', time1-time2
 !        end if
-
-
-        print*,this_image(),' starts in ', countini, 'and finishes on ', countfin, ' with ', countfin-countini
-
-        inicap=countini[this_image()]
-        endcap=countfin[this_image()]
-     !
-        !First big loop
-
-
-
-
-
-        tsi=0.0_dp
-        if (any(isnan(p0matrix))) print*,'ouch'
-         sync all
-        call cpu_time(time1)
-        if (this_image()==1) then
-            print*,'time to do previous calculations ', time1-time2
-        end if
-
-        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2,bigiter,inicap,endcap) shared(q,l,m,n, p0matrix), &
-        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
-        !$OMP& schedule(dynamic)
+        print*, rank, 'here we are'
+      !  !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+      !  !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2,bigiter,inicap,endcap) shared(q,l,m,n, p0matrix), &
+        ! !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
+        !!$OMP& schedule(dynamic)
 
 
 
@@ -737,8 +746,13 @@ module integrals
                         spj = size(posJ)
                         spk = size(posK)
                         spr = size(posR)
-
                         allocate(zcontrred(spj, spk, spr, spi),zcontrred2(spr, spi, spj, spk))
+
+                       if ((spi+spj+spk+spr)==4) then
+                            Zcontrred(1,1,1,1)=ddot(szo,z1(:,posi(1),posj(1)),1, z2(:,posr(1),posk(1)),1)/8.d0
+                            Zcontrred2(1,1,1,1)=ddot(szo,z2(:,posi(1),posj(1)),1, z1(:,posr(1),posk(1)),1)/8.d0
+                       else
+
 
                           do ii = 1, spi
                             do jj = 1, spr
@@ -760,7 +774,7 @@ module integrals
 
                             enddo
                           enddo
-
+                        end if
 
 
                          !deallocate(posI,posJ,posK,posR)
@@ -798,17 +812,19 @@ module integrals
 
 
     enddo
-
-      !$OMP END parallel DO
+        !!$OMP END parallel DO
       call cpu_time(time2)
 
-      print*,this_image(),' intermediate calc', time2-time1
-        sync all
-        call CO_SUM(tsi,result_image=1)
-        if (this_image() == 1) then
-            write(*,*) "The sum is ", tsi(1) !
-
-        end if
+      print*,rank,' intermediate calc', time2-time1
+!        sync all
+!        call CO_SUM(tsi,result_image=1)
+!        if (this_image() == 1) then
+!            write(*,*) "The sum is ", tsi(1) !
+!
+!        end if
+         print*,tsi(1)
+         call MPI_Barrier(  MPI_COMM_WORLD, ierror)
+         call MPI_Finalize(ierror)
         stop
 
 

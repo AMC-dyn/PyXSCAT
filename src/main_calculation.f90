@@ -41,9 +41,11 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
  !   use elastic_j0
 
  !   use elastic_j2
+     implicit none
+      include 'mpif.h'
 
-    implicit none
 
+        integer process_Rank, size_Of_Cluster, ierror
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
 
@@ -122,6 +124,10 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
                 print*,'size nmat', nmat
+                call MPI_COMM_SIZE(MPI_COMM_WORLD, size_Of_Cluster, ierror)
+                call MPI_COMM_RANK(MPI_COMM_WORLD, process_Rank, ierror)
+                print*,'we are still in ', process_Rank, ' of ', size_Of_Cluster
+
                 call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
             mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
