@@ -5,7 +5,8 @@ module integrals
     contains
 
 
-    subroutine tot_integration(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_start,group_count,group, &
+    subroutine tot_integration(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,z1t,z2t,&
+            group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
 
 
@@ -14,6 +15,8 @@ module integrals
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+
+        real(kind=kind(1.d0)), external :: ddot
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
 
@@ -21,7 +24,7 @@ module integrals
         real(kind=dp),dimension(:,:,:), pointer :: dx1,dy1,dz1,dx2,dy2,dz2
         REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
-        real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
+        real(kind=dp), intent(in), dimension(:,:,:)::z1,z2,z1t,z2t
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
         REAL(kind=dp), intent(in), dimension(:),allocatable :: q
@@ -58,7 +61,7 @@ module integrals
         nq= size(q)
 
         print*,OMP_get_num_threads()
-        call OMP_set_num_threads(10)
+        call OMP_set_num_threads(14)
         print*,OMP_get_num_threads()
      !
         !First big loop
@@ -66,7 +69,7 @@ module integrals
         tsi=0.0_dp
         if (any(isnan(p0matrix))) print*,'ouch'
 
-        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
         !$OMP& schedule(dynamic)
@@ -96,33 +99,36 @@ module integrals
                         spk = size(posK)
                         spr = size(posR)
 
-                        allocate(zcontrred(spj, spk, spr, spi), za(szo, spj), zb(szo, spk), &
-                       &         cmat(spj, spk), zcontrred2(spr, spi, spj, spk))
+                        allocate(zcontrred(spj, spk, spr, spi), &
+                       &        zcontrred2(spr, spi, spj, spk))
 
+                   !     if ((spi+spj+spk+spr)==4) then
+                   !         Zcontrred(1,1,1,1)=ddot(szo,z1(:,posi(1),posj(1)),1, z2(:,posr(1),posk(1)),1)/8.d0
+                    !        Zcontrred2(1,1,1,1)=ddot(szo,z2(:,posi(1),posj(1)),1, z1(:,posr(1),posk(1)),1)/8.d0
+                    !   else
                           do ii = 1, spi
                             do jj = 1, spr
-                                za = z1(:,posj,posi(ii))
-                              !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z2(:,posk,posr(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spj)
-                                zcontrred(:,:,jj,ii) = cmat
 
-                                za = z2(:,posj,posi(ii))
                               !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z1(:,posk,posr(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spj)
+                                !print*,shape(matmul(z1t(posj,:,posi(ii)),z2(:,posk,posr(jj)))), spj,spk
+                              !   zcontrred(:,:,jj,ii)= matmul(z1t(posI,:,posi(ii)),z2(:,posk,posr(jj)))/8.0d0
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z1(:,posj,posi(ii)), &
+                              &           szo, z2(:,posk,posr(jj)), szo, 0.0_dp, zcontrred(:,:,jj,ii), spj)
 
-                                zcontrred2(jj,ii,:,:) = cmat
+
+                              !  za = transpose(z1(:,posj,posi(ii)))
+
+                            !    zcontrred2(jj,ii,:,:) = matmul(z2t(posj,:,posi(ii)),z1(:,posk,posr(jj)))/8.0d0
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z2(:,posj,posi(ii)), &
+                              &           szo,  z1(:,posk,posr(jj)), szo, 0.0_dp, zcontrred2(jj,ii,:,:) , spj)
+!
+
                             enddo
                           enddo
+                     !   endif
 
 
-
-                         deallocate(posI,posJ,posK,posR,za,zb,cmat)
+                         deallocate(posI,posJ,posK,posR)
                          dx1=>dx(:,:,:,j,i)
                          dy1=>dy(:,:,:,j,i)
                          dz1=>dz(:,:,:,j,i)
@@ -476,6 +482,7 @@ module integrals
 
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        real(kind=kind(1.d0)), external :: ddot
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable:: l,m,n,group
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)::group_start,group_count
@@ -564,30 +571,36 @@ module integrals
                         spr = size(posR)
 
                         allocate(zcontrred(spj, spk, spr, spi), za(szo, spj), zb(szo, spk), &
-                       &         cmat(spj, spk), zcontrred2(spr, spi, spj, spk))
+                       &         zcontrred2(spr, spi, spj, spk))
+
+                        if ((spi+spj+spk+spr)==4) then
+                            Zcontrred(1,1,1,1)=ddot(szo,z1(:,posi(1),posj(1)),1, z2(:,posr(1),posk(1)),1)/8.d0
+                            Zcontrred2(1,1,1,1)=ddot(szo,z2(:,posi(1),posj(1)),1, z1(:,posr(1),posk(1)),1)/8.d0
+                       else
+
 
                           do ii = 1, spi
                             do jj = 1, spr
-                                za = z1(:,posj,posi(ii))
-                              !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z2(:,posk,posr(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spj)
-                                zcontrred(:,:,jj,ii) = cmat
 
-                                za = z2(:,posj,posi(ii))
                               !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z1(:,posk,posr(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spj)
 
-                                zcontrred2(jj,ii,:,:) = cmat
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z1(:,posj,posi(ii)), &
+                              &           szo, z2(:,posk,posr(jj)), szo, 0.0_dp, zcontrred(:,:,jj,ii), spj)
+
+
+
+                              !  za = transpose(z1(:,posj,posi(ii)))
+
+                               ! cmat = matmul(za,zb)
+                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z2(:,posj,posi(ii)), &
+                              &           szo, z1(:,posk,posr(jj)), szo, 0.0_dp, zcontrred2(jj,ii,:,:), spj)
+
+
                             enddo
                           enddo
 
-
+                        endif
 
                          deallocate(posI,posJ,posK,posR,za,zb,cmat)
                          dx1=>dx(:,:,:,j,i)
@@ -3666,28 +3679,28 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
                         end if
                      do ll = 0, l(i)+l(j)
                             MDL = Dx1(ll+1,l(i)+1,l(j)+1)
-                            if (abs(MDL)<1.0e-30) cycle
+                         !   if (abs(MDL)<1.0e-30) cycle
                             prod1 = MDL * ztot
                             ! MD coeff 2
                             do mm = 0, m(i)+m(j)
                                 MDM = Dy1(mm+1,m(i)+1,m(j)+1)
-                                if (abs(MDM)<1.0e-30) cycle
+                             !   if (abs(MDM)<1.0e-30) cycle
                                 prod2 = MDM * prod1
                                 ! MD coeff 3
                                 do nn =0, n(i)+n(j)
                                     H1=(-1.0)**(ll+mm+nn)
                                     MDN=Dz1(nn+1,n(i)+1,n(j)+1)
-                                    if (abs(MDN)<1.0e-30) cycle ! check if MD coeff is 0
+                             !       if (abs(MDN)<1.0e-30) cycle ! check if MD coeff is 0
                                     prod3 = MDN * H1  * prod2
                                     ! MD coeff 4
                                     do llp = 0, l(k)+l(r)
                                         MDLp=Dx2(llp+1,l(k)+1,l(r)+1)
-                                        if (abs(MDLp)<1.0e-30) cycle ! check if MD coeff is 0
+                               !         if (abs(MDLp)<1.0e-30) cycle ! check if MD coeff is 0
                                         prod4 = MDLp * prod3
                                         ! MD coeff 5
                                         do mmp = 0, m(k)+m(r)
                                             MDMp = Dy2(mmp+1,m(k)+1,m(r)+1)
-                                            if (abs(MDMp)<1.0e-30) cycle ! check if MD coeff is 0
+                                       !     if (abs(MDMp)<1.0e-30) cycle ! check if MD coeff is 0
                                             prod5 = MDMp * prod4
                                             ! MD coeff 6
                                             do nnp = 0, n(k)+n(r)
@@ -3989,8 +4002,8 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         do k = 0, LLmax
             do j = 0, LLmax - k
                 do i = 0, LLmax - k - j
-                    call BesselDeriv(BD, i, j, k, a, b, c, LLmax)
-                    h_pre2(:,i+1,j+1,k+1) = BD
+                    call BesselDeriv(BD, k, j, i, a, b, c, LLmax)
+                    h_pre2(:,k+1,j+1,i+1) = BD
                 end do
             end do
         end do
@@ -4025,28 +4038,28 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
                             end if
                            do ll = 0, l(i)+l(j)
                             MDL = Dx1(ll+1,l(i)+1,l(j)+1)
-                            if (abs(MDL)<1.0e-30) cycle
+                          !  if (abs(MDL)<1.0e-30) cycle
                             prod1 = MDL * ztot
                             ! MD coeff 2
                             do mm = 0, m(i)+m(j)
                                 MDM = Dy1(mm+1,m(i)+1,m(j)+1)
-                                if (abs(MDM)<1.0e-30) cycle
+                              !  if (abs(MDM)<1.0e-30) cycle
                                 prod2 = MDM * prod1
                                 ! MD coeff 3
                                 do nn =0, n(i)+n(j)
                                     H1=(-1.0)**(ll+mm+nn)
                                     MDN=Dz1(nn+1,n(i)+1,n(j)+1)
-                                    if (abs(MDN)<1.0e-30) cycle ! check if MD coeff is 0
+                                 !   if (abs(MDN)<1.0e-30) cycle ! check if MD coeff is 0
                                     prod3 = MDN * H1  * prod2
                                     ! MD coeff 4
                                     do llp = 0, l(k)+l(r)
                                         MDLp=Dx2(llp+1,l(k)+1,l(r)+1)
-                                        if (abs(MDLp)<1.0e-30) cycle ! check if MD coeff is 0
+                                  !      if (abs(MDLp)<1.0e-30) cycle ! check if MD coeff is 0
                                         prod4 = MDLp * prod3
                                         ! MD coeff 5
                                         do mmp = 0, m(k)+m(r)
                                             MDMp = Dy2(mmp+1,m(k)+1,m(r)+1)
-                                            if (abs(MDMp)<1.0e-30) cycle ! check if MD coeff is 0
+                                    !        if (abs(MDMp)<1.0e-30) cycle ! check if MD coeff is 0
                                             prod5 = MDMp * prod4
                                             ! MD coeff 6
                                             do nnp = 0, n(k)+n(r)
@@ -5512,7 +5525,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 !            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
 !            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
 !            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3
-            call dphrec(pmu,allbessels,30,16,size(mu))
+            call dphrec(pmu,allbessels,30,order+1,size(mu))
             do beta=1,order
                 h_sum=h_sum+allbessels(beta+1,:)*invpmu**beta*h_saved(beta+1)
           enddo
@@ -5966,7 +5979,7 @@ RNEU(2,:)=CX+X*SX
 
 DO K=3,LEPS1
 LU=LEPS1-K+2
-RBES(LU-1,:)=RBES(LU,:)-XX/(4.D0*LU**2-1.D0)*RBES(LU+1,:)
+RBES(LU-1,:)=RBES(LU,:)-XX/(4.D0*LU*LU-1.D0)*RBES(LU+1,:)
 end do
 A=RBES(1,:)*RNEU(2,:)-XX/3.0d0*RBES(2,:)*CX
 DO K=1, LEPS1

@@ -478,7 +478,8 @@ SUBROUTINE fill_md_table(D, l, x, ga)
 
     END SUBROUTINE fill_md_table
 
-subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,z1t,z2t,&
+        e12,maxl,ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
 
@@ -495,10 +496,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         real(kind=dp), dimension(ng):: ga2, xx2, yy2, zz2
         real(kind=dp), intent(in),dimension(:,:),allocatable :: mmod
         real(kind=dp), intent(out), dimension(ng,ng):: px,py,pz
-        real(kind=dp), dimension(nmat,ngto,ngto) :: z1
-        real(kind=dp), dimension(:,:),allocatable :: za
-        real(kind=dp), dimension(:,:),allocatable :: zb
-        real(kind=dp), dimension(nmat,ngto,ngto) ::  z2
+
         real(kind=dp), dimension(ngto,ngto) :: cmat
         !real(kind=dp), intent(out), dimension(ngto,ngto,ngto,ngto) :: zcontr
 
@@ -510,7 +508,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         integer(kind=ikind) :: max4l, max2l, i, j, k, N1, N2, nn1, nn2,ii,jj,ls, ms, ns,count
         integer(kind=ikind), dimension(ngto) :: ll
         integer(kind=ikind), dimension(nmat) :: indexing1,indexing2
-        real(kind=dp), dimension(:,:,:),intent(out), allocatable :: z11, z22
+        real(kind=dp), dimension(:,:,:),intent(out), allocatable :: z11, z22,z1t,z2t
 
         real(kind=dp) :: pi, gap,time1,time2,time3,time4
 
@@ -548,6 +546,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
         !totalfin=total
         allocate(m11(size(totalfin)),m22(size(totalfin)),m33(size(totalfin)),m44(size(totalfin)))
         allocate(z11(size(totalfin),ngto,ngto), z22(size(totalfin),ngto,ngto), &
+                z1t(ngto,size(totalfin),ngto), z2t(ngto,size(totalfin),ngto), &
                temp1(size(totalfin)),temp2(size(totalfin)))
         m11 = matfin(:,1)
         m22 = matfin(:,2)
@@ -558,6 +557,8 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
       !  print*,shape(z11), nmat
         z11=0.0_dp
         z22=0.0_dp
+        z1t=0.0_dp
+        z2t=0.0_dp
         print*,z11(1,1,1),m11(1)
 
 
@@ -576,6 +577,8 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,e12,maxl,ngto,ng,group_s
 
                         z11(:,ii, jj) =  temp1
                         z22(:, ii, jj) = temp2
+                        z1t(ii,:,jj)=temp1
+                        z2t(ii,:,jj)=temp2
 
                         if (sum(abs(temp1-temp2))<1E-10) then
                             counter=counter+1

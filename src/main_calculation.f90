@@ -54,7 +54,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp), intent(in),dimension(:),allocatable :: ga, xx, yy, zz, q
         real(kind=dp), intent(in), dimension(:), allocatable:: zn
         real(kind=dp), intent(in),dimension(:,:), allocatable :: mmod, civecs,geom
-        real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
+        real(kind=dp),dimension(:,:,:),allocatable :: z1,z2,z1t,z2t
         real(kind=dp),dimension(ngto,ngto):: z
 
         real(kind=dp), intent(in) :: cutoffmd, cutoffz,cutoffcentre
@@ -117,10 +117,12 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
              nmat=size(m1)
 
             print*,'size nmat', nmat
-            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t,&
+                    e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
-            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,z1t,z2t,&
+                    group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
 
             result=result2
@@ -180,7 +182,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             print*,'size q_abs',size(q_abs_2), 3131
             PRINT*,SIZE(e123)
              print*,ngto,size(E123(:,1,1)),size(E123(1,:,1), size(E123(1,1,:)))
-            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e123,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t,&
+                    e123,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q_abs,3131)
 
 
@@ -282,10 +285,12 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 m3 = mat(:,3)
                 m4 = mat(:,4)
                 nmat=size(m1)
-                call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+                call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t,&
+                        e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
                     mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
-                call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+                call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,z1t,z2t,&
+                        group_start,group_count,group, &
                     cutoffz,cutoffmd, cutoffcentre,q,e12,Iee)
 
                 call onerdm_creat(confs,civecs,onerdm_matrix,nmomax,state1,state2)
@@ -392,7 +397,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                m3 = mat(:,3)
                m4 = mat(:,4)
                nmat=size(m1)
-               call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+               call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t, &
+               e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
                call tot_integration_j2(ng,nq,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
@@ -435,7 +441,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                m3 = mat(:,3)
                m4 = mat(:,4)
                nmat=size(m1)
-               call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+               call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t,&
+                       e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
                print*,'Going to integration'
@@ -478,7 +485,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
         real(kind=dp), intent(in),dimension(:), allocatable :: ga, xx, yy, zz, q, Zn
         real(kind=dp), intent(in),dimension(:,:),allocatable :: mmod, geom
-        real(kind=dp),dimension(:,:,:),allocatable :: z1,z2
+        real(kind=dp),dimension(:,:,:),allocatable :: z1,z2,z1t,z2t
         real(kind=dp),dimension(ngto,ngto):: z
         character (len=100), intent(in) :: fileJ
         character (len=60):: fileout_8, fileJ2
@@ -620,14 +627,15 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 !            close(15)
 
 
-           call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+           call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t, &
+                   e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
             call cpu_time(time3)
             print*,'Time variables', time3-time2
             print*,'size of wavefunction', size(l)
 
-            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
+            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,z1t,z2t,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
             result=result2
             print*,result(1)
@@ -739,7 +747,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
                 nmomax=maxval(mat)
                 print*,'up to variables'
-                call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+                call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t, &
+                e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
                         mmod,m1,m2,m3,m4,nmat, total,q,nq)
 
                 call tot_integration_j2(ng,nq,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,group_start,group_count,group, &
