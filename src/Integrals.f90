@@ -1,5 +1,5 @@
 module integrals
-    use omp_lib    
+
     use calculate_form_factors
     implicit none
     contains

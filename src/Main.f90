@@ -1,5 +1,5 @@
 program main
-    use omp_lib
+   ! use omp_lib
     use main_calculation_mod
     use linspace
     implicit none

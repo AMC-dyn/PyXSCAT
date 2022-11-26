@@ -16,7 +16,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
 
-    use omp_lib
+   ! use omp_lib
     use onerdm
 
     use twordms
