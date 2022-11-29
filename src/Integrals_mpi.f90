@@ -480,7 +480,7 @@ module integrals
         REAL(kind=dp), intent(in), dimension(:,:,:,:) :: p0matrix
         REAL(kind=dp), intent(in), dimension(:,:,:) ::e12
         real(kind=dp), intent(in), dimension(:,:,:)::z1,z2
-         real(kind=dp),allocatable,  dimension(:,:,:)::z1t,z2t
+        real(kind=dp),allocatable,  dimension(:,:,:)::z1t,z2t
 
         real(kind=dp), dimension(:,:,:,:), allocatable::zcontrred,zcontrred2
         REAL(kind=dp), intent(in), dimension(:,:) :: px,py,pz
@@ -506,8 +506,10 @@ module integrals
         integer(kind=ikind), allocatable,dimension(:,:)::vec
         integer(kind=ikind), allocatable, dimension(:):: inicap1,endcap1
 
+
         call cpu_time(time2)
         allocate(f(size(q)))
+
 
          nq= size(q)
          allocate(tsi(nq))
@@ -546,17 +548,18 @@ module integrals
         print*,'taking ', deltai,' from ',newncapi
 
 
-        inicap=((rank)*deltai)+1
-        endcap=(rank+1)*deltai
+       ! inicap=((rank)*deltai)+1
+       ! endcap=(rank+1)*deltai
+
+        !z1t=reshape(z1,shape=[size(z2,2),size(z2,1),size(z2,3)])
+        !z2t=reshape(z2,shape=[size(z2,2),size(z2,1),size(z2,3)])
+!         if (rank+1==totalranks) then
+ !           endcap=newncapi
+  !      end if
 
 
-         if (rank+1==totalranks) then
-            endcap=newncapi
-        end if
-
-
-        nmat=size(z1(:,1,1))
-        ngtos=size(z1(1,:,1))
+   !     nmat=size(z1(:,1,1))
+   !     ngtos=size(z1(1,:,1))
 
         szo = size(z1(:,1,1))
 
@@ -576,7 +579,7 @@ module integrals
 
 
 tsi=0.0d0
-        mxchunk=floor(count2*1.0d0/totalranks)-1500000
+        mxchunk=floor(count2*1.0d0/totalranks)-1000000
         allocate(inicap1(totalranks), endcap1(totalranks))
         inicap1=1
         endcap1=newncapi
@@ -636,33 +639,33 @@ tsi=0.0d0
                         spr = size(posR)
                         allocate(zcontrred(spj, spk, spr, spi),zcontrred2(spr, spi, spj, spk))
 
-                       if ((spi+spj+spk+spr)==4) then
-                            Zcontrred(1,1,1,1)=ddot(szo,z1(:,posi(1),posj(1)),1, z2(:,posr(1),posk(1)),1)/8.d0
-                            Zcontrred2(1,1,1,1)=ddot(szo,z2(:,posi(1),posj(1)),1, z1(:,posr(1),posk(1)),1)/8.d0
-                       else
+!                       if ((spi+spj+spk+spr)==4) then
+!                            Zcontrred(1,1,1,1)=ddot(szo,z1(:,posi(1),posj(1)),1, z2(:,posr(1),posk(1)),1)/8.d0
+!                            Zcontrred2(1,1,1,1)=ddot(szo,z2(:,posi(1),posj(1)),1, z1(:,posr(1),posk(1)),1)/8.d0
+!                       else
 
 
                           do ii = 1, spi
                             do jj = 1, spr
 
-                              !  za = transpose(z1(:,posj,posi(ii)))
+                                zcontrred(:,:,jj,ii) = matmul(transpose(z1(:,posj,posi(ii))), z2(:,posk,posr(jj)))/8.0d0
 
                                ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z1(:,posj,posi(ii)), &
-                              &           szo, z2(:,posk,posr(jj)), szo, 0.0_dp, zcontrred(:,:,jj,ii), spj)
+                               ! call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z1(:,posj,posi(ii)), &
+                            !  &           szo, z2(:,posk,posr(jj)), szo, 0.0_dp, zcontrred(:,:,jj,ii), spj)
 
 
 
                               !  za = transpose(z1(:,posj,posi(ii)))
-
+                                 zcontrred2(jj,ii,:,:)=matmul(transpose(z2(:,posj,posi(ii))),z1(:,posk,posr(jj)))/8.0d0
                                ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z2(:,posj,posi(ii)), &
-                              &           szo, z1(:,posk,posr(jj)), szo, 0.0_dp, zcontrred2(jj,ii,:,:), spj)
+                 !               call dgemm('t','n', spj, spk, szo, 1.0_dp/8.0_dp, z2(:,posj,posi(ii)), &
+                   !           &           szo, z1(:,posk,posr(jj)), szo, 0.0_dp, zcontrred2(jj,ii,:,:), spj)
 
 
                             enddo
                           enddo
-                        end if
+                       ! end if
 
 
                          !deallocate(posI,posJ,posK,posR)
@@ -746,26 +749,26 @@ tsi=0.0d0
                         spj = size(posJ)
                         spr = size(posR)
 
-                        allocate(zcontrred(spj, spi, spr, spi), za(szo, spj), zb(szo, spi), &
-                       &         cmat(spj, spi), zcontrred2(spr, spi, spj, spi))
+                        allocate(zcontrred(spj, spi, spr, spi),zcontrred2(spr, spi, spj, spi))
 
                           do ii = 1, spi
                             do jj = 1, spr
                               ! za = transpose(z1(:,posj,posi(ii)))
-                                za = z1(:,posj,posi(ii))
-                                zb = z2(:,posi,posr(jj))
-                               !cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
-                               &           szo, zb, szo, 0.0_dp, cmat, spj)
-                                zcontrred(:,:,jj,ii) = cmat
-                                  za = z2(:,posj,posi(ii))
-                              !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z1(:,posi,posr(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spj)
+                                zcontrred(:,:,jj,ii)=matmul(transpose( z1(:,posj,posi(ii))),z2(:,posi,posr(jj)))/8.0d0
 
-                                zcontrred2(jj,ii,:,:) = cmat
+                               !cmat = matmul(za,zb)
+                             !   call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
+                              ! &           szo, zb, szo, 0.0_dp, cmat, spj)
+
+                               zcontrred2(jj,ii,:,:)= matmul(transpose( z2(:,posj,posi(ii))),z1(:,posi,posr(jj)))/8.0d0
+                              !    za =
+                              !  za = transpose(z1(:,posj,posi(ii)))
+                              !  zb =
+                               ! cmat = matmul(za,zb)
+                            !    call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
+                            !  &           szo, zb, szo, 0.0_dp, cmat, spj)
+
+
                             enddo
                           enddo
 
@@ -793,7 +796,7 @@ tsi=0.0d0
                     end if
                     tsi = tsi + 4.000 * f * e12(:, i, j) * e12(:, i, r)
                     count=count+1
-                    deallocate(posI,posJ,posR,za,zb,cmat)
+                    deallocate(posI,posJ,posR)
                     deallocate(zcontrred, zcontrred2)
                   !   deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
@@ -829,26 +832,25 @@ tsi=0.0d0
                     spk = size(posK)
                     spr = size(posR)
 
-                    allocate(zcontrred(spi, spk, spr, spi), za(szo, spi), zb(szo, spk), &
-                   &         cmat(spi, spk), zcontrred2(spr, spi, spi, spk))
+                    allocate(zcontrred(spi, spk, spr, spi),zcontrred2(spr, spi, spi, spk))
 
                     do ii = 1, spi
                         do jj = 1, spr
                           !  za = transpose(z1(:,posi,posi(ii)))
-                            za = z1(:,posi,posi(ii))
-                            zb = z2(:,posk,posr(jj))
+                            zcontrred(:,:,jj,ii) = matmul(transpose(z1(:,posi,posi(ii))),z2(:,posk,posr(jj)))/8.0d0
+                           ! zb =
                            ! cmat = matmul(za,zb)
-                            call  dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-                           &           szo, zb, szo, 0.0_dp, cmat, spi)
-                            zcontrred(:,:,jj,ii) = cmat
-                             za = z2(:,posi,posi(ii))
+                            !call  dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                          ! &           szo, zb, szo, 0.0_dp, cmat, spi)
+                            ! = cmat
+                             !za =
                               !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z1(:,posk,posr(jj))
+                              !  zb =
                                ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spi)
+                               ! call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                             ! &           szo, zb, szo, 0.0_dp, cmat, spi)
 
-                                zcontrred2(jj,ii,:,:) = cmat
+                                zcontrred2(jj,ii,:,:) = matmul(transpose(z2(:,posi,posi(ii))),z1(:,posk,posr(jj)) )/8.0d0
                         enddo
                     enddo
 
@@ -877,7 +879,7 @@ tsi=0.0d0
                     end if
                     tsi = tsi+ 4.000 * f * e12(:, i, i) * e12(:, k, r)
                     count=count+1
-                    deallocate(posI,posK,posR,za,zb,cmat)
+                    deallocate(posI,posK,posR)
                     deallocate(zcontrred, zcontrred2)
                !     deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
@@ -917,20 +919,18 @@ tsi=0.0d0
                 do ii = 1, spi
                     do jj = 1, spk
                        ! za = transpose(z1(:,posi,posi(ii)))
-                        za = z1(:,posi,posi(ii))
-                        zb = z2(:,posk,posk(jj))
-!                        cmat = matmul(za,zb)
-                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-                       &           szo, zb, szo, 0.0_dp, cmat, spi)
-                        zcontrred(:,:,jj,ii) = cmat
-                        za = z2(:,posi,posi(ii))
+                        !za = z1(:,posi,posi(ii))
+                       !! call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                      ! &           szo, zb, szo, 0.0_dp, cmat, spi)
+                        zcontrred(:,:,jj,ii) = matmul(transpose(z1(:,posi,posi(ii))),z2(:,posk,posk(jj)))/8.0d0
+                      !  za =
                               !  za = transpose(z1(:,posj,posi(ii)))
-                        zb = z1(:,posk,posk(jj))
+                      !  zb =
                                ! cmat = matmul(za,zb)
-                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spi)
+                      !  call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
+                       !       &           szo, zb, szo, 0.0_dp, cmat, spi)
 
-                        zcontrred2(jj,ii,:,:) = cmat
+                        zcontrred2(jj,ii,:,:) = matmul(transpose(z2(:,posi,posi(ii))),z1(:,posk,posk(jj)))/8.0d0
                     enddo
                 enddo
 
@@ -977,26 +977,15 @@ tsi=0.0d0
 
             spi = size(posI)
 
-            allocate(zcontrred(spi, spi, spi, spi), za(szo, spi), zb(szo, spi), &
-           &         cmat(spi, spi), zcontrred2(spi, spi, spi, spi))
+            allocate(zcontrred(spi, spi, spi, spi),  &
+           &        zcontrred2(spi, spi, spi, spi))
 
             do ii = 1, spi
                 do jj = 1, spi
-                  !  za = transpose(z1(:,posi,posi(ii)))
-                    za = z1(:,posi,posi(ii))
-                    zb = z2(:,posi,posi(jj))
-                   ! cmat = matmul(za,zb)
-                    call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
-                   &           szo, zb, szo, 0.0_dp, cmat, spi)
-                    zcontrred(:,:,jj,ii) = cmat
-                     za = z2(:,posi,posi(ii))
-                              !  za = transpose(z1(:,posj,posi(ii)))
-                                zb = z1(:,posi,posi(jj))
-                               ! cmat = matmul(za,zb)
-                                call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
-                              &           szo, zb, szo, 0.0_dp, cmat, spi)
 
-                                zcontrred2(jj,ii,:,:) = cmat
+                    zcontrred(:,:,jj,ii) = matmul(transpose(z1(:,posi,posi(ii))),z2(:,posi,posi(jj)))/8.0d0
+
+                    zcontrred2(jj,ii,:,:) = matmul(transpose( z2(:,posi,posi(ii))), z1(:,posi,posi(jj)))/8.0d0
                 enddo
             enddo
 
@@ -1015,7 +1004,7 @@ tsi=0.0d0
 
             tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
             count=count+1
-            deallocate(posI,za,zb,cmat)
+            deallocate(posI)
             deallocate(zcontrred, zcontrred2)
 
 
@@ -4146,35 +4135,38 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
         ! The three nested loops give the formula
         ! in the form of coefficients multiplying the h functions
-        REAL(kind=dp), INTENT(out), DIMENSION(LLmax+1)  :: BD
         INTEGER(kind=ikind), INTENT(in)                 :: LL, MM, NN, LLmax
-        REAL(kind=dp), INTENT(in), DIMENSION(13,13)  :: a, b, c
+        REAL(kind=dp), INTENT(out), DIMENSION(13)  :: BD
+
+        REAL(kind=dp), INTENT(in),DIMENSION(13,13)  :: a, b, c
 
         ! loop and temp variables
         INTEGER(kind=ikind) :: ii, jj, kk, hOrder, temp, ceil
         REAL(kind=dp)       :: C1, C2, C3, Ct2, Ct3
         ! set this to 0 initially and accumulate
+
         BD = 0.0_dp
         !TempBesselPre=zeros(LLmax+1,1);
         do ii = 0, LL
             C1=a(LL+1,ii+1)
-            if (abs(C1)<1.0E-30) cycle
+            if (abs(C1)<1.0E-10) cycle
 
             do jj = 0, MM
-                Ct2=b(MM+1,jj+1)
-                if (abs(Ct2)<1.0E-30) cycle
-                C2 = C1 * Ct2
+               ct2= b(MM+1,jj+1)
+               if (abs(ct2)<1.0E-10) cycle
+                C2 = C1 * ct2
 
                 do kk = 0, NN
-                    Ct3=c(NN+1,kk+1)
-                    if (abs(Ct3)<1.0E-30) cycle
-                    C3 = C2 * Ct3
+                    ct3=  c(NN+1,kk+1)
+                    if (abs(ct3)<1.0E-10) cycle
+                    C3 = C2 * ct3
                     ! hOrder = ceiling((LL+MM+NN-ii-jj-kk)/2.0_dp)+ii+jj+kk
                     temp = LL+MM+NN-ii-jj-kk
-                    ceil = temp/2_ikind + mod(temp, 2_ikind) ! integer division with rounding up
-                    hOrder = ceil+ii+jj+kk
+                    hOrder = temp/2_ikind + mod(temp, 2_ikind)+ii+jj+kk ! integer division with rounding up
+                   ! hOrder = ceil+ii+jj+kk
                     ! Barrilero style:
-                    ! hOrder = ceiling((LL+MM+NN+ii+jj+kk)/2_ikind)
+                    !hOrder = ceiling((LL+MM+NN+ii+jj+kk)/2.0d0)
+
                     BD(hOrder+1)=BD(hOrder+1) + C3
                 end do
             end do
@@ -4514,34 +4506,34 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         real(kind=dp), intent(in), dimension(:),allocatable   ::  mu
 
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
-        !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
-
-
-
         integer(kind=selected_int_kind(8)) :: ka, posi, posj, posk, posr, ra,i,j,k,r
         integer(kind=selected_int_kind(8)) ::  h1
+
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z11,z22
+
+
         INTEGER(kind=ikind), parameter :: dim = 13
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
-        REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
+        REAL(kind=dp),DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
-        REAL(kind=dp), DIMENSION(dim, dim, dim, dim)  :: h_pre2
-        REAL(kind=dp), DIMENSION(dim)               :: BD
-
-
-
-      !  real(kind=dp), dimension(:), allocatable :: pmu, h_0, h_1, h_r, muoh,zij, zij2, zkr, zkr2
-
+        REAL(kind=dp), DIMENSION(dim,dim , dim, dim)  :: h_pre2
+        REAL(kind=dp),DIMENSION(dim)               :: BD
         real(kind=dp), intent(out), dimension(size(mu)) :: f
         real(kind=dp), allocatable,dimension(:) :: l1vec,l2vec,suml1l2
+
 
 
         LLmax = l(group_start(gi)) + m(group_start(gi)) + n(group_start(gi)) + &
                 l(group_start(gj)) + m(group_start(gj)) + n(group_start(gj)) + &
                 l(group_start(gk)) + m(group_start(gk)) + n(group_start(gk)) + &
                 l(group_start(gr)) + m(group_start(gr)) + n(group_start(gr))
+
+       ! dim=llmax+1
+     !   allocate(a(dim,dim), b(dim,dim), c(dim,dim))
+       ! allocate(h_saved(dim), h_pre2(dim,dim,dim,dim))
+       ! print*,'LLMAX is ', LLMAX
 
 
         if (LLmax + 1 > dim) then
@@ -4558,8 +4550,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
 
-        bd=0.0_dp
 
+        !h_pre2=0.0d0
+        BD=0.0d0
         do k = 0, LLmax
             do j = 0, LLmax - k
                 do i = 0, LLmax - k - j
@@ -5174,7 +5167,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
         REAL(kind=dp), DIMENSION(dim, dim, dim, dim)  :: h_pre2
-        REAL(kind=dp), DIMENSION(dim)               :: BD
+        REAL(kind=dp), allocatable,DIMENSION(:)               :: BD
 
 
 
@@ -5205,7 +5198,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
 
-        bd=0.0_dp
+
 
         do k = 0, LLmax
             do j = 0, LLmax - k
@@ -5625,7 +5618,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
         REAL(kind=dp), DIMENSION(dim, dim, dim, dim)  :: h_pre2
-        REAL(kind=dp), DIMENSION(dim)               :: BD
+        REAL(kind=dp), DIMENSION(:), allocatable               :: BD
         real(kind=dp),dimension(:), allocatable :: bess
 
 
@@ -5654,7 +5647,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
 
-        bd=0.0_dp
+
 
         do k = 0, LLmax
             do j = 0, LLmax - k
@@ -6034,7 +6027,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
         real(kind=dp):: qrad,hfunc2,sumpmu,coeff,bess1,bess2,bessnew,time1,time2
         real(kind=dp),dimension(size(mu)):: pmu, muOH,h_2,h_1,h_0,h_r,hqr,bess,sinpmu,cospmu,invpmu
 
-        real(kind=dp),dimension(size(mu))::h_3,h_4,h_5
+        real(kind=dp),dimension(size(mu))::h_3,h_4,h_5,h_6, h_7
         real(kind=dp), dimension(size(mu)), intent(out) :: h_sum
         real(kind=dp), dimension(30, size(mu)):: allbessels, allbessels2
         allbessels=0.0_dp
@@ -6046,12 +6039,12 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
             h_sum=sinpmu/pmu*h_saved(1)
 
         if (order==1) then
-        h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu ! could be written in more efficient way by deleting mu
+        h_1=(sinpmu/(Pmu*Pmu)-cospmu/Pmu)*invpmu ! could be written in more efficient way by deleting mu
 
         h_sum=h_sum+h_saved(2)*h_1
 
         elseif (order==2) then
-            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2*cospmu)*invpmu**2
+            h_2=((3.d0/(Pmu*pmu*pmu)-1.d0/Pmu)*sinpmu-3.d0/(pmu*pmu)*cospmu)*invpmu*invpmu
             h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
             h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2
         elseif(order==3) then
@@ -6061,23 +6054,51 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
             h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
             h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
             h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3
-!        elseif(order==4) then
-!            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
-!&             + pmu**4)*sinpmu)/pmu**5*invpmu**4
-!            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
-!            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2*cospmu)*invpmu**2
-!            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
-!            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4
-!        elseif (order==5) then
-!             h_5 = (-(pmu*(945.0d0 - 105.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu) + 15.0d0*(63.0d0 - 28.0d0*pmu**2.0d0 &
-!&             + pmu**4.0d0)*sinpmu)/pmu**6.0d0
-!            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
-!&             + pmu**4.0d0)*sinpmu)/pmu**5.0d0*invpmu**4.0d0
-!            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
-!            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
-!            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
-!            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4+h_5*h_saved(6)
-        elseif(order>=4) then
+        elseif(order==4) then
+            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
+&             + pmu**4)*sinpmu)/pmu**5*invpmu**4
+            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2*cospmu)*invpmu**2
+            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4
+        elseif (order==5) then
+            h_5 = (-(pmu*(945.0d0 - 105.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu) + 15.0d0*(63.0d0 - 28.0d0*pmu**2.0d0 &
+&             + pmu**4.0d0)*sinpmu)/pmu**6.0d0*invpmu**5.0d0
+            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
+&             + pmu**4.0d0)*sinpmu)/pmu**5.0d0*invpmu**4.0d0
+            h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
+            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4+h_5*h_saved(6)
+        elseif(order==6) then
+
+          h_6 = -((21.0d0*pmu*(495.0d0 - 60.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu + (-10395.0d0 &
+&             + 4725.0d0*pmu**2.0d0 - 210.0d0*pmu**4.0d0 &
+&             + pmu**6.0d0)*sinpmu)/pmu**7.0d0)*invpmu**6.0d0
+          h_5 = (-(pmu*(945.0d0 - 105.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu) + 15.0d0*(63.0d0 - 28.0d0*pmu**2.0d0 &
+&             + pmu**4.0d0)*sinpmu)/pmu**6.0d0*invpmu**5.0d0
+          h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
+&             + pmu**4.0d0)*sinpmu)/pmu**5.0d0*invpmu**4.0d0
+          h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+          h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
+          h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+          h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4+h_5*h_saved(6)+h_6*h_saved(7)
+          elseif (order==7) then
+
+          h_7  = (pmu*(-135135.0d0 + 17325.0d0*pmu**2.0d0 - 378.0d0*pmu**4.0d0 + pmu**6.0d0)*cospmu - 7.0d0*(-19305.0d0 &
+&             + 8910.0d0*pmu**2.0d0 - 450.0d0*pmu**4.0d0 &
+&             + 4.0d0*pmu**6.0d0)*sinpmu)/pmu**8.0d0*invpmu**7.0d0
+          h_6 = -((21.0d0*pmu*(495.0d0 - 60.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu + (-10395.0d0 &
+&             + 4725.0d0*pmu**2.0d0 - 210.0d0*pmu**4.0d0 &
+&             + pmu**6.0d0)*sinpmu)/pmu**7.0d0)*invpmu**6.0d0
+          h_5 = (-(pmu*(945.0d0 - 105.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu) + 15.0d0*(63.0d0 - 28.0d0*pmu**2.0d0 &
+&             + pmu**4.0d0)*sinpmu)/pmu**6.0d0*invpmu**5.0d0
+          h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
+&             + pmu**4.0d0)*sinpmu)/pmu**5.0d0*invpmu**4.0d0
+          h_3 = (pmu*(-15.0d0 + pmu**2.0d0)*cospmu + 3.0d0*(5.0d0 - 2.0d0*pmu**2.0d0)*sinpmu)/pmu**4.0d0*invpmu**3.0d0
+          h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
+          h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
+          h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3+h_saved(5)*h_4+h_5*h_saved(6)+h_6*h_saved(7)
 !            h_5 = (-(pmu*(945.0d0 - 105.0d0*pmu**2.0d0 + pmu**4.0d0)*cospmu) + 15.0d0*(63.0d0 - 28.0d0*pmu**2.0d0 &
 !&             + pmu**4.0d0)*sinpmu)/pmu**6.0d0
 !            h_4=(5.0d0*pmu*(-21.0d0 + 2.0d0*pmu**2.0d0)*cospmu + (105.0d0 - 45.0d0*pmu**2.0d0 &
@@ -6086,6 +6107,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 !            h_2=((3.d0/(Pmu)**3-1.d0/Pmu)*sinpmu-3.d0/(pmu)**2.0d0*cospmu)*invpmu**2.0d0
 !            h_1=(sinpmu/Pmu**2-cospmu/Pmu)*invpmu
 !            h_sum=h_sum+h_saved(2)*h_1+h_saved(3)*h_2+h_saved(4)*h_3
+          elseif (order>7) then
             call dphrec(pmu,allbessels,30,order,size(mu))
             do beta=1,order
                 h_sum=h_sum+allbessels(beta+1,:)*invpmu**beta*h_saved(beta+1)
@@ -6445,7 +6467,8 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
         real(kind=dp), intent(in)                                  :: x
         real(kind=dp), dimension(13,13), intent(out)   :: a
 
-        a=0.0_dp
+        !allocate(a(lmax+1,lmax+1))
+        !a=0.0_dp
 
         a(1,1) = 1.0_dp
         a(2,2) = -x
@@ -6546,7 +6569,7 @@ RBES(K,:)=RBES(K,:)/A
 end do
 CU= 1.0D0/X
 
-DO K=1, LMAX1
+DO K=1, LMAX1+1
 W=2.D0*(K-1)
 CU=X/(W+1.D0)*CU
 RBES(K,:)= CU*RBES(K,:)
