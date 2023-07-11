@@ -220,6 +220,22 @@ def _read_contractions(file):
                     ang.append([0, 1, 2])
                     ang.append([0, 2, 1])
                     ang.append([1, 1, 1])
+                elif type_of_GTO == 'g':
+                    ang.append([4, 0, 0])
+                    ang.append([0, 4, 0])
+                    ang.append([0, 0, 4])
+                    ang.append([3, 1, 0])
+                    ang.append([3, 0, 1])
+                    ang.append([1, 3, 0])
+                    ang.append([0, 3, 1])
+                    ang.append([1, 0, 3])
+                    ang.append([0, 1, 3])
+                    ang.append([2, 2, 0])
+                    ang.append([2, 0, 2])
+                    ang.append([0, 2, 2])
+                    ang.append([2, 1, 1])
+                    ang.append([1, 2, 1])
+                    ang.append([1, 1, 2])
                 else:
                     print("Error! I can only read s, p, d and f GTOs.")
                 # all ang momentum for the given contraction
