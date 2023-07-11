@@ -321,7 +321,7 @@ def _read_MO(file, mo_cutoff):
     syms_array = np.array([float(i) for i in syms])
     print('after order', syms_array[idx])
 
-    #mo = mo[idx, :]
+    mo = mo[idx, :]
 
     energy_array = np.array(energy)
     energy_array = energy_array[idx]

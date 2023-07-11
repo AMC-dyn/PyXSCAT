@@ -17,14 +17,14 @@ fileJeremy = 'NonZero2RDM_MO_Coeffs'
 # If we convert form a MCCI calculation to a bitwise operation mcci==True
 mcci = False
 # If we have a HF calculation and our Civector is represented by a single determinant hf==True
-hf = True
+hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 0
+closed = 3
 qmin =1E-10
 qmax = 100
-npoints = 20000
+npoints = 100
 cutoffcentre = 0.1  # suggested: cutoffcentre = 0.01;
 # the cutoff for the Z integral
 cutoffz = 1e-20  # suggested: cutoffz = 1E-9;
@@ -43,9 +43,9 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'ne_6311g.molden'
-punfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.pun'
-outfile = 'Ne_hf_no_closed_6311g.dat'
+mldfile = 'lif-eq-z.mld'
+punfile = 'lif-eq-z.pun'
+outfile = 'lif-eq-scat.dat'
 
 readtwordm = False
 file_read_twordm = 'NonZero2RDM_MO_Coeffs'
