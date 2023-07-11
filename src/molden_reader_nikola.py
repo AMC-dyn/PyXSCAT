@@ -311,15 +311,17 @@ def _read_MO(file, mo_cutoff):
     nMO = len(syms)
     syms_array = np.array([float(i) for i in syms])
     idx1 = np.argsort(syms_array)
-
+    print('previous order', syms)
     syms_array = (syms_array - syms_array.astype(int)) * 1000 + syms_array.astype(int)
 
     idx = np.argsort(syms_array)
 
 
     mo = np.array(mo_table)
+    syms_array = np.array([float(i) for i in syms])
+    print('after order', syms_array[idx])
 
-    mo = mo[idx, :]
+    #mo = mo[idx, :]
 
     energy_array = np.array(energy)
     energy_array = energy_array[idx]

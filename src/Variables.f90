@@ -522,6 +522,7 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,z1t,z2t,&
         real(kind=dp),dimension(:), allocatable :: totalfin
         real(kind=dp)   :: obwohl
         integer(kind=ikind) :: counter
+        logical :: divided
 
         pi = acos(-1.0000)
         max4l=maxval(l)*4
@@ -540,8 +541,15 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,z1t,z2t,&
 
         end do
         print*,'wtf',nq,size(q)
-        call unique_total(mat1,total,matfin,totalfin)
-        print*,sum(total)
+        divided=.True.
+        if (divided==.True.) then
+            matfin=mat1
+            totalfin=total
+            else
+            call unique_total(mat1,total,matfin,totalfin)
+            print*,sum(total)
+        end if
+
         !matfin=mat1
         !totalfin=total
         allocate(m11(size(totalfin)),m22(size(totalfin)),m33(size(totalfin)),m44(size(totalfin)))

@@ -13,18 +13,18 @@ molcas = False
 extra_precision_molcas = True
 caspt2 = False
 jeremyR = False
-fileJeremy = 'configurations_bit.dat'
+fileJeremy = 'NonZero2RDM_MO_Coeffs'
 # If we convert form a MCCI calculation to a bitwise operation mcci==True
 mcci = False
 # If we have a HF calculation and our Civector is represented by a single determinant hf==True
-hf = False
+hf = True
 # States involved
 state1 = 1
 state2 = 1
-closed = 24
-qmin = 1E-10
-qmax = 6.5
-npoints = 100
+closed = 0
+qmin =1E-10
+qmax = 100
+npoints = 20000
 cutoffcentre = 0.1  # suggested: cutoffcentre = 0.01;
 # the cutoff for the Z integral
 cutoffz = 1e-20  # suggested: cutoffz = 1E-9;
@@ -43,12 +43,12 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.mld'
+mldfile = 'ne_6311g.molden'
 punfile = 'Exp_comp/CAS_results/qd_ccsd_vdz_22.pun'
-outfile = 'QD_CAS22_newbes.dat'
+outfile = 'Ne_hf_no_closed_6311g.dat'
 
 readtwordm = False
-file_read_twordm = 'CO_4Bohr_UCCSD2RDM_631G.txt'
+file_read_twordm = 'NonZero2RDM_MO_Coeffs'
 if not jeremyR and not hf and not readtwordm:
 
     # This routine reads the CIvectors and the configurations
@@ -75,10 +75,10 @@ if not jeremyR and not hf and not readtwordm:
 elif not jeremyR and hf:
     civs = [1.000]
     # The number of occupied orbs or he configuration used must be specified by the user in hf
-    norbs = 18
-    confs = ['ab' * norbs+'0000']
+    norbs = 5
+    confs = ['ab' * norbs]
     print(confs)
-    Nmo_max = 20
+    Nmo_max = 100
 else:
     # If the 2rdm or Civector is constructed in a bit-wise manner, the number or orbitals needs to be specified here by the user
     confs = 0
@@ -93,8 +93,8 @@ elif bagel:
     mldfile = 'orbitals.molden'
     Nmo_max = 20
     gtos, atoms= bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
-elif molpro:
-
+elif molpro or readtwordm:
+    Nmo_max=100
     gtos, atoms = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:

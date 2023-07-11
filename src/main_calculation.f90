@@ -497,12 +497,12 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp), dimension(ng,ng) :: px,py,pz
         real(kind=dp),  dimension(:,:,:,:), allocatable :: zcontr
         real(kind=dp),  dimension(:,:), allocatable :: onerdm_matrix,onerdm_matrix_2
-        real(kind=dp),  dimension(:), allocatable :: total,newtotal
-        real(kind=dp),  dimension(nq,ngto,ngto) :: e12
+        real(kind=dp),  dimension(:), allocatable :: total,newtotal, totaldiv
+        real(kind=dp),  dimension(nq,ng,ng) :: e12
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
-        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k,c1,sizenmat,spincont,counter,reads
+        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k,c1,sizenmat,spincont,counter,reads,fin,ini,npoints,ndivs
         real(kind=dp) ::time1,time2,time3,time4,co,wl,rr,k0,rij
         complex(kind=dp), dimension(:,:,:,:), allocatable :: exponent1, exponent2
         complex(kind=dp), dimension(nq):: resultaligned
@@ -533,42 +533,43 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             nmomax=15
 
                 if (read2rdm) then
+
                 sizenmat=numberlines
                 reads=numberlines
                 print*,sizenmat,fileJ
-                open(file=fileJ,unit=15)
-                   do i=1,reads
-                    read(15,*)spincont
-                     if (spincont==1) then
-                        sizenmat=sizenmat+1
-                    end if
-
-                   end do
-                close(15)
+!                open(file=fileJ,unit=15)
+!                   do i=1,reads
+!                    read(15,*)spincont
+!                     if (spincont==1) then
+!                        sizenmat=sizenmat+1
+!                    end if
+!
+!                   end do
+!                close(15)
                 open(file=fileJ,unit=15)
                 allocate(mat(sizenmat,4), total(sizenmat))
                 counter=1
                 do i=1,reads
-                    read(15,*)spincont,mat(counter,1), mat(counter,2), mat(counter,3), mat(counter,4), total(counter)
-                    if (spincont==1) then
-
-                        mat(counter,1)=mat(counter,1)+18
-                        mat(counter,2)=mat(counter,2)+18
-                        total(counter+1)=total(counter)
-                        mat(counter+1,1)=mat(counter,1)
-                        mat(counter+1,2)=mat(counter,2)
-                        mat(counter+1,3)=mat(counter,3)+18
-                        mat(counter+1,4)=mat(counter,4)+18
-                        counter=counter+2
-                    elseif (spincont==2) then
-                        mat(counter,3)=mat(counter,3)+18
-                        mat(counter,4)=mat(counter,4)+18
-                        mat(counter,2)=mat(counter,2)+18
-                        mat(counter,1)=mat(counter,1)+18
+                    read(15,*)mat(counter,1), mat(counter,2), mat(counter,3), mat(counter,4), total(counter)
+!                    if (spincont==1) then
+!
+!                        mat(counter,1)=mat(counter,1)+18
+!                        mat(counter,2)=mat(counter,2)+18
+!                        total(counter+1)=total(counter)
+!                        mat(counter+1,1)=mat(counter,1)
+!                        mat(counter+1,2)=mat(counter,2)
+!                        mat(counter+1,3)=mat(counter,3)+18
+!                        mat(counter+1,4)=mat(counter,4)+18
+!                        counter=counter+2
+!                    elseif (spincont==2) then
+!                        mat(counter,3)=mat(counter,3)+18
+!                        mat(counter,4)=mat(counter,4)+18
+!                        mat(counter,2)=mat(counter,2)+18
+!                        mat(counter,1)=mat(counter,1)+18
+!                        counter=counter+1
+!                    else
                         counter=counter+1
-                    else
-                        counter=counter+1
-                    end if
+                    !end if
                 end do
                 print*,counter,sizenmat
               !  call mcci_to_bit(fileJ,fileout,numberlines)
@@ -600,16 +601,30 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             print*,'Time 2rdm', time3-time2,numberlines
             end if
                 end if
-            allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
-             m1 = mat(:,1)
-             m2 = mat(:,2)
-             m3 = mat(:,3)
-             m4 = mat(:,4)
 
-             nmat=size(m1)
 
-             nmomax=maxval(mat)
+            ndivs=1
+            npoints=numberlines/ndivs
+            result=0.d0
+            do i=1,ndivs
+                print*,i, 'step of', ndivs
 
+                ini=1+(numberlines/ndivs*(i-1))
+                fin=1+numberlines/ndivs*i
+                if (i==ndivs) then
+                    fin=numberlines
+                end if
+                npoints=fin-ini
+                allocate(m1(npoints), m2(npoints), m3(npoints), m4(npoints), totaldiv(npoints))
+                m1 = mat(ini:fin,1)
+                m2 = mat(ini:fin,2)
+                m3 = mat(ini:fin,3)
+                m4 = mat(ini:fin,4)
+
+                nmat=size(m1)
+
+                nmomax=maxval(m1)
+                totaldiv=total(ini:fin)
 !            call one_rdm_two_rdm(mat,total,onerdm_matrix_2)
 !            co=0
 !            do i=1,nmomax
@@ -629,7 +644,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
            call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t, &
                    e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat, total,q,nq)
+        mmod,m1,m2,m3,m4,nmat, totaldiv,q,nq)
 
             call cpu_time(time3)
             print*,'Time variables', time3-time2
@@ -637,10 +652,11 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
             call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,z1t,z2t,group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
-            result=result2
+            result=result+result2
             print*,result(1)
+            deallocate(m1,m2,m3,m4, totaldiv)
 
-
+        enddo
 
         else if (type==2) then
             call cpu_time(time2)

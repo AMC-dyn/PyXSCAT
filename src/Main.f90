@@ -121,7 +121,15 @@ program main
               close(15)
 
               call linspace_1(qmin,qmax,npoints,q)
+
               nq=npoints
+!              open(unit=15,file='Exp_data/q_exp.dat')
+!              do i=1,nq
+!                 read(15,*) q(i)
+!
+!
+!                  end do
+!              close(15)
               print*,nq, npoints
               newdat = 0
               start1 = 0
@@ -133,7 +141,7 @@ program main
               ordering1 = 0
               ordering2 = 0
               end_2 = 0
-              nconfs=52236
+              nconfs=4549
               print*,mmod
               call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
       Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &
