@@ -2556,7 +2556,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
             do j = 0, lmax4
                 do i = 0, lmax4
                     ! Fill the current LMN
-                    if ((i+j+k)<16) then
+                    if ((i+j+k)<25) then
                     CALL P_LMN(P0, i, j, k, q)
                     endif
 
@@ -4554,7 +4554,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z11,z22
-        INTEGER(kind=ikind), parameter :: dim = 17
+        INTEGER(kind=ikind), parameter :: dim = 20
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
@@ -4897,7 +4897,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z11,z22
-        INTEGER(kind=ikind), parameter :: dim = 17
+        INTEGER(kind=ikind), parameter :: dim = 20
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
@@ -5052,7 +5052,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         real(kind=dp), intent(in), dimension(:,:)   ::  q_al
 
         real(kind=dp), intent(in),  dimension(:,:,:) :: dx1,dy1,dz1,dx2,dy2,dz2
-        !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2
+        !real(kind=dp), pointer,dimension(:,:,:) :: dxx,dyy,dzz, dxx2,dyy2,dzz2d
 
 
 
@@ -5061,7 +5061,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z11,z22
-        INTEGER(kind=ikind), parameter :: dim = 17
+        INTEGER(kind=ikind), parameter :: dim = 20
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         complex(kind=dp), DIMENSION(size(q_al(1,:)))               :: h_saved
@@ -5200,7 +5200,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z1
-        INTEGER(kind=ikind), parameter :: dim = 17
+        INTEGER(kind=ikind), parameter :: dim = 20
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
@@ -5237,7 +5237,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
         bd=0.0_dp
-
+        h_pre2=0.0_dp
         do k = 0, LLmax
             do j = 0, LLmax - k
                 do i = 0, LLmax - k - j
@@ -5334,13 +5334,14 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
 
+
         call bessels0rr(F,LLmax,mu,H,h_saved)
 
 !        do i=1,LLmax+1
 !            F=F+h_saved(i)*bess(i,:)
 !
 !        end do
- !        CALL BesselSum(F, mu, H, LLmax, h_saved)
+        !CALL BesselSum(F, mu, H, LLmax, h_saved)
 
 
 
@@ -5546,7 +5547,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z1
-        INTEGER(kind=ikind), parameter :: dim = 17
+        INTEGER(kind=ikind), parameter :: dim = 20
         real(kind=dp) :: prod1,prod2,prod3,prod4,prod5,prod6
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         complex(kind=dp), DIMENSION(size(q_al(1,:)))               :: h_saved
@@ -5651,7 +5652,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
         integer(kind=selected_int_kind(8)) ::  ll, mm, nn, llp, mmp, nnp,llmax
 
         real(kind=dp)  ::coeff,prodd,ztot,mdn, mdl, mdm, mdlp, mdmp,mdnp,z1
-        INTEGER(kind=ikind), parameter :: dim = 17
+        INTEGER(kind=ikind), parameter :: dim = 20
         real(kind=dp) :: prod1,prod2,prod3
         REAL(kind=dp), DIMENSION(dim,dim)           :: a, b, c
         REAL(kind=dp), DIMENSION(dim)               :: h_saved
@@ -6120,6 +6121,10 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
             call dphrec(pmu,allbessels,30,order+1,size(mu))
             do beta=1,order
                 h_sum=h_sum+allbessels(beta+1,:)*invpmu**beta*h_saved(beta+1)
+                if (h_sum(20)>200) then
+                    print*,h_sum(20),order, beta+1, h_saved(beta+1)
+                    stop
+                end if
           enddo
 
         end if
@@ -6128,16 +6133,23 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 !         do i=1,size(mu)
 !                if (abs(pmu(i))<0.05) then
 !                    call van(allbessels(0:6,i),6,pmu(i))
-!                    allbessels(7:16,i)=0.0_dp
+!                    allbessels(7:40,i)=0.0_dp
+!                elseif(abs(pmu(i))>100) then
+!                    print*,'oh my goood'
 !                else
-!                    call van(allbessels(0:16,i),16,pmu(i))
+!                    call van(allbessels(0:40,i),20,pmu(i))
 !                 end if
 !
 !         enddo
-
-       !  print*,(allbessels(0:18,1))
-       ! stop
-
+!
+!       !  print*,(allbessels(0:18,1))
+!       ! stop
+!        h_sum=0.0_dp
+!        do beta=0,order
+!            hqr = (mu / h)**beta
+!            bess= allbessels(beta,:)
+!            h_sum=h_sum+bess*hqr*h_saved(beta+1)
+!        enddo
 
 
 
@@ -6442,7 +6454,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
         SUBROUTINE Hermite_like_coeffs(a, LLmax, Hx)
                   INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-        REAL(kind=dp), INTENT(out), DIMENSION(13,13) :: a
+        REAL(kind=dp), INTENT(out), DIMENSION(20,20) :: a
         INTEGER(kind=ikind), INTENT(in)     :: LLmax
         REAL(kind=dp), INTENT(in)           :: Hx
 
@@ -6474,7 +6486,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
         integer, intent(in)                                        :: lmax
         integer(kind=ikind)                                                    :: l,p
         real(kind=dp), intent(in)                                  :: x
-        real(kind=dp), dimension(13,13), intent(out)   :: a
+        real(kind=dp), dimension(20,20), intent(out)   :: a
 
         a=0.0_dp
 

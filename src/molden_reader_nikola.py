@@ -326,6 +326,10 @@ def _read_MO(file, mo_cutoff):
     # redored the MO according to the Molpro labels
     nMO = len(syms)
     syms_array = np.array([float(i) for i in syms])
+    occ_array=np.array([float(i) for i in occ])
+    finalind=np.where(occ_array>0.0000000)
+    print('First 0 would work?', finalind)
+    syms_array=syms_array[finalind]
     idx1 = np.argsort(syms_array)
     print('previous order', syms)
     syms_array = (syms_array - syms_array.astype(int)) * 1000 + syms_array.astype(int)

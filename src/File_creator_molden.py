@@ -5,7 +5,6 @@ import molden_reader_nikola_bagel as bgmldreader
 import molcas_ci_reader as mc
 import twordm_red as td
 from textwrap import wrap
-
 # If there is an external file with CIvecs or 2rdms JeremyR==True
 molpro = True
 bagel = False
@@ -23,7 +22,7 @@ state1 = 1
 state2 = 1
 closed = 3
 qmin =1E-10
-qmax = 100
+qmax = 10
 npoints = 100
 cutoffcentre = 0.1  # suggested: cutoffcentre = 0.01;
 # the cutoff for the Z integral
@@ -43,9 +42,9 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'lif-eq-z.mld'
-punfile = 'lif-eq-z.pun'
-outfile = 'lif-eq-scat.dat'
+mldfile = 'lif-cartesian.mld'
+punfile = 'lif-cartesian.pun'
+outfile = 'lif-cartesian.dat'
 
 readtwordm = False
 file_read_twordm = 'NonZero2RDM_MO_Coeffs'
@@ -127,10 +126,10 @@ with open('options.dat', 'w') as f:
             bitwise = False
             print('Normal integration')
             for i in range(np.size(confs)):
-                print(wrap(confs[i].replace('a', '1').replace('b', '2'),1))
+
                 lst = wrap(confs[i].replace('a', '1').replace('b', '2'),1) #[*confs[i].replace('a', '1').replace('b', '2')]
                 confs2 = np.asarray(lst, dtype=np.int64)
-                print(confs2)
+
                 g1 = [int(i) for i in lst]
                 f.write(str(g1)[1:-1].replace(',',' '))
                 for j in range(np.size(civs[0, :])):
@@ -219,7 +218,7 @@ m = gtos.m
 n = gtos.n
 ga = gtos.ga
 group = gtos.group
-print(gtos.mo)
+
 mmod = np.transpose(gtos.mo)
 
 l = np.asarray(l)
