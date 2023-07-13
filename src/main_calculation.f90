@@ -424,7 +424,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
                      mmod,onerdm_matrix,nmomax,q,nq)
                 call elastic_integration_j2(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z,group_start,group_count,group, &
-                      cutoffz,cutoffmd, cutoffcentre,q,e12,result)
+                      cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
             result=result2
         CASE(9)
 

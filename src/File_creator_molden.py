@@ -40,11 +40,11 @@ largeconf = False
 # ELASTIC ELECTRON --> 6
 # TOTAL J2 --> 7
 # ELASTIC J2 --> 8
-Type = 1
+Type = 7
 # Ouput name
-mldfile = 'lif-cartesian.mld'
-punfile = 'lif-cartesian.pun'
-outfile = 'lif-cartesian.dat'
+mldfile = 'lif-normal.mld'
+punfile = 'lif-normal.pun'
+outfile = 'lif-normal-total.dat'
 
 readtwordm = False
 file_read_twordm = 'NonZero2RDM_MO_Coeffs'
