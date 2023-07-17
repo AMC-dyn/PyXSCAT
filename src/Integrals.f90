@@ -4176,7 +4176,7 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
         ! in the form of coefficients multiplying the h functions
         REAL(kind=dp), INTENT(out), DIMENSION(LLmax+1)  :: BD
         INTEGER(kind=ikind), INTENT(in)                 :: LL, MM, NN, LLmax
-        REAL(kind=dp), INTENT(in), DIMENSION(13,13)  :: a, b, c
+        REAL(kind=dp), INTENT(in), DIMENSION(20,20)  :: a, b, c
 
         ! loop and temp variables
         INTEGER(kind=ikind) :: ii, jj, kk, hOrder, temp, ceil
