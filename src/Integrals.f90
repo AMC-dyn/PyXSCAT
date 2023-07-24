@@ -1,4 +1,4 @@
-module integrals
+/module integrals
     use omp_lib    
     use calculate_form_factors
     implicit none
@@ -6121,7 +6121,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
             call dphrec(pmu,allbessels,30,order+1,size(mu))
             do beta=1,order
                 h_sum=h_sum+allbessels(beta+1,:)*invpmu**beta*h_saved(beta+1)
-                if (h_sum(20)>200) then
+                if (h_sum(20)>2000) then
                     print*,h_sum(20),order, beta+1, h_saved(beta+1)
                     stop
                 end if
