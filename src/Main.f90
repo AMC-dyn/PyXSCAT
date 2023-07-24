@@ -23,7 +23,7 @@ program main
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
      
-     call OMP_set_num_threads(20) 
+     !call OMP_set_num_threads(20) 
      print*,OMP_get_num_threads()    
     open(unit=15, file='basis.dat')
     read(15,*)ngtos
