@@ -61,7 +61,7 @@ module integrals
         nq= size(q)
 
         print*,OMP_get_num_threads()
-        call OMP_set_num_threads(16)
+        !call OMP_set_num_threads(16)
         print*,OMP_get_num_threads()
      !
         !First big loop
@@ -528,7 +528,7 @@ module integrals
         nq= size(q)
 
        ! print*,OMP_get_num_threads()
-        call omp_set_num_threads(16)
+        !call omp_set_num_threads(16)
        ! print*,OMP_get_num_threads()
         !First big loop
 
@@ -1005,7 +1005,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         !nq= size(q)
 
        ! print*,OMP_get_num_threads()
-        call omp_set_num_threads(16)
+       ! call omp_set_num_threads(16)
        ! print*,OMP_get_num_threads()
         !First big loop
 
@@ -1478,7 +1478,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
 
         !First big loop
-        call omp_set_num_threads(9)
+        !call omp_set_num_threads(9)
         tsi=0.0_dp
 
 
@@ -1627,7 +1627,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         nq= size(q)
 
         print*,OMP_get_num_threads()
-        call omp_set_num_threads(16)
+        !call omp_set_num_threads(16)
         print*,OMP_get_num_threads()
         !First big loop
         print*,'posits allocated'
@@ -1993,7 +1993,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
         nq= size(q)
 
         print*,OMP_get_num_threads()
-        call omp_set_num_threads(16)
+        !call omp_set_num_threads(16)
         print*,OMP_get_num_threads()
         !First big loop
 
