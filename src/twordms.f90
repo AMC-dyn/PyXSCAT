@@ -569,7 +569,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
      character(len=30), intent(in) :: file_read
-     integer :: norbs
+     integer(kind=ikind) :: norbs
 
 
     real(kind=dp), intent(out), dimension(:), allocatable :: total
@@ -580,7 +580,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
     integer(kind=ikind) :: i,i1,i2,n,count2,eg, ndiff1,N1a,N1b,N2a,N2b
 
-    integer*8, dimension(:), allocatable :: mat1,mat2,Nalpha,Nbeta
+    integer(kind=ikind), dimension(:), allocatable :: mat1,mat2,Nalpha,Nbeta
     logical(4) :: sdef, rdef, pdef, qdef
     logical(4), dimension(:), allocatable :: logicaltwordms
     real(kind=dp) :: cutoff,civ1,civ2
@@ -1007,10 +1007,10 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
 
  function integer2binary(i,n) result(b)
-    integer,intent(in) :: i,n
-    integer :: b(n),count,count_orbs,b_orbs(n)
-    integer, allocatable,dimension(:):: b_real,b_orbs_r
-    integer k,j
+    integer(kind=ikind),intent(in) :: i,n
+    integer(kind=ikind) :: b(n),count,count_orbs,b_orbs(n)
+    integer(kind=ikind), allocatable,dimension(:):: b_real,b_orbs_r
+    integer(kind=ikind) k,j
     b=0
     j=i
     count=0
@@ -1034,10 +1034,11 @@ subroutine maxcoincidence(confs, ep2,ndiff)
   end function
 
         function integer2binary_orbs(i) result(b_orbs_r)
-    integer,intent(in) :: i
-    integer :: b(32),count,count_orbs,b_orbs(32)
-    integer, allocatable,dimension(:):: b_real,b_orbs_r
-    integer k,j
+    integer(kind=ikind),intent(in) :: i
+    integer(kind=ikind) :: b(32),count,count_orbs,b_orbs(32)
+
+    integer(kind=ikind), allocatable,dimension(:):: b_real,b_orbs_r
+    integer(kind=ikind) k,j
     b=0
     j=i
     count=0
@@ -1061,10 +1062,10 @@ subroutine maxcoincidence(confs, ep2,ndiff)
   end function
 
 function integer2binary_orbs_bit(i,maxnmo) result(b_orbs)
-    integer*8,intent(in) :: i(2),maxnmo
-    integer*8 :: b_orbs(maxnmo),buffer,count
-    integer, allocatable,dimension(:):: b_real,b_orbs_r
-    integer k,j,n
+    integer(kind=ikind),intent(in) :: i(2),maxnmo
+    integer(kind=ikind) :: b_orbs(maxnmo),buffer,count
+    integer(kind=ikind), allocatable,dimension(:):: b_real,b_orbs_r
+    integer(kind=ikind) ::  k,j,n
 
     b_orbs=0
 
@@ -1091,9 +1092,11 @@ function integer2binary_orbs_bit(i,maxnmo) result(b_orbs)
 
 subroutine combine_alpha_beta(alpha,beta, result)
     implicit none
-    integer, intent(in):: alpha, beta
-    integer*8 :: buffer,z
-    integer*8,intent(out) :: result
+             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+    integer(kind=ikind), intent(in):: alpha, beta
+    integer(kind=ikind) :: buffer,z
+    integer(kind=ikind),intent(out) :: result
 
     result=0
     buffer=alpha
