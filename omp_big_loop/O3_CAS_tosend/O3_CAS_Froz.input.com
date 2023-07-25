@@ -1,0 +1,20 @@
+ ***,O3
+ memory,1000,m
+ angstrom
+ r=1.27276,theta=116.7542                                                        !JCP 129, 054312 (2008)
+cartesian 
+geometry={O1;
+          O2,O1,r;
+          O3,O1,r,O2,theta}
+ basis=6-31G
+ hf
+{multi
+occ,7,2,5,1
+closed,0
+frozen,2,0,1,0
+WF,24,1,0
+THRESH,THRPRI=0.00000000
+PRINT,CIVECTOR
+}
+ put,molden,O3_CAS_631G.molden;
+{fci;core;dump}

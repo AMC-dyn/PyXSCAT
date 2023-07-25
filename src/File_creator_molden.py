@@ -20,7 +20,7 @@ hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 3
+closed = [3,0,0,0]
 qmin =1E-10
 qmax = 10
 npoints = 100
@@ -40,10 +40,10 @@ largeconf = False
 # ELASTIC ELECTRON --> 6
 # TOTAL J2 --> 7
 # ELASTIC J2 --> 8
-Type = 7
+Type = 1
 # Ouput name
-mldfile = 'lif-normal.mld'
-punfile = 'lif-normal.pun'
+mldfile = 'lif.mld'
+punfile = 'lif.pun'
 outfile = 'lif-normal-total.dat'
 
 readtwordm = False
@@ -55,9 +55,7 @@ if not jeremyR and not hf and not readtwordm:
         logfile = 'molcas.log'
         civs, confs = mc.get_civs_and_confs(logfile, caspt2,extra_precision_molcas)
         print("civs")
-        print(civs)
         print("confs")
-        print(confs)
 
     elif bagel:
         print('will be implemented soon')
@@ -86,7 +84,7 @@ else:
 civs = np.array(civs)
 
 if molcas:
-    mldfile = 'molcas.rasscf.molden'
+    mldfile = 'molcas.scf.molden'
     gtos, atoms= mcmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif bagel:
     mldfile = 'orbitals.molden'
@@ -122,7 +120,7 @@ with open('options.dat', 'w') as f:
         f.write(str(len(confs[0])) + '\n')
         f.write(str(np.size(civs[0, :])) + '\n')
 
-        if np.size(confs) < 1E5:
+        if np.size(confs) < 1E4:
             bitwise = False
             print('Normal integration')
             for i in range(np.size(confs)):
@@ -184,13 +182,38 @@ with open('options.dat', 'w') as f:
         f.write(str(len(confs[0])) + '\n')
         f.write(str(np.size(civs[0, :])) + '\n')
         #  f.write('molcas')
-        for i in range(np.size(confs)):
-            lst = wrap(confs[i].replace('a', '1').replace('b', '2'),1)
-            confs2 = [int(i) for i in lst]
-            f.write(str(confs2)[1:-1].replace(',',''))
-            for j in range(np.size(civs[0, :])):
-                f.write(' ' + str(civs[i, j]) + ' ')
-            f.write(str('\n'))
+        if np.size(confs) < 1E4:
+            bitwise = False
+            print('Normal integration')
+            for i in range(np.size(confs)):
+                lst = wrap(confs[i].replace('a', '1').replace('b', '2'),1)
+                confs2 = [int(i) for i in lst]
+                f.write(str(confs2)[1:-1].replace(',',''))
+                for j in range(np.size(civs[0, :])):
+                    f.write(' ' + str(civs[i, j]) + ' ')
+                f.write(str('\n'))
+        else:
+            print('bitwise integration')
+            f.write('bitwise.dat')
+            bitwise = True
+            alpha = 0
+            beta = 0
+            with open('bitwise.dat', 'w') as m:
+                for i in range(np.size(confs)):
+
+                    lst = [*confs[i].replace('a', '1').replace('b', '2')]
+                    confs2 = np.asarray(lst, dtype=np.int64)
+                    alpha = 0
+                    beta = 0
+                    for j in range(np.size(confs2)):
+                        if confs2[j] != 0:
+                            if np.mod(j, 2) == 0:
+                                alpha = alpha + 2 ** (j / 2)
+                            else:
+                                beta = beta + 2 ** ((j - 1) / 2)
+                    m.write(str(i) + ' ' + str(civs[i, state1 - 1]) + ' ' + str(civs[i, state2 - 1]) + ' ' + str(
+                        int(alpha)) + ' ' + str(int(beta)) + '\n')
+        f.write(str(bitwise) + '\n')
     elif readtwordm:
         f.write('readtwordm' + '\n')
         f.write(file_read_twordm)

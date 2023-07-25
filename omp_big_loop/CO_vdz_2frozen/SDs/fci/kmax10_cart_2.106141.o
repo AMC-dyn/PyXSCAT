@@ -1,0 +1,211 @@
+The current job ID is 106141
+Running on 1 nodes
+compute01
+Using  tasks per node
+A total of 1 tasks is used
+Memory per node 81920
+Memory per cpu
+Node list:
+       JobID                                                                                             NodeList 
+------------                                                ----------------------------------------------------- 
+Using 48 cores
+48
+48
+ ***initialization has been done***
+ **********                   10
+ Now trying fci with full symmetry restrictions 
+ nsym is set to                    4 change in ExcitationLevel.f90 if needed
+ Reference is              4259871              4259871
+ alphas and symmetries
+                    1                    1
+                    2                    1
+                    3                    1
+                    4                    1
+                    5                    1
+                   17                    2
+                   23                    3
+ betas and symmetries
+                    1                    1
+                    2                    1
+                    3                    1
+                    4                    1
+                    5                    1
+                   17                    2
+                   23                    3
+ ref symmetry is                    1
+ frozen orbital                    1
+ frozen orbital                    2
+                24308                24516                24516                24940                    0                    0                    0                    0
+                24940
+                98280
+ astrings                98280
+ New symmetry order for alpha strings so alpha ref is first
+                    4                    2                    3                    1
+ *** singles for each config                  115
+ doubles for each config                 2530
+ totalDets           2414950976
+                    0            622003600           1223037856           1824072112                    0                    0                    0                    0
+           2414950976  -135.26800305376696     
+ finished string generation           2414950976
+ Wall time in ExcitationLevel   1000.86298    
+ Proc time in h_s_reduced   254562.484    
+ Wall time in h_s_reduced   5857.54785    
+  -135.26800305376696     
+ rnorm   1.0804623594834015     
+                    2                   30
+ Proc time in h_s_reduced   256224.125    
+ Wall time in h_s_reduced   6443.04346    
+  -135.53043106149440     
+ rnorm  0.48391741687499090     
+                    3                   30
+ Proc time in h_s_reduced   254744.562    
+ Wall time in h_s_reduced   7580.47070    
+  -135.56921044587529     
+ rnorm  0.21463220755478343     
+                    4                   30
+ Proc time in h_s_reduced   261283.438    
+ Wall time in h_s_reduced   8849.41113    
+  -135.57627911256191     
+ rnorm   9.1689409466741756E-002
+                    5                   30
+ Proc time in h_s_reduced   261333.750    
+ Wall time in h_s_reduced   9015.76074    
+  -135.57773703772938     
+ rnorm   4.0416342139816222E-002
+                    6                   30
+ Proc time in h_s_reduced   260695.000    
+ Wall time in h_s_reduced   9845.41211    
+  -135.57801120231053     
+ rnorm   1.8427911013779285E-002
+                    7                   30
+ Proc time in h_s_reduced   262856.375    
+ Wall time in h_s_reduced   10722.3086    
+  -135.57806173131706     
+ rnorm   7.9474595210733377E-003
+                    8                   30
+ Proc time in h_s_reduced   262975.875    
+ Wall time in h_s_reduced   15067.4238    
+  -135.57807063090101     
+ rnorm   3.4918050460852096E-003
+                    9                   30
+ Proc time in h_s_reduced   264084.000    
+ Wall time in h_s_reduced   13758.1914    
+  -135.57807228894166     
+ rnorm   1.5889652788200505E-003
+                   10                   30
+ Proc time in h_s_reduced   265163.250    
+ Wall time in h_s_reduced   16359.8135    
+  -135.57807263985381     
+ rnorm   6.8946081795483096E-004
+                   11                   30
+ Generating new b_k
+ Proc time in h_s_reduced   264676.750    
+ Wall time in h_s_reduced   6672.76611    
+  -135.57807216569640     
+ rnorm   6.8946098279364597E-004
+                   12                   30
+ Proc time in h_s_reduced   265266.750    
+ Wall time in h_s_reduced   6788.79102    
+  -135.57807222040020     
+ rnorm   2.8772967235911171E-004
+                   13                   30
+ Proc time in h_s_reduced   265887.750    
+ Wall time in h_s_reduced   7382.20020    
+  -135.57807223785454     
+ rnorm   1.6947373873969405E-004
+                   14                   30
+ Proc time in h_s_reduced   266092.250    
+ Wall time in h_s_reduced   8224.75684    
+  -135.57807224146805     
+ rnorm   7.2759332029131307E-005
+                   15                   30
+ Proc time in h_s_reduced   266417.500    
+ Wall time in h_s_reduced   8801.15527    
+  -135.57807224215506     
+ rnorm   2.9100453688020948E-005
+                   16                   30
+ Proc time in h_s_reduced   266552.500    
+ Wall time in h_s_reduced   10374.7812    
+  -135.57807224227611     
+ rnorm   1.2270859440866632E-005
+                   17                   30
+ Proc time in h_s_reduced   267156.500    
+ Wall time in h_s_reduced   12833.7598    
+  -135.57807224229819     
+ rnorm   5.3836286056839959E-006
+                   18                   30
+ Proc time in h_s_reduced   267666.000    
+ Wall time in h_s_reduced   13567.8535    
+  -135.57807224230265     
+ rnorm   2.7440437499291169E-006
+                   19                   30
+ Proc time in h_s_reduced   268359.500    
+ Wall time in h_s_reduced   14777.5020    
+  -135.57807224230368     
+ rnorm   1.5479859446768819E-006
+                   20                   30
+ Proc time in h_s_reduced   269169.500    
+ Wall time in h_s_reduced   15153.8691    
+  -135.57807224230396     
+ rnorm   9.7642421611039153E-007
+                   21                   30
+ Generating new b_k
+ Proc time in h_s_reduced   266623.500    
+ Wall time in h_s_reduced   6328.30762    
+  -135.57807223637414     
+ rnorm   9.7931769460590311E-007
+                   22                   30
+ Proc time in h_s_reduced   265314.000    
+ Wall time in h_s_reduced   6648.79150    
+  -135.57807223637414     
+ rnorm   8.9981831955394452E-007
+                   23                   30
+ Proc time in h_s_reduced   265019.000    
+ Wall time in h_s_reduced   7390.10400    
+  -135.57807223637414     
+ rnorm   9.3522206361560210E-007
+                   24                   30
+ Proc time in h_s_reduced   267753.000    
+ Wall time in h_s_reduced   8256.61230    
+  -135.57807223637417     
+ rnorm   9.3473367991437642E-007
+                   25                   30
+ Proc time in h_s_reduced   267287.500    
+ Wall time in h_s_reduced   9289.24609    
+  -135.57807223637423     
+ rnorm   9.1054789386867018E-007
+                   26                   30
+ Proc time in h_s_reduced   267844.500    
+ Wall time in h_s_reduced   10269.7803    
+  -135.57807223637417     
+ rnorm   9.0470370934578913E-007
+                   27                   30
+ Proc time in h_s_reduced   267327.000    
+ Wall time in h_s_reduced   12675.2549    
+  -135.57807223637414     
+ rnorm   9.0407910465929652E-007
+                   28                   30
+ Proc time in h_s_reduced   267592.500    
+ Wall time in h_s_reduced   12028.2139    
+  -135.57807223637417     
+ rnorm   9.0484581311614670E-007
+                   29                   30
+ Proc time in h_s_reduced   267467.000    
+ Wall time in h_s_reduced   13710.9268    
+  -135.57807223637417     
+ rnorm   9.0326078657535226E-007
+                   30                   30
+ Proc time in h_s_reduced   269521.500    
+ Wall time in h_s_reduced   15298.4795    
+  -135.57807223637425     
+ rnorm   9.0262267175452839E-007
+                   31                   30
+ iterations greater than maxit in davidson.f90                   30
+ dnorm  0.99999999999971556     
+ renorming
+ dnorm  0.99999999999999656     
+ calculating 2RDM
+ 1e Energy from 2RDM subroutine  -197.99332901186347     
+ 2e Energy from 2RDM subroutine   62.415256244011033     
+ Total energy using 2RDM  -113.05977665225851     
+ Wall time in TwoRDM_SD   199432.406    

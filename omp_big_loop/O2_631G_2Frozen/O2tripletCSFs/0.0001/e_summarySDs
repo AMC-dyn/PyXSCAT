@@ -1,0 +1,70 @@
+Thu Jan 13 09:51:16 2022
+
+                    m c c i  3.0
+
+               written by J.C. Greer
+
+    =============================================
+    J.C. Greer, J. Chem. Phys. 103 (1995) p. 1821
+    J.C. Greer, J. Comp. Phys. 146 (1998) p. 181 
+    =============================================
+
+
+ The following parameters were read from mcci.in
+
+ parameters with no default values:
+ ----------------------------------
+
+ inflg                        =      1
+ n_alpha                      =      9
+ n_beta                       =      7
+ s                            =      1.0000
+ cmin                         =      5.00E-03
+ maxtry                       =      0
+
+
+ parameters with default values:
+ -------------------------------
+
+ SCF_integral_filename        = FCIDUMP     
+
+ ieig                         =      1
+
+ nfreeze                      =      2
+
+ nactive                      =      0
+ lmin                         =    100
+ nbyte                        =      4
+ int_bits                     =     32
+ npfull                       =     10
+ lref                         =      0
+ lkeep                        =      0
+ conv_average                 =      3
+ conv_history                 =      3
+ hmin                         =      1.00E-18
+ davidson_stop                =      1.00E-07
+ bmin                         =      0.0000
+ bmax                         =      1.0000
+ cref                         =      0.1000
+ total frac                   =      1.0000
+ conv_thresh_e                =      0.0010
+ conv_thresh_l                =    100.0000
+ test                         =      F
+ time                         =      F
+ time_all                     =      F
+ generate_cfgs                =      T
+ nobrnch_first                =      F
+ nodiag                       =      F
+ i_want_conv                  =      T
+ npfull_conv                  =      T
+
+ Getting the one- and two-electron integrals from Molpro FCIDUMP
+ Restarted Energy =  -149.78521914483039     
+ Restarted Spin^2 Expectation =   2.0000000000000084     
+ Calculating           1 th state in this irrep
+ Running on           1  nodes
+ Branching factor      f =   1.0000000000000000     
+ Davidson tolerance stop =   9.9999999999999995E-008
+ Coef.    tolerance cmin =   5.0000000000000001E-003
+ H        tolerance hmin =   1.0000000000000001E-018
+ RESTARTED
