@@ -6,10 +6,11 @@ Module variables
     contains
 
 SUBROUTINE fill_md_table(D, l, x, ga)
+          use mod_types
 
         implicit none
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         ! The MD table to be populated D(Ngto, Ngto, 2maxl+1,maxl+1,maxl+1)
         REAL(kind=dp), INTENT(OUT), DIMENSION(:,:,:,:,:)    :: D
         ! vectors that contains the x coordinates for all GTOs, and all gammas
@@ -948,13 +949,14 @@ SUBROUTINE fill_md_table(D, l, x, ga)
 subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,z1t,z2t,&
         e12,maxl,ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
+          use mod_types
 
 
         implicit none
 
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         integer(kind=ikind), intent(in)::ngto,ng, nmat, nq, maxl
         integer(kind=ikind), intent(in),dimension(:),allocatable :: l, m, n, group
         integer(kind=ikind), intent(in),dimension(:)::m1, m2, m3, m4,group_start,group_count
@@ -1158,14 +1160,15 @@ subroutine variables_total(px,py,pz,ddx,ddy,ddz,z11,z22,z1t,z2t,&
 
     subroutine variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl,ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,onerdm,maxnmo,q,nq)
+          use mod_types
 
 
     use uniquemodule
         implicit none
 
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         integer(kind=ikind), intent(in)::ngto,ng,  nq, maxl,maxnmo
         integer(kind=ikind), intent(in),dimension(:),allocatable :: l, m, n,group
         integer(kind=ikind), intent(in),dimension(:):: group_count,group_start

@@ -1,9 +1,8 @@
 module linspace
+              use mod_types
     implicit none
     contains
     subroutine linspace_1(from, to, n, array)
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
     integer(kind=ikind), intent(in) :: n
     real(kind = dp), intent(in) :: from, to
     real(kind = dp), intent(out), dimension(:), allocatable :: array

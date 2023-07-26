@@ -1,10 +1,11 @@
 program main
+              use mod_types
     use omp_lib
     use main_calculation_mod
     use linspace
     implicit none
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+    
+    
     character(len=60):: conf1, file_out,var,var2rdm
     character(len=100)::file_bit
     real(kind=dp), dimension(:), allocatable:: atoms

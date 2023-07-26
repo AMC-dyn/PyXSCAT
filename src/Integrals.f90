@@ -10,11 +10,12 @@ module integrals
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
 
 
+          use mod_types
         use omp_lib
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
 
         real(kind=kind(1.d0)), external :: ddot
         INTEGER(kind=ikind), INTENT(IN) :: ncap
@@ -476,12 +477,13 @@ module integrals
     subroutine tot_integration_j1(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
 
+          use mod_types
 
         use omp_lib
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         real(kind=kind(1.d0)), external :: ddot
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable:: l,m,n,group
@@ -953,13 +955,14 @@ module integrals
 
 subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+          use mod_types
 
 
         use omp_lib
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         INTEGER(kind=ikind), INTENT(IN) :: ncap,nq
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:):: group_start,group_count
@@ -1424,13 +1427,14 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
     subroutine tot_integration_aligned(ncap,px,py,pz,l,m,n,dx,dy,dz,z1,z2,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q_al,e12,exponent1,exponent2,tsi)
+          use mod_types
 
 
         use omp_lib
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) ::group_start,group_count
@@ -1574,13 +1578,14 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
     subroutine elastic_integration(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+          use mod_types
 
 
         use omp_lib
         implicit none
 
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: group_start,group_count
@@ -1940,13 +1945,14 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
     subroutine elastic_integration_j2(ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+          use mod_types
 
 
         use omp_lib
         implicit none
 
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: group_start,group_count
@@ -2302,13 +2308,14 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
     subroutine elastic_integration_alig(ncap,px,py,pz,l,m,n,dx,dy,dz,z,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q_al,e12,exponent1,tsi)
+          use mod_types
 
 
         use omp_lib
         implicit none
 
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:), allocatable :: l,m,n,group
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: group_start,group_count
@@ -2429,11 +2436,12 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
     subroutine nuclei_electron_integration(Zn,geom,ncap,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z,group_start,group_count,group, &
             cutoffz,cutoffmd, cutoffcentre,q,e12,tsi)
+          use mod_types
              use omp_lib
         implicit none
 
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:),allocatable :: l,m,n,group
          INTEGER(kind=ikind), INTENT(IN), DIMENSION(:)::  group_start,group_count
@@ -2535,11 +2543,12 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
 
     SUBROUTINE set_P0(P0, lmax4, q)
+          use mod_types
 
         ! P0    (Nq,4lmax+1,4lmax+1,4lmax+1) will store the values of <qx^L*qy^M*qz^N>
         !   for all possible combinations of angular momenta of the 4 GTOs (L,M,N)
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         REAL(KIND=dp), INTENT(OUT), DIMENSION(:,:,:,:)  :: P0
         ! the maximum value of the orbital angular momentum of any GTO times 4
         INTEGER(KIND=ikind), INTENT(IN)                 :: lmax4
@@ -2568,11 +2577,12 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
 
 
      SUBROUTINE set_P0_j2(P0, lmax4, q)
+          use mod_types
 
         ! P0    (Nq,4lmax+1,4lmax+1,4lmax+1) will store the values of <qx^L*qy^M*qz^N>
         !   for all possible combinations of angular momenta of the 4 GTOs (L,M,N)
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         REAL(KIND=dp), INTENT(OUT), DIMENSION(:,:,:,:)  :: P0
         ! the maximum value of the orbital angular momentum of any GTO times 4
         INTEGER(KIND=ikind), INTENT(IN)                 :: lmax4
@@ -2602,11 +2612,12 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
     END SUBROUTINE set_P0_j2
 
  SUBROUTINE set_P0_j1(P0, lmax4, q)
+          use mod_types
 
         ! P0    (Nq,4lmax+1,4lmax+1,4lmax+1) will store the values of <qx^L*qy^M*qz^N>
         !   for all possible combinations of angular momenta of the 4 GTOs (L,M,N)
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         REAL(KIND=dp), INTENT(OUT), DIMENSION(:,:,:,:)  :: P0
         ! the maximum value of the orbital angular momentum of any GTO times 4
         INTEGER(KIND=ikind), INTENT(IN)                 :: lmax4
@@ -2636,10 +2647,11 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
     END SUBROUTINE set_P0_j1
 
   SUBROUTINE P_LMN(P0, L, M, N, q)
+          use mod_types
 
         ! the three values of the angular momentum
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         INTEGER(KIND=ikind), INTENT(IN) :: L, M, N
         ! The value of <qx^L*qy^M*qz^N>
         REAL(KIND=dp), INTENT(INOUT), DIMENSION(:,:,:,:) :: P0
@@ -3008,10 +3020,11 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
     END SUBROUTINE P_LMN
 
  SUBROUTINE P_LMN_j1(P0, L, M, N, q)
+          use mod_types
 
         ! the three values of the angular momentumS
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         INTEGER(KIND=ikind), INTENT(IN) :: L, M, N
         ! The value of <qx^L*qy^M*qz^N>
         REAL(KIND=dp), INTENT(INOUT), DIMENSION(:,:,:,:) :: P0
@@ -3364,10 +3377,11 @@ elseif (L==0 .and. M==0 .and. N==16) then
     END SUBROUTINE P_LMN_j1
 
     SUBROUTINE P_LMN_j2(P0, L, M, N, q)
+          use mod_types
 
         ! the three values of the angular momentumS
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         INTEGER(KIND=ikind), INTENT(IN) :: L, M, N
         ! The value of <qx^L*qy^M*qz^N>
         REAL(KIND=dp), INTENT(INOUT), DIMENSION(:,:,:,:) :: P0
@@ -4170,8 +4184,9 @@ elseif (L==0 .and. M==0 .and. N==16) then
 
 
 SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         ! The three nested loops give the formula
         ! in the form of coefficients multiplying the h functions
         INTEGER(kind=ikind), INTENT(in)                 :: LL, MM, NN, LLmax
@@ -4214,13 +4229,14 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
 
     SUBROUTINE integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,gi,gj,gk,gr,za,zb, &
              cutoff1,cutoff2,f)
+          use mod_types
 
 
 
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
 
         ! definition of input
 
@@ -4328,10 +4344,11 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
 
     SUBROUTINE integral_ij_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,gi,gj,za, &
              cutoff1,cutoff2,f)
+          use mod_types
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
 
         ! definition of input
 
@@ -4418,14 +4435,15 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
 
 SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,gi,gj,gk,gr,zcontr,zcontr2, &
              cutoff1,cutoff2,f)
+          use mod_types
 
 
 
         implicit none
 
         ! definition of input
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         INTEGER(kind=ikind), INTENT(IN)                       :: nq, gi, gj, gk, gr
         REAL(kind=dp), INTENT(IN)                             :: cutoff1, cutoff2
         REAL(kind=dp), INTENT(IN), DIMENSION(:,:,:,:)               :: p0mat
@@ -4529,15 +4547,15 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
      subroutine tot_integral_k_ijkr(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
             zcontr, zcontr2, &
             cutoff1, cutoff2,f)
+          use mod_types
 
 
 
         implicit none
 
 
-        !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         integer(kind=ikind), intent(in)  :: gi,gj,gk,gr
         integer(kind=ikind), dimension(:), intent(in) :: l,m,n,group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
@@ -4691,6 +4709,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
     subroutine tot_integral_k_ijkr_j2(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
             zcontr, zcontr2, &
             cutoff1, cutoff2,f)
+          use mod_types
 
 
 
@@ -4698,8 +4717,8 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         integer(kind=ikind), intent(in)  :: gi,gj,gk,gr
         integer(kind=ikind), dimension(:), intent(in) :: l,m,n,group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
@@ -4871,6 +4890,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
     subroutine tot_integral_k_ijkr_j1(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
             zcontr, zcontr2, &
             cutoff1, cutoff2,f)
+          use mod_types
 
 
 
@@ -4878,8 +4898,8 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
         integer(kind=ikind), intent(in)  :: gi,gj,gk,gr
         integer(kind=ikind), dimension(:),allocatable, intent(in) :: l,m,n
         integer(kind=ikind), dimension(:), intent(in) :: group_start,group_count
@@ -5035,6 +5055,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
      subroutine tot_integral_k_ijkr_alig(q_al,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
             zcontr, zcontr2, &
             cutoff1, cutoff2,f,exp1,exp2)
+          use mod_types
 
 
 
@@ -5042,8 +5063,8 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         integer(kind=ikind), intent(in)  :: gi,gj,gk,gr
         integer(kind=ikind), dimension(:), intent(in) :: l,m,n,group_start,group_count
         real(kind=dp), intent(in)              :: cutoff1,cutoff2, hx, hy, hz, h
@@ -5177,11 +5198,12 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
     subroutine integral_k_ijkr(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
             za,zb,&
             cutoff1, cutoff2,f)
+          use mod_types
 
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=ikind), intent(in)  :: gi,gj,gk,gr
         integer(kind=ikind), dimension(:), intent(in),allocatable :: l,m,n
@@ -5350,13 +5372,14 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
      subroutine integral_k_ijkr_j2(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1,dx2,dy2,dz2, gi,gj,gk, gr,&
             za,zb,&
             cutoff1, cutoff2,f)
+          use mod_types
 
 
 
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=ikind), intent(in)  :: gi,gj,gk,gr
         integer(kind=ikind), dimension(:), intent(in), allocatable :: l,m,n
@@ -5522,13 +5545,14 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
     subroutine integral_k_ijkr_alig(q_al,exponent1,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1, gi,gj,&
             za,&
             cutoff1, cutoff2,f)
+          use mod_types
 
 
 
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=ikind), intent(in)  :: gi,gj
         integer(kind=ikind), dimension(:), intent(in) :: l,m,n,group_start,group_count
@@ -5628,13 +5652,14 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
     subroutine integral_k_ij(mu,l,m,n,group_start,group_count,hx,hy,hz,h,dx1,dy1,dz1, gi,gj,&
             za,cutoff1, cutoff2,f)
+          use mod_types
 
 
 
         implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         integer(kind=ikind), intent(in)  :: gi,gj
         integer(kind=ikind), dimension(:), intent(in) :: l,m,n,group_start,group_count
@@ -5764,8 +5789,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
         SUBROUTINE BesselSum(h_sum, mu, H, LLmax, h_saved)
-                  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+                  
+          use mod_types
+        
     REAL(kind=dp), INTENT(in),  DIMENSION(:)            :: mu
     REAL(kind=dp), INTENT(in)                           :: H
     INTEGER(kind=ikind), INTENT(in)                     :: LLmax
@@ -5805,8 +5831,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
     END SUBROUTINE BesselSum
 
     SUBROUTINE BesselDeriv2j(BD, hz,h,LL,MM,NN, a, b, c, ap,bp,cp,LLmax)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         ! The three nested loops give the formula
         ! in the form of coefficients multiplying the h functions
         REAL(kind=dp), INTENT(out), DIMENSION(20)  :: BD
@@ -5873,8 +5900,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
     SUBROUTINE BesselDeriv1j(BD, hz,h,LL,MM,NN, a, b, c,LLmax)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         ! The three nested loops give the formula
         ! in the form of coefficients multiplying the h functions
         REAL(kind=dp), INTENT(out), DIMENSION(16)  :: BD
@@ -5928,8 +5956,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
     Subroutine bessels2(sum,order,mu,H, h_saved)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         integer(kind=ikind)::i,beta
         integer(kind=ikind), intent(in) :: order
         real (kind=dp), dimension(:), intent(in) :: mu, h_saved
@@ -5954,8 +5983,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
      Subroutine bessels2rr(sum,order,mu,H, h_saved)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         integer:: order2
         integer(kind=ikind)::i,beta,ra,maxord,ind
         integer(kind=ikind), intent(in) :: order
@@ -6007,8 +6037,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
      Subroutine bessels1rr(sum,order,mu,H, h_saved)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         integer:: order2
         integer(kind=ikind)::i,beta,ra,maxord,ind
         integer(kind=ikind), intent(in) :: order
@@ -6055,8 +6086,9 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
      End Subroutine bessels1rr
 
 Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         integer(kind=ikind):: order2
         integer(kind=ikind)::i,beta,ra,maxord,ind
         integer(kind=ikind), intent(in) :: order
@@ -6165,9 +6197,10 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
 
     subroutine van (jbwd,n, x)
+          use mod_types
       implicit none
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
       real(kind=dp), intent(in):: x
       integer(kind=ikind), intent(in) :: n
       integer(kind=ikind) i, nmax
@@ -6207,8 +6240,9 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
 
     Subroutine bessels2rr2(sum,order,mu,H, h_saved)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
+        
+        
         integer(kind=ikind)::i,beta,ra
         integer(kind=ikind), intent(in) :: order
         real (kind=dp), dimension(:), intent(in) :: mu, h_saved
@@ -6255,9 +6289,9 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
     ! This subroutine uses a recurrence relation to calculate the
     ! first set of expansion coefficients, a, at given coordinate
     ! x (or y) up to an angular momentum of L
+          use mod_types
 
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
-        integer, parameter    :: dp = selected_real_kind(15)
+        
         integer(kind=ikind), intent(in)                                        :: lmax
         integer(kind=ikind)                                                    :: l,p
         real(kind=dp), intent(in)                                  :: x
@@ -6282,12 +6316,12 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
 
     SUBROUTINE rrdj1z(nmax,z,a)
+          use mod_types
     ! This subroutine uses a recurrence relation to calculate the
     ! first set of expansion coefficients, a, at given coordinate
     ! z up to an angular momentum of L
 
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
-        integer, parameter    :: dp = selected_real_kind(15)
+        
         integer(kind=ikind), intent(in)                                        :: nmax
         integer(kind=ikind)                                                    :: n,s
         real(kind=dp), intent(in)                                  :: z
@@ -6322,8 +6356,8 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
     ! This subroutine uses a recurrence relation to calculate the
     ! first set of expansion coefficients, a, at given coordinate
     ! x up to an angular momentum of L
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
-        integer, parameter    :: dp = selected_real_kind(15)
+          use mod_types
+        
         integer(kind=ikind), intent(in)                                        :: lmax
         integer(kind=ikind)                                                    :: l, p
         real(kind=dp), intent(in)                                  :: x
@@ -6348,8 +6382,8 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
      SUBROUTINE rrdj2b(lmax,a,b)
     ! This subroutine uses the first set of of expansion coefficients,
     ! a, to calculate the second set, b.
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
-        integer, parameter    :: dp = selected_real_kind(15)
+          use mod_types
+        
         integer(kind=ikind), intent(in)                                                   :: lmax
         integer(kind=ikind)                                                    :: l, p
         real(kind=dp), dimension(20,20), intent(in)                  :: a
@@ -6373,8 +6407,9 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
 
     Subroutine bessels(sum,order,mu,H, h_saved)
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
+          use mod_types
         integer(kind=ikind)::i
         integer(kind=ikind), intent(in) :: order
         real (kind=dp), dimension(:), intent(in) :: mu, h_saved
@@ -6410,8 +6445,9 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
 
     SUBROUTINE BesselMats(h_sum, mu, H, LLmax, h_saved)
-                  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+                  
+          use mod_types
+        
     REAL(kind=dp), INTENT(in),  DIMENSION(:)            :: mu
     REAL(kind=dp), INTENT(in)                           :: H
     INTEGER(kind=ikind), INTENT(in)                     :: LLmax
@@ -6454,8 +6490,9 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
 
         SUBROUTINE Hermite_like_coeffs(a, LLmax, Hx)
-                  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+                  
+          use mod_types
+        
         REAL(kind=dp), INTENT(out), DIMENSION(20,20) :: a
         INTEGER(kind=ikind), INTENT(in)     :: LLmax
         REAL(kind=dp), INTENT(in)           :: Hx
@@ -6482,9 +6519,9 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
     ! This subroutine uses a recurrence relation to calculate the
     ! first set of expansion coefficients, a, at given coordinate
     ! x (or y or z) up to an angular momentum of L
+          use mod_types
 
-        integer, parameter    :: dp = selected_real_kind(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
         integer(kind=ikind), intent(in)                                        :: lmax
         integer(kind=ikind)                                                    :: l,p
         real(kind=dp), intent(in)                                  :: x
@@ -6517,9 +6554,10 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
     SUBROUTINE Bubble_Sort(a)
 
+          use mod_types
         implicit none
-              INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              
+        
     INTEGER(kind=ikind), INTENT(inout), DIMENSION(:) :: a
     INTEGER(kind=ikind) :: temp
     INTEGER :: i, j
@@ -6541,11 +6579,12 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
 
           function kron(A,B) result(C)
+          use mod_types
 
 
        IMPLICIT NONE
-             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+             
+        
        real(kind=dp), dimension (:), intent(in)  :: A, B
        real(kind=dp), dimension (:), allocatable :: C
        integer(kind=ikind) :: i = 0, j = 0, k = 0, l = 0, n = 0, m = 0
@@ -6564,6 +6603,7 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
 
       end function kron
     subroutine dphrec(x,rbes,leps1,lmax1,nq)
+          use mod_types
       IMPLICIT REAL(kind=selected_real_kind(15))(A-H,o-Z)
       implicit integer(kind=selected_int_kind(10))(i-n)
 

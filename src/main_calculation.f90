@@ -16,6 +16,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
 
+      use mod_types
     use omp_lib
     use onerdm
 
@@ -44,8 +45,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
     implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
 
         integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl,type, state1,state2
         integer(kind=ikind), intent(in),dimension(:),allocatable :: l, m, n,group
@@ -458,6 +459,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         mmod,q,nq, group,&
         cutoffz,cutoffmd,cutoffcentre,fileJ,numberlines,newdat,start,end,start_2, end_2, fci,irep1,irep2,ordering1 &
                 ,ordering2, read2rdm,mcci,q_abs,result)
+              use mod_types
 
 
 
@@ -473,8 +475,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
     implicit none
 
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+        
+        
         logical, intent(in) :: fci,read2rdm,mcci
         logical :: read2rdm2
         integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl,type, state1,state2,numberlines
@@ -623,7 +625,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 allocate(m1(npoints), m2(npoints), m3(npoints), m4(npoints), totaldiv(npoints))
               write(*,*) 'allocated m{1..4}'
                 m1 = mat(:,1)
-              write(*,*) 'assigned m1}'
+              write(*,*) 'assigned m1'
                 m2 = mat(:,2)
               write(*,*) 'assigned m2'
                 m3 = mat(:,3)
@@ -786,8 +788,9 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
 
      function sinc (a)
-             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-            INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+              use mod_types
+             
+            
              real(kind=dp):: sinc, a
              if (abs(a) < 1.0d-10) then
                 sinc = 1
@@ -797,9 +800,10 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
     end function
 
     subroutine QCOORD3(k0,qx,qy,qz)
+              use mod_types
         implicit none
-         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+         
+         
          real(kind=dp), intent(in):: k0
          real(kind=dp),  dimension(3131), intent(out):: qx, qy,qz
          real(kind=dp):: ldk0,rc,qqx,qqy,ang,pi

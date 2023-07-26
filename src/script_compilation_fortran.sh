@@ -5,6 +5,7 @@ f1='ifort -O3 -align array64byte  -xCORE-AVX512 -qopenmp  -qmkl -heap-arrays -c'
 
 rm -rf *.mod *.o
 
+$f1 mod_types.f90
 $f1 calculate_form_factors.f90
 $f1 unique_module.f90
 $f1 twordms.f90
