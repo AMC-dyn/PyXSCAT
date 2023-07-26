@@ -7,9 +7,10 @@ MODULE uniquemodule
 
     SUBROUTINE unique_integer(matrix,rmat,iuni,irec)
 
+      use mod_types
 
-          INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          
+        
         integer(kind=ikind), dimension(:,:), intent(in)                  :: matrix
         integer(kind=ikind), dimension(:,:), allocatable                 :: sprmat
         integer(kind=ikind), dimension(:,:), intent(out), allocatable    :: rmat
@@ -47,10 +48,11 @@ MODULE uniquemodule
 
 
     SUBROUTINE unique_real(matrix,rmat,iuni,irec)
+      use mod_types
 
 
-          INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          
+        
         real(kind=dp), dimension(:,:), intent(in)                      :: matrix
         real(kind=dp), dimension(:,:), allocatable                     :: sprmat
         real(kind=dp), dimension(:,:), intent(out), allocatable        :: rmat
@@ -88,10 +90,11 @@ MODULE uniquemodule
 
 
     SUBROUTINE unique_total(matrix,total,rmat,rtot)
+      use mod_types
 
 
-          INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          
+        
         integer(kind=ikind), dimension(:,:), intent(in)                  :: matrix
         real(kind=dp), dimension(:), intent(in)                          :: total
         integer(kind=ikind), dimension(:,:), allocatable                 :: sprmat

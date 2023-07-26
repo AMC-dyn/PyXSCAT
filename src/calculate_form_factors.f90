@@ -6,8 +6,7 @@ Module calculate_form_factors
 
 
     subroutine linspace(from, to, n,array)
-     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+      use mod_types
      integer,intent(in) :: n
     real(kind=dp), intent(in) :: from, to
     real(kind=dp), intent(out),dimension(n) :: array
@@ -23,9 +22,8 @@ Module calculate_form_factors
 end subroutine
 
     subroutine obtain_form_factors(aff1,atom,q1,atoms,a,b,c)
+      use mod_types
         implicit none
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
         real(kind=dp), parameter :: pi=dacos(-1.00_dp)
         character(len=10), intent(in) :: atom
         real(kind=dp), intent(in), dimension(:) :: q1
@@ -56,9 +54,8 @@ end subroutine
       function interp_linear_vec(x,y,xout) result(yout)
         ! Interpolate y from ordered x to ordered xout positions
 
+        use mod_types
         implicit none
-     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
 
      real(kind=selected_real_kind(15)), dimension(:), intent(IN) :: x, y
      real(kind=selected_real_kind(15)), dimension(:), intent(IN) :: xout
@@ -101,8 +98,7 @@ end subroutine
 
 
     function sinc (a)
-             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-            INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+             use mod_types
              real(kind=dp):: sinc, a
              if (abs(a) < 1.0d-10) then
                 sinc = 1
@@ -112,9 +108,8 @@ end subroutine
     end function
        function interp_linear_internal(x,y,xout) result(yout)
 
+         use mod_types
         implicit none
-         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
         real(dp), intent(IN)  :: x(2), y(2), xout
         real(dp) :: yout
         real(dp) :: alph
@@ -134,9 +129,8 @@ end subroutine
 
     end function interp_linear_internal
     subroutine table_of_ff(filename,atoms,a,b,c)
+      use mod_types
         implicit none
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
         integer(kind=ikind) :: i
         character(len=16), intent(in) :: filename
 
@@ -154,9 +148,8 @@ end subroutine
     end subroutine table_of_ff
 
     subroutine table_of_iff(filename,atoms,ff,q)
+      use mod_types
         implicit none
-        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
         integer(kind=ikind) :: i
         character(len=22), intent(in) :: filename
         character(len=10) :: dumm
@@ -179,10 +172,9 @@ subroutine interp1( xData, yData, xVal, yVal )
 !         yData = a vector of the y-values of the data to be interpolated
 !         xVal  = a vector of the x-values where interpolation should be performed
 ! Output: yVal  = a vector of the resulting interpolated values
+use mod_types
 
   implicit none
-  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-  INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
   real(kind=dp), intent(in) :: xData(:), yData(:), xVal(:)
   real(kind=dp), intent(out) :: yVal(:)
   integer(kind=ikind) :: inputIndex, dataIndex
@@ -213,9 +205,8 @@ end subroutine
 
 
 subroutine sphbes(n,z,j)
+  use mod_types
     implicit none
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
     integer(kind=ikind), intent(in) :: n
     real(kind=dp), intent(in) :: z
     real(kind=dp), intent(out) :: j
@@ -237,9 +228,8 @@ subroutine sphbes(n,z,j)
 
 
 function ttra(b1,b2,q1,q2,anglebond,aq) result(res)
+  use mod_types
     implicit none
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
     real(dp), intent(IN)  :: q1,q2,anglebond,b1,b2,aq
     real(dp) :: res
     real(dp) :: cutoff,dres
@@ -284,8 +274,7 @@ function ttra(b1,b2,q1,q2,anglebond,aq) result(res)
 ! using the recurrence relation
 ! if n > 100 the function retuns 0.0
 !======================================
-     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+use mod_types
 integer(kind=ikind) n, k
 real(selected_real_kind(15)) pl
 real(selected_real_kind(15)) x
@@ -307,8 +296,7 @@ return
 end
 
         function spherical_bessel_jn_2(n, x) result(r)
-INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+          use mod_types
 integer(kind=ikind), intent(in) :: n
 real(dp), intent(in) :: x
 integer(kind=ikind) :: nm
@@ -324,8 +312,7 @@ end function
 
 
 real(kind=SELECTED_REAL_KIND(15)) function spherical_bessel_jn(n, x) result(r)
-INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+  use mod_types
 integer(kind=ikind), intent(in) :: n
 real(dp), intent(in) :: x
 integer(kind=ikind) :: nm
@@ -362,10 +349,9 @@ end function
 !C                                                                      CACNL0023
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCACNL0024
 
-IMPLICIT real(kind=SELECTED_REAL_KIND(15)) (A-H,O-Z)
-         Implicit integer(kind=SELECTED_INT_KIND(10)) (I-N)
-      INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-      INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+use mod_types
+IMPLICIT real(kind=dp) (A-H,O-Z)
+         Implicit integer(kind=ikind) (I-N)
 
 
 
@@ -474,9 +460,10 @@ IMPLICIT real(kind=SELECTED_REAL_KIND(15)) (A-H,O-Z)
 !       Output:  MSTA1 --- Starting point
 !       ===================================================
 !
-IMPLICIT real(SELECTED_REAL_KIND(15))(A-H,O-Z)
+use mod_types
+IMPLICIT real(kind=dp)(A-H,O-Z)
 
-IMPLICIT integer(kind=SELECTED_INT_KIND(10)) (I-N)
+IMPLICIT integer(kind=ikind) (I-N)
         A0=DABS(X)
         N0=INT(1.1D0*A0)+1
         F0=ENVJ(N0,A0)-MP
@@ -505,9 +492,10 @@ IMPLICIT integer(kind=SELECTED_INT_KIND(10)) (I-N)
 !                MP --- Significant digit
 !       Output:  MSTA2 --- Starting point
 !       ===================================================
+use mod_types
 !
-IMPLICIT real(kind=SELECTED_REAL_KIND(15)) (A-H,O-Z)
-        IMPLICIT integer(kind=SELECTED_INT_KIND(10)) (I-N)
+IMPLICIT real(kind=dp) (A-H,O-Z)
+        IMPLICIT integer(kind=ikind) (I-N)
         A0=DABS(X)
         HMP=0.5D0*MP
         EJN=ENVJ(N,A0)
@@ -558,8 +546,9 @@ IMPLICIT real(kind=SELECTED_REAL_KIND(15)) (A-H,O-Z)
 !                point for backward recurrence
 !       =======================================================
 !
-IMPLICIT real(kind=SELECTED_REAL_KIND(15)) (A-H,O-Z)
-        IMPLICIT integer(kind=SELECTED_INT_KIND(10)) (I-N)
+use mod_types
+IMPLICIT real(kind=dp) (A-H,O-Z)
+        IMPLICIT integer(kind=ikind) (I-N)
         DIMENSION SJ(0:N),DJ(0:N)
         NM=N
         IF (DABS(X).LT.1.0D-100) THEN
@@ -619,15 +608,16 @@ SUBROUTINE polint(xa,ya,n,x,y,dy)
       !
       ! Bo Terp Paulsen, botp@mek.dtu.dk
 
-      INTEGER(kind=SELECTED_INT_KIND(10)) n,NMAX
-      real(kind=SELECTED_REAL_KIND(15)) :: dy,x,y,xa(n),ya(n)
+      use mod_types
+      INTEGER(kind=ikind) n,NMAX
+      real(kind=dp) :: dy,x,y,xa(n),ya(n)
       PARAMETER (NMAX=10) ! Largest anticipated value of n.
       !Given arrays xa and ya, each of length n, and given a value x, this routine
       !returns a value y, and an error estimate dy. If P (x) is the polynomial of
       !degree N − 1 such that P (xai) = yai , i = 1, . . . , n, then the returned
       !value y = P (x ).
-      INTEGER(kind=SELECTED_INT_KIND(8)) i,m,ns
-      real(kind=SELECTED_REAL_KIND(15)):: den,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
+      INTEGER(kind=ikind) i,m,ns
+      real(kind=dp) den,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
 
       ns=1
       dif = abs(x-xa(1))
@@ -705,11 +695,12 @@ SUBROUTINE polint(xa,ya,n,x,y,dy)
 !  spline.f90 program is based on fortran version of program spline.f
 !  the accompanying function fspline can be used for interpolation
 !======================================================================
+use mod_types
 implicit none
-integer(kind=SELECTED_INT_KIND(10)) n
-real(kind=SELECTED_REAL_KIND(15)) x(n), y(n), b(n), c(n), d(n)
-integer(kind=SELECTED_INT_KIND(10))i, j, gap
-real(kind=SELECTED_REAL_KIND(15)) h
+integer(kind=ikind) i, n
+real(kind=dp) x(n), y(n), b(n), c(n), d(n)
+integer(kind=ikind) j, gap
+real(kind=dp) h
 
 gap = n-1
 ! check input
@@ -790,12 +781,13 @@ end subroutine spline
 ! output:
 ! ispline = interpolated value at point u
 !=======================================================================
+use mod_types
 implicit none
-double precision ispline
-integer(kind=SELECTED_INT_KIND(10)) n
-integer(kind=SELECTED_INT_KIND(10)) i, j, k
-real(kind=SELECTED_REAL_KIND(15))  u, x(n), y(n), b(n), c(n), d(n)
-real(kind=SELECTED_REAL_KIND(15)) dx
+real(kind=dp) ispline
+integer(kind=ikind) n
+integer(kind=ikind) i, j, k
+real(kind=dp) u, x(n), y(n), b(n), c(n), d(n)
+real(kind=dp) dx
 
 ! if u is ouside the x() interval take a boundary value (left or right)
 if(u <= x(1)) then

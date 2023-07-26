@@ -6168,11 +6168,11 @@ Subroutine bessels0rr(h_sum,order,mu,H, h_saved)
       implicit none
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
-      double precision, intent(in):: x
+      real(kind=dp), intent(in):: x
       integer(kind=ikind), intent(in) :: n
       integer(kind=ikind) i, nmax
-      double precision, intent(out),dimension(0:N):: jbwd
-      double precision ::  ix, jmx1, jmx, j0, j1
+      real(kind=dp), intent(out),dimension(0:N):: jbwd
+      real(kind=dp) ::  ix, jmx1, jmx, j0, j1
 
 
       nmax= max(n, ceiling(1.142476370122814*n-4.027048776987268))

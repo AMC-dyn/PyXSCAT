@@ -6,10 +6,11 @@ module twordms
 
 
 subroutine maxcoincidence(confs, ep2,ndiff)
+      use mod_types
 
         implicit none
-                INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+                
+        
         integer(kind=ikind), intent(in), dimension(:,:) :: confs
         integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
         integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
@@ -81,10 +82,11 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     end subroutine maxcoincidence
 
     subroutine maxc_individual(c1,c2, ep,diffs1,diffs2,spin1,spin2,ndiff)
+      use mod_types
 
         implicit none
-                INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+                
+        
         integer(kind=ikind), intent(in), dimension(:) :: c1,c2
         integer(kind=ikind), intent(out):: ep, ndiff
         integer(kind=ikind), intent(out), dimension(:), allocatable :: diffs1,diffs2,spin1,spin2
@@ -173,11 +175,12 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
 
     subroutine createtwordm(confs,civs,ndiff,ep2,mat,total,state1,state2)
+      use mod_types
 
     implicit none
 
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+    
+    
 
     integer(kind=ikind), intent(in),dimension(:,:) :: confs
     integer(kind=ikind), intent(in), dimension(:,:) :: ep2, ndiff
@@ -561,13 +564,14 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
 
      subroutine createtwordm_slow(file_read,mat,total)
+      use mod_types
 
 
      Use, intrinsic :: iso_fortran_env, Only : iostat_end
     implicit none
 
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+    
+    
      character(len=30), intent(in) :: file_read
      integer(kind=ikind) :: norbs
 
@@ -1007,8 +1011,9 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
 
  function integer2binary(i,n) result(b)
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+      use mod_types
+    
+    
     integer(kind=ikind),intent(in) :: i,n
     integer(kind=ikind) :: b(n),count,count_orbs,b_orbs(n)
     integer(kind=ikind), allocatable,dimension(:):: b_real,b_orbs_r
@@ -1036,8 +1041,9 @@ subroutine maxcoincidence(confs, ep2,ndiff)
   end function
 
         function integer2binary_orbs(i) result(b_orbs_r)
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+      use mod_types
+    
+    
     integer(kind=ikind),intent(in) :: i
     integer(kind=ikind) :: b(32),count,count_orbs,b_orbs(32)
 
@@ -1066,8 +1072,9 @@ subroutine maxcoincidence(confs, ep2,ndiff)
   end function
 
 function integer2binary_orbs_bit(i,maxnmo) result(b_orbs)
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+      use mod_types
+    
+    
     integer(kind=ikind),intent(in) :: i(2),maxnmo
     integer(kind=ikind) :: b_orbs(maxnmo),buffer,count
     integer(kind=ikind), allocatable,dimension(:):: b_real,b_orbs_r
@@ -1097,9 +1104,10 @@ function integer2binary_orbs_bit(i,maxnmo) result(b_orbs)
   end function
 
 subroutine combine_alpha_beta(alpha,beta, result)
+      use mod_types
     implicit none
-             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(10)
+             
+        
     integer(kind=ikind), intent(in):: alpha, beta
     integer(kind=ikind) :: buffer,z
     integer(kind=ikind),intent(out) :: result
