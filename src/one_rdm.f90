@@ -1418,7 +1418,7 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
            integer(kind=ikind),intent(in),dimension(:):: irep
            real(kind=dp), dimension(:), allocatable :: civs
            integer(kind=ikind),dimension(:,:,:), allocatable :: Nalphbet
-           integer(kind=ikind):: j, i, error_1,count,temp,sp,diff1,diff2,popcnt1,popcnt2,compnum,buffer_prime, buffer_prime_2
+           integer(kind=ikind):: j, i, error_1,count,temp,diff1,diff2,popcnt1,popcnt2,compnum,buffer_prime, buffer_prime_2
             integer(kind=ikind):: particle_int,hole_int,k
            real(kind=dp),dimension(:,:), allocatable :: onerdm
            integer(kind=ikind),intent(inout):: maxnmo
