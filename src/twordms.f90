@@ -1045,7 +1045,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
     
     
     integer(kind=ikind),intent(in) :: i
-    integer(kind=ikind) :: b(32),count,count_orbs,b_orbs(32)
+    integer(kind=ikind) :: b(64),count,count_orbs,b_orbs(64)
 
     integer(kind=ikind), allocatable,dimension(:):: b_real,b_orbs_r
     integer(kind=ikind) k,j
