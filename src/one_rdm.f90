@@ -976,6 +976,7 @@ integer(kind=ikind) newdiff,mytemp,n,count2,count_p,p,q,r,s
     real(kind=dp), dimension(:), allocatable :: totaldum
 
 
+    write(*,*) 'were here!'
 
 open(15,file=file_read)
 nword=1
@@ -1883,10 +1884,13 @@ enddo
 
            end do !end of loop over ici
 
+           write(*,*) 'finishing mcci_to_bit'
            close(17)
+           write(*,*) 'finishing mcci_to_bit'
 
 
            end subroutine mcci_to_bit
+
        recursive function combo(n,k) result(cmb)
       use mod_types
            implicit none

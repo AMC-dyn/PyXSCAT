@@ -586,6 +586,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                  fileout_8='newdat.dat'
                 call mcci_to_bit(fileJ,fileout_8,numberlines)
 
+                write(*,*) 'entering createtwordm_bit'
+
                  call createtwordm_bit(fileout_8,numberlines,&
                         mat,total)
                  call cpu_time(time3)
@@ -621,7 +623,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
                 end if
             write(*,*) 'allocating...'
                 npoints=fin-ini
-                write(*,*) npoints, size(mat)
+                write(*,*) ini,fin,npoints, size(mat)
                 allocate(m1(npoints), m2(npoints), m3(npoints), m4(npoints), totaldiv(npoints))
               write(*,*) 'allocated m{1..4}'
                 m1 = mat(:,1)

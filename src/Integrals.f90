@@ -78,6 +78,7 @@ module integrals
 
 
         do i=1,ncap
+        write(*,*) i, '/', ncap
             do j=i+1,ncap
                 do k=i+1,ncap
                     do r=k+1,ncap
@@ -1643,6 +1644,7 @@ subroutine tot_integration_j2(ncap,nq,px,py,pz,l,m,n,p0matrix,dx,dy,dz,z1,z2,gro
        !$OMP& schedule(dynamic)
 
         do i=1,ncap
+        write(*,*) i, '/', ncap
             do j=i+1,ncap
                 do k=i+1,ncap
                     do r=k+1,ncap

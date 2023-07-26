@@ -6,9 +6,9 @@ import molcas_ci_reader as mc
 import twordm_red as td
 from textwrap import wrap
 # If there is an external file with CIvecs or 2rdms JeremyR==True
-molpro = True
+molpro = False
 bagel = False
-molcas = False
+molcas = True
 extra_precision_molcas = True
 caspt2 = False
 jeremyR = False

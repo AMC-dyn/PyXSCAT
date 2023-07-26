@@ -75,7 +75,7 @@ program main
         read(15,*)nconfs
         read(15,*)lconfs
         read(15,*)ncivs
-        if (nconfs<1E5) then
+        if (nconfs<1E4) then
 
             allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
 
@@ -162,8 +162,8 @@ program main
     print*,'out of loop'
     close(15)
     call linspace_1(qmin,qmax,npoints,q)
-    print*,nq, npoints
     nq=npoints
+    print*,nq, npoints
     if (bitwise.eqv..False.) then
     call total_scattering_calculation(Typec, atoms, geom, state1, &
             state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, q, nq, group, &
