@@ -1,3 +1,0 @@
-converged SCF energy = -112.29927961542
-E(CCSD) = -112.4479540630146  E_corr = -0.1486744475950277
-basis size is 18
