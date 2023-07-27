@@ -1,7 +1,7 @@
 
 #/bin/bash 
 
-f1='ifort -O2  -align array64byte  -xCORE-AVX512 -qopenmp  -qmkl -heap-arrays -warn -c'
+f1='ifort -O2 -po  -align array64byte  -xCORE-AVX512 -qopenmp  -qmkl -heap-arrays -warn -c'
 
 rm -rf *.mod *.o
 

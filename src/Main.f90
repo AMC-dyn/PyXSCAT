@@ -19,11 +19,12 @@ program main
     real(kind=dp), dimension(:), allocatable:: result,q_abs
     integer(kind=ikind), dimension(1):: nnn,start1,end1, nnn2, start_2, end_2,ordering1,ordering2
     integer(kind=ikind), dimension(1,1):: newdat
-    real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax
+    real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax, startT, endT
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
      
+     call cpu_time(startT) 
      !call OMP_set_num_threads(20) 
      print*,OMP_get_num_threads()    
     open(unit=15, file='basis.dat')
@@ -195,5 +196,7 @@ program main
     close(15)
     print*, file_out,' created'
 
+    call cpu_time(endT) 
+    write(*,*) "total time = ",endT-startT
 end program main
 

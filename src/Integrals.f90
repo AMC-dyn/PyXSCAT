@@ -17,7 +17,7 @@ module integrals
         
         
 
-        real(kind=kind(1.d0)), external :: ddot
+        real(kind=dp), external :: ddot
         INTEGER(kind=ikind), INTENT(IN) :: ncap
         INTEGER(kind=ikind), INTENT(IN), DIMENSION(:) :: l,m,n,group,group_start,group_count
 
@@ -4210,6 +4210,7 @@ SUBROUTINE BesselDeriv(BD, LL, MM,NN,a,b,c,LLmax)
                 if (abs(Ct2)<1.0E-30) cycle
                 C2 = C1 * Ct2
 
+                !dir$ ivdep
                 do kk = 0, NN
                     Ct3=c(NN+1,kk+1)
                     if (abs(Ct3)<1.0E-30) cycle
@@ -5868,6 +5869,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
                 !if (abs(Ct2p)<1.0E-30) cycle
 
 
+                !dir$ ivdep
                 do kk = 0, NN+2
                     Ct3=c(NN+1,kk+1)
                     Ct3p=cp(NN+1,kk+1)
@@ -5934,6 +5936,7 @@ SUBROUTINE tot_integral_ijkr_pzero(nq,l,m,n,gs,gc,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,
 
 
 
+                !dir$ ivdep
                 do kk = 0, NN
                     C3=c(NN+1,kk+1)
 
