@@ -1,0 +1,14 @@
+#NECESSARY
+STATE1=2       # Adiabatic state for scattering
+TYPE=TOTAL     # TOTAL/ELASTIC/IAM
+PARTICLE=XRAY  # XRAY/ELECTRON
+MOFILE=lif.mld # FILE containing MOs
+CIFILE=lif.pun # FILE CONTAINING CIVEC, only needed if method=CI
+METHOD=CI      # HF/CI
+QVEC=0 10 100  # qmin, qmax, npoints
+BESSELORDER=0  # n for Jn scattering
+#OPTIONAL
+CLOSED=3       # Likely only needed for MOLPRO interface
+STATE2=1       # SECOND STATE, assumed to be =STATE1 unless specified
+SYM1=1         # Symmetry for STATE1
+SYM2=1         # Symmetry for STATE2
