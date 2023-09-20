@@ -514,6 +514,7 @@ module integrals
         real(kind=dp),dimension(:,:), allocatable :: za,zb,cmat
         integer(kind=ikind),dimension(:), allocatable ::posi,posj,posk,posr
         REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
+        real(kind=dp),dimension(size(q)):: tsi2
         real(kind=dp) :: hx,hy,hz,h
         integer(kind=ikind),dimension(size(l)) :: ll
         integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj,kk,rr
@@ -538,13 +539,11 @@ module integrals
         !First big loop
 
         tsi=0.0_dp
+        tsi2=0.0_dp
 
         if (any(isnan(p0matrix))) print*,'ouch'
 
-    !    !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2), &
-     !   !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-     !   !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
-     !   !$OMP& schedule(dynamic)
+
          ngto=44
         allocate(Zbig(ncontr,ncontr,ncontr,ncontr))
 
@@ -558,37 +557,40 @@ module integrals
 
         ncontr2=2
         count=0
-        do ii=1,ncontr2
-            do jj=ii,ncontr2
-                do kk=ii,ncontr2
-                    do rr=kk,ncontr2
+              !$OMP PARALLEL do private(initj,initk,initr,ii,jj,kk,rr,Zcontrred), &
+                         !$OMP& private(f,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n,gf,gc,gs,p0matrix,Zbig), &
+                         !$OMP& shared( cutoffz,cutoffmd) REDUCTION(+:tsi), &
+                         !$OMP& schedule(dynamic)
+        do ii=1,ncontr
+            do jj=ii,ncontr
+                do kk=ii,ncontr
+                    do rr=kk,ncontr
                         Zcontrred=Zbig(ii,jj,kk,rr)
 
-                      !  if(abs(Zcontrred)>=cutoffz) then
+
                         do i=gs(ii),gf(ii)
                             if (jj==ii) then
-                                initj=gs(ii)+1
+                                initj=i+1
 
                             else
                                 initj=gs(jj)
                             end if
                             do j=initj,gf(jj)
                                 if (kk==ii) then
-                                    initk=gs(ii)+1
+                                    initk=i+1
                                 else
                                     initk=gs(kk)
                                 end if
                                 do k=initk, gf(kk)
-                                    if (rr==kk .and. kk==jj) then
-                                        initr=initk+1
-                                    else if (rr==kk) then
-                                        initr=gs(kk)+1
+                                    if (rr==kk) then
+                                        initr=k+1
+
                                     else
                                         initr=gs(rr)
                                     end if
                                     do r=initr,gf(rr)
                                         !print*,i,j,k,r
-                                    print*,ii,jj,kk,rr,i,j,k,r
+                                    !Sprint*,ii,jj,kk,rr,i,j,k,r
                                        ! Zcontrred=Zbig(i,j,k,r)
                                         hx = px(k, r) - px(i, j)
                                         hy = py(k, r) - py(i, j)
@@ -637,14 +639,13 @@ module integrals
                                 end do
                             end do
                         end do
-                 !  endif
+
 
                     end do
                 end do
             end do
         end do
-
-     ! !$OMP END parallel DO
+            !$OMP END parallel DO
 
       print*,OMP_get_num_threads()
       print*,'intermediate step', tsi(1),count
