@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import molden_reader_nikola as mldr
 from scipy.io import FortranFile
-
+from copy import deepcopy
 i = 0
 nmomax = 10
 
@@ -107,8 +107,8 @@ CC = CC + np.einsum('abcd->dcba', CC1, optimize='greedy')
 
 Zbig = CC / 8.0000
 print(CC.shape)
-rr = coeffs
-print(coeffs)
+rr =deepcopy(coeffs)
+# print(coeffs)
 rr[10] = coeffs[10]
 rr[11] = coeffs[13]
 rr[12] = coeffs[16]
@@ -117,31 +117,36 @@ rr[14] = coeffs[14]
 rr[15] = coeffs[17]
 rr[16] = coeffs[12]
 rr[17] = coeffs[15]
-coeffs = rr
+coeffs = deepcopy(rr)
 print(coeffs)
 print('Zbig:', Zbig[0, 0, 0, 5] * coeffs[0] * coeffs[1] * coeffs[1] * coeffs[16:19])
-# Zbig.tofile('Zcotr.dat')
+Zbig.tofile('Zcotr.dat')
 
 
 print(CC[0, 1, 1, 0])
 print(CC[1, 2, 2, 1])
 
 mmod = gtos.mo
-rr = mmod
-rr[9, :] = mmod[9, :]
+print(mmod[:,0])
+print(mmod[12,0])
+rr =deepcopy(mmod)
+print(rr[:,0]-mmod[:,0])
+
 rr[10, :] = mmod[10, :]
 rr[11, :] = mmod[13, :]
 rr[12, :] = mmod[16, :]
 rr[13, :] = mmod[11, :]
 rr[14, :] = mmod[14, :]
 rr[15, :] = mmod[17, :]
+print(rr[16,0],mmod[12,0])
 rr[16, :] = mmod[12, :]
+print(rr[16,0],mmod[12,0])
 rr[17, :] = mmod[15, :]
 rr[18, :] = mmod[18, :]
 
-mmod = rr
+mmod =deepcopy(rr)
 
-
+print(mmod[:,0])
 
 print(mmod.shape)
 CC = np.einsum("up,pqrs->uqrs", mmod, trdm, optimize='greedy')

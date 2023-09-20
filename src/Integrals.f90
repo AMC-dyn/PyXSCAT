@@ -517,7 +517,7 @@ module integrals
         real(kind=dp) :: hx,hy,hz,h
         integer(kind=ikind),dimension(size(l)) :: ll
         integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj,kk,rr
-        integer(kind=ikind) :: spi, spj, spk, spr, szo,nt,ngto,dimvec,init
+        integer(kind=ikind) :: spi, spj, spk, spr, szo,nt,ngto,dimvec,initj,initk,initr,ncontr2
         real(kind=dp), dimension(:,:,:,:), allocatable:: Zbig
 
 
@@ -556,37 +556,39 @@ module integrals
         print*,ncontr,gs(:)
         print*,gf(:)
 
-
+        ncontr2=2
         count=0
-        do ii=1,ncontr
-            do jj=ii,ncontr
-                do kk=ii,ncontr
-                    do rr=kk,ncontr
+        do ii=1,ncontr2
+            do jj=ii,ncontr2
+                do kk=ii,ncontr2
+                    do rr=kk,ncontr2
                         Zcontrred=Zbig(ii,jj,kk,rr)
 
                       !  if(abs(Zcontrred)>=cutoffz) then
                         do i=gs(ii),gf(ii)
                             if (jj==ii) then
-                                init=gs(ii)+1
+                                initj=gs(ii)+1
 
                             else
-                                init=gs(jj)
+                                initj=gs(jj)
                             end if
-                            do j=init,gf(jj)
+                            do j=initj,gf(jj)
                                 if (kk==ii) then
-                                    init=gs(ii)+1
+                                    initk=gs(ii)+1
                                 else
-                                    init=gs(kk)
+                                    initk=gs(kk)
                                 end if
-                                do k=init, gf(kk)
-                                    if (rr==kk) then
-                                        init=init+1
-
+                                do k=initk, gf(kk)
+                                    if (rr==kk .and. kk==jj) then
+                                        initr=initk+1
+                                    else if (rr==kk) then
+                                        initr=gs(kk)+1
                                     else
-                                        init=gs(rr)
+                                        initr=gs(rr)
                                     end if
-                                    do r=init,gf(rr)
-                                        print*,i,j,k,r
+                                    do r=initr,gf(rr)
+                                        !print*,i,j,k,r
+                                    print*,ii,jj,kk,rr,i,j,k,r
                                        ! Zcontrred=Zbig(i,j,k,r)
                                         hx = px(k, r) - px(i, j)
                                         hy = py(k, r) - py(i, j)
