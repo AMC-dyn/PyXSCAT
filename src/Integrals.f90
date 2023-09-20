@@ -516,7 +516,7 @@ module integrals
         REAL(kind=dp), intent(out), dimension(size(q)) :: tsi
         real(kind=dp),dimension(size(q)):: tsi2
         real(kind=dp) :: hx,hy,hz,h
-        integer(kind=ikind),dimension(size(l)) :: ll
+        integer(kind=ikind),dimension(size(l)) :: ll,veccounts
         integer(kind=ikind) :: nq,i,j,k,r,count,ng,ii,jj,kk,rr
         integer(kind=ikind) :: spi, spj, spk, spr, szo,nt,ngto,dimvec,initj,initk,initr,ncontr2
         real(kind=dp), dimension(:,:,:,:), allocatable:: Zbig
@@ -533,7 +533,7 @@ module integrals
         nq= size(q)
 
         print*,OMP_get_num_threads()
-        call OMP_set_num_threads(16)
+        call OMP_set_num_threads(10)
         print*,OMP_get_num_threads()
      !
         !First big loop
@@ -554,44 +554,57 @@ module integrals
         print*, Zbig(1,2,2,3)
         print*,ncontr,gs(:)
         print*,gf(:)
+        do i=1,ncontr
+            veccounts(gs(i):gf(i))=i
 
+        end do
         ncontr2=2
         count=0
-              !$OMP PARALLEL do private(initj,initk,initr,ii,jj,kk,rr,Zcontrred), &
+
+!        do ii=1,ncontr
+!            do jj=ii,ncontr
+!                do kk=ii,ncontr
+!                    do rr=kk,ncontr
+                       ! Zcontrred=Zbig(ii,jj,kk,rr)
+
+
+!                        do i=gs(ii),gf(ii)
+!                            if (jj==ii) then
+!                                initj=i+1
+!
+!                            else
+!                                initj=gs(jj)
+!                            end if
+!                            do j=initj,gf(jj)
+!                                if (kk==ii) then
+!                                    initk=i+1
+!                                else
+!                                    initk=gs(kk)
+!                                end if
+!                                do k=initk, gf(kk)
+!                                    if (rr==kk) then
+!                                        initr=k+1
+!
+!                                    else
+!                                        initr=gs(rr)
+!                                    end if
+!                                    do r=initr,gf(rr)
+  !$OMP PARALLEL do private(ii,jj,kk,rr,Zcontrred), &
                          !$OMP& private(f,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n,gf,gc,gs,p0matrix,Zbig), &
                          !$OMP& shared( cutoffz,cutoffmd) REDUCTION(+:tsi), &
                          !$OMP& schedule(dynamic)
-        do ii=1,ncontr
-            do jj=ii,ncontr
-                do kk=ii,ncontr
-                    do rr=kk,ncontr
-                        Zcontrred=Zbig(ii,jj,kk,rr)
+                 do i=1,ngto
+                    do j=i+1,ngto
+                      do k=i+1,ngto
+                          do r=k+1,ngto
 
-
-                        do i=gs(ii),gf(ii)
-                            if (jj==ii) then
-                                initj=i+1
-
-                            else
-                                initj=gs(jj)
-                            end if
-                            do j=initj,gf(jj)
-                                if (kk==ii) then
-                                    initk=i+1
-                                else
-                                    initk=gs(kk)
-                                end if
-                                do k=initk, gf(kk)
-                                    if (rr==kk) then
-                                        initr=k+1
-
-                                    else
-                                        initr=gs(rr)
-                                    end if
-                                    do r=initr,gf(rr)
                                         !print*,i,j,k,r
                                     !Sprint*,ii,jj,kk,rr,i,j,k,r
-                                       ! Zcontrred=Zbig(i,j,k,r)
+                                        ii=veccounts(i)
+                                        jj=veccounts(j)
+                                        kk=veccounts(k)
+                                        rr=veccounts(r)
+                                        Zcontrred=Zbig(ii,jj,kk,rr)
                                         hx = px(k, r) - px(i, j)
                                         hy = py(k, r) - py(i, j)
                                         hz = pz(k, r) - pz(i, j)
@@ -639,13 +652,13 @@ module integrals
                                 end do
                             end do
                         end do
+                        !$OMP END parallel DO
+!
+!                    end do
+!                end do
+!            end do
+!        end do
 
-
-                    end do
-                end do
-            end do
-        end do
-            !$OMP END parallel DO
 
       print*,OMP_get_num_threads()
       print*,'intermediate step', tsi(1),count
