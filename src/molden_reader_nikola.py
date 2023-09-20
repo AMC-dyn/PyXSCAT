@@ -49,7 +49,6 @@ class PrimitiveGTO:
         temp = (self.atom_idx, self.contraction, self.group, self.ga, self.c,
                 self.l, self.m, self.n)
 
-
     def norm(self):
         """Normalise GTO."""
         normA = (2 / math.pi) ** 0.75
@@ -106,9 +105,13 @@ def _read_atoms_file(file):
             # symbol = columns[0]
             atmnum = int(columns[2])
             # coordinates in au
-            x = float(columns[3])/AU2ANG
-            y = float(columns[4])/AU2ANG
-            z = float(columns[5])/AU2ANG
+            # x = float(columns[3])
+            # y = float(columns[4])
+            # z = float(columns[5])
+
+            x = float(columns[3]) / AU2ANG
+            y = float(columns[4]) / AU2ANG
+            z = float(columns[5]) / AU2ANG
             atoms.add_atom(mol.Atom(atmnum, x, y, z))
 
     else:
@@ -139,6 +142,7 @@ def _read_contractions(file):
     output:
         gtos -- list of instances of PrimitiveGTO
     """
+    groupC = []
     # start from the beginning of the file
     file.seek(0)
     # find the the GTO tag [GTO]
@@ -157,8 +161,6 @@ def _read_contractions(file):
     atms = [int(s) for s in line.split() if s.isdigit()]
 
     atm = atms[0]
-
-
 
     contraction_counter = 1
     group_counter = 0
@@ -186,6 +188,19 @@ def _read_contractions(file):
 
             type_of_GTO = contraction_spec[0]
             num_of_primitives = int(contraction_spec[1])
+
+            numR = 1
+
+            if type_of_GTO == 'p':
+                numR = 3
+            elif type_of_GTO == 'd':
+                numR = 6
+            elif type_of_GTO == 'f':
+                numR = 10
+            elif type_of_GTO == 'g':
+                numR = 15
+            for i in range(numR):
+                groupC.append(num_of_primitives)
 
             for i in range(0, num_of_primitives):
                 line = file.readline()
@@ -220,6 +235,22 @@ def _read_contractions(file):
                     ang.append([0, 1, 2])
                     ang.append([0, 2, 1])
                     ang.append([1, 1, 1])
+                elif type_of_GTO == 'g':
+                    ang.append([4, 0, 0])
+                    ang.append([0, 4, 0])
+                    ang.append([0, 0, 4])
+                    ang.append([3, 1, 0])
+                    ang.append([3, 0, 1])
+                    ang.append([1, 3, 0])
+                    ang.append([0, 3, 1])
+                    ang.append([1, 0, 3])
+                    ang.append([0, 1, 3])
+                    ang.append([2, 2, 0])
+                    ang.append([2, 0, 2])
+                    ang.append([0, 2, 2])
+                    ang.append([2, 1, 1])
+                    ang.append([1, 2, 1])
+                    ang.append([1, 1, 2])
                 else:
                     print("Error! I can only read s, p, d and f GTOs.")
                 # all ang momentum for the given contraction
@@ -236,7 +267,7 @@ def _read_contractions(file):
     else:
         print("Something went wrong! Can't find [MO]")
     print('size GTOS', np.size(GTOs))
-    return GTOs
+    return GTOs, groupC
 
 
 def _read_MO(file, mo_cutoff):
@@ -309,13 +340,17 @@ def _read_MO(file, mo_cutoff):
 
     # redored the MO according to the Molpro labels
     nMO = len(syms)
+    print('the size of the mos is ', nMO)
     syms_array = np.array([float(i) for i in syms])
+    occ_array = np.array([float(i) for i in occ])
+    # finalind=np.where(occ_array>0.0000000)
+    # print('First 0 would work?', finalind)
+    # syms_array=syms_array[finalind]
     idx1 = np.argsort(syms_array)
     print('previous order', syms)
     syms_array = (syms_array - syms_array.astype(int)) * 1000 + syms_array.astype(int)
 
     idx = np.argsort(syms_array)
-
 
     mo = np.array(mo_table)
     syms_array = np.array([float(i) for i in syms])
@@ -349,7 +384,6 @@ def _mo_fill_gto(GTOs, mo_table):
     """
     for gto in GTOs:
         gto.mo = mo_table[gto.contraction - 1, :]
-
 
 
 def _reoder_gto():
@@ -404,9 +438,15 @@ def _reverse_contraction_scheme(GTOs):
 
 def _normalise_gto(GTOs):
     """Normalise the GTO so that the MO coeffs are become weigths."""
+    coeffs = []
+    mos = []
     for i in GTOs:
         i.mo = i.c * i.norm() * i.mo
-        i.c = None
+        coeffs.append(i.c * i.norm())
+        mos.append(i.mo)
+    coeffs = np.asarray(coeffs)
+    print(coeffs.shape)
+    return coeffs, mos
 
 
 def _xyz_fill_gto(GTOs, molecule):
@@ -452,12 +492,12 @@ def _read_MO_GTOs(file, N, decontract=False):
     # read the geometry
     molecule = _read_atoms_file(file)
     # read the GTOs
-    GTOs = _read_contractions(file)
+    GTOs, GroupC = _read_contractions(file)
     # read the MO and assign to each primitive
     (mo_table, occ, energy, syms) = _read_MO(file, N)
 
     _mo_fill_gto(GTOs, mo_table)
-    _normalise_gto(GTOs)
+    coeffs, mos = _normalise_gto(GTOs)
 
     # reverse the contraction scheme to leave only unrepeated primitives
     if decontract:
@@ -470,7 +510,7 @@ def _read_MO_GTOs(file, N, decontract=False):
     gto_array.energy = energy
     gto_array.syms = syms
 
-    return gto_array
+    return gto_array, coeffs, mo_table, GroupC
 
 
 def read_orbitals(file, N=10000, decontract=False):
@@ -481,11 +521,11 @@ def read_orbitals(file, N=10000, decontract=False):
     """
     if isinstance(file, str):
         with open(file, 'r') as f:
-            gtos = _read_MO_GTOs(f, N, decontract)
+            gtos, coeffs, mo_table, GroupC = _read_MO_GTOs(f, N, decontract)
             atoms = _read_atoms_file(f)
     else:
         return _read_MO_GTOs(file, N, decontract)
-    return gtos, atoms
+    return gtos, atoms, coeffs, mo_table, GroupC
 
 
 def read_occupied_orbitals(file, decontract=False):

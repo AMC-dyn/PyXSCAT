@@ -1,96 +1,139 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jul 11 17:06:33 2021
+Created on 19 July 2023
 
-@author: AndresMoreno
+@authors: Mats Simmermacher and Andres Moreno Carrascosa
 """
 
 import numpy as np
-
+import sys
+import symmetry as sym
 
 def twordmconst(closed,fileread):
-    count = 0
-    confs = []
-    civs = []
 
-    # with open('../inputs/abinitio.dat', 'r') as fh2:
-    #     for line in fh2:
-    #         read = False
-    #         running = False
-    #         runlogic = 'none'
-    #         if line.startswith('RUN'):
-    #             running = True
-    #         if running and not line.startswith('RUN'):
-    #             runlogic = line.strip().split()
-    #             running = False
-    #
-    #         if not runlogic == 'none' and 'Y' in runlogic:
-    #             if line.startswith('CLOSED'):
-    #                 read = True
-    #             if read and not line.startswith('CLOSED'):
-    #                 print(closed)
-                    #closed = line.strip().split()
+    # check of the closed orbitals:
 
-                #closed = 23
-    print('closed orbitals', closed)
-    # if 'none' in closed:
-    #     # closed = input('Specify the number of closed orbitals \n')
-    #     closed = 0
-    countcivs=0
-    closed = int(closed)
-    print(closed)
+    if isinstance(closed, list):
+        ncirr = len(closed)
+        nclosed = sum(closed)
+        if ncirr == 1:
+            closed = closed[0]
+    else:
+        ncirr = 1
+        nclosed = closed
+
+    # extract the number of states and the number of irreducible representations:
+    states1 = []
+    states2 = []
     with open(fileread, 'r') as fh:
         for line in fh:
-            if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
+            if line[0].isupper():
                 NN = line.strip().split()
-                if "." not in NN[0]:
-                    civs.append(NN[1:])
-                    confs.append(
-                        'ab' * closed + NN[0].replace("0", "00").replace("a", "a0").replace("b", "0b").replace("2",
-                                                                                                        "ab"))
+                if NN[0] == 'MCSCF' and ( NN[1] == 'STATE' or NN[1] == 'STATES' ):
+                    states1.append(float(NN[2]))
+            elif not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
+                firstline = line.strip().split()
+                break
+    states1 = np.unique(states1)
+    nstates1 = len(states1)
+    for state in states1:
+        states2.append(round(10 * (state - np.floor(state))))
+    states2 = np.unique(states2)
+    nstates2 = len(states2)
+    nirr = -1
+    for element in firstline:
+        nirr = nirr + 1
+        if '.' in element:
+            break
 
-                    countcivs += 1
-                else:
+    # checks whether the specification of the closed orbitals matches the number of irreps:
 
-                    civs[countcivs-1].extend(NN)
-                if len(NN) != 1:
-                    count += 1
-    # up to here in python
+    if ncirr != nirr:
+        sys.exit(print('Error: mismatch between the closed orbital entry and the number of irreps in the CI vector.', nirr, ' entries are required.'))
+    print('total number of closed orbitals: ', nclosed)
+    print('number of irreducible representations in CI vector: ', nirr)
+    print('total number of states: ', nstates1)
+    print('number of irreducible representations of states: ', nstates2)
+    
+    # read the CI vector
 
-    # twordm = np.zeros((int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2), int(len(confs[0]) / 2)))
-    # nc1 = 0
-    # ep = 1
+    # if no symmetry is used or present:
+    if nirr == 1:
+        count = 0
+        countcivs = 0
+        civs = []
+        confs = []
+        with open(fileread, 'r') as fh:
+            for line in fh:
+                if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
+                    NN = line.strip().split()
+                    if '.' not in NN[0]:
+                        sdet = ['c' * closed]
+                        sdet.append(NN[0])
+                        sdet = ''.join(sdet)
+                        sdet = sdet.replace('0', '00').replace('a', 'a0').replace('b', '0b').replace('2', 'ab')
+                        sdet = sdet.replace('c', 'ab')
+                        confs.append(sdet)
+                        civs.append(NN[1:])
+                        countcivs += 1
+                    else:
+                        civs[countcivs-1].extend(NN)
+                    if len(NN) != 1:
+                        count += 1
+    # if states are only present in one irreducible representation:
+    elif nstates2 == 1:
+        count = 0
+        countcivs = 0
+        civs = []
+        confs = []
+        with open(fileread, 'r') as fh:
+            for line in fh:
+                if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
+                    NN = line.strip().split()
+                    if '.' not in NN[0]:
+                        sdet = []
+                        for irr in range(nirr):
+                            sdet.append('c' * closed[irr])
+                            sdet.append(NN[irr])
+                        sdet = ''.join(sdet)
+                        sdet = sdet.replace('0', '00').replace('a', 'a0').replace('b', '0b').replace('2', 'ab')
+                        sdet = sdet.replace('c', 'ab')
+                        confs.append(sdet)
+                        civs.append(NN[nirr:])
+                        countcivs += 1
+                    else:
+                        civs[countcivs-1].extend(NN)
+                    if len(NN) != 1:
+                        count += 1
+    # if states are present in more than one irreducible representation:
+    else:
+        count = 0
+        countcivs = 0
+        civs = np.empty((nstates2,0)).tolist()
+        confs = np.empty((nstates2,0)).tolist()
+        # irrstr = np.empty((nstates2,0)).tolist()
+        with open(fileread, 'r') as fh:
+            for line in fh:
+                if not line[0].isupper() and not line[0] == '*' and not line[0] == '?' and not line[0] == '-':
+                    NN = line.strip().split()
+                    if '.' not in NN[0]:
+                        irrep = sym.findirrep(nirr,NN[:nirr])
+                        # irrstr[irrep-1].append(irrep)
+                        sdet = []
+                        for irr in range(nirr):
+                            sdet.append('c' * closed[irr])
+                            sdet.append(NN[irr])
+                        sdet = ''.join(sdet)
+                        sdet = sdet.replace('0', '00').replace('a', 'a0').replace('b', '0b').replace('2', 'ab')
+                        sdet = sdet.replace('c', 'ab')
+                        confs[irrep-1].append(sdet)
+                        civs[irrep-1].append(NN[nirr:])
+                        countcivs += 1
+                    else:
+                        civs[irrep-1,countcivs-1].extend(NN)
+                    if len(NN) != 1:
+                        count += 1
+
     print('read complete with ', np.size(confs) * np.size(confs))
-    # ep2 = np.ones((len(confs), len(confs)))
-    # for c1 in confs:
-    #     nc2 = 0
-    #     for c2 in confs:
-    #
-    #         mat1 = [i for i in range(len(c1)) if c1[i] != "0"]
-    #         mat2 = [i for i in range(len(c1)) if c2[i] != "0"]
-    #
-    #         for i in range(len(mat1)):
-    #
-    #             if mat1[i] != mat2[i]:
-    #                 for j in range(len(mat2)):
-    #                     if mat1[i] == mat2[j]:
-    #                         ep2[nc1, nc2] = -ep2[nc1, nc2]
-    #
-    #         nc2 += 1
-    #     nc1 += 1
-    # #
-    # ndiff = np.ones((np.size(confs), np.size(confs)))
-    # nc1 = 0
-    # print('maybe this part takes forever')
-    #
-    # for c1 in confs:
-    #     nc2 = 0
-    #     for c2 in confs:
-    #         ndiff[nc1, nc2] = sum(1 for a, b in zip(c1, c2) if a != b)
-    #
-    #         nc2 = nc2 + 1
-    #     nc1 = nc1 + 1
-    # print('number of differences', np.shape(ndiff))
-    # print(ep2)
-   # print(civs[0])
+    
     return civs, confs
