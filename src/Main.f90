@@ -8,9 +8,10 @@ program main
     character(len=60):: conf1, file_out,var,var2rdm
     character(len=100)::file_bit
     real(kind=dp), dimension(:), allocatable:: atoms
-    integer(kind=ikind):: ngtos,norbs,nconfs,nstates,state1,state2,natoms
+    integer(kind=ikind):: ngtos,norbs,nconfs,nstates,state1,state2,natoms,ncontr
     integer(kind=ikind),dimension(:,:), allocatable:: confs
     real(kind=dp),dimension(:), allocatable:: q
+     real(kind=dp),dimension(:), allocatable:: coeffs
     real(kind=dp),dimension(:,:), allocatable:: civs
     real(kind=dp),dimension(:,:), allocatable:: mmod
     real(kind=dp),dimension(:,:), allocatable:: geom
@@ -19,7 +20,7 @@ program main
     integer*8, dimension(1):: nnn,start1,end1, nnn2, start_2, end_2,ordering1,ordering2
     integer*8, dimension(1,1):: newdat
     real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax
-    integer(kind=ikind),dimension(:), allocatable:: l,m,n,group
+    integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
      
@@ -43,7 +44,18 @@ program main
         read(15,*) (mmod(i,j), j=1, ngtos)
     end do
     close(15)
-
+     open(unit=15, file='coeffs.dat')
+     read(15,*)
+     allocate(coeffs(ngtos))
+     do i=1,ngtos
+      read(15,*) coeffs(i)
+    end do
+     read(15,*)ncontr
+     allocate(gs(ncontr), gf(ncontr), gc(ncontr))
+     do i=1,ncontr
+         read(15,*) gs(i), gf(i),gc(i)
+    end do
+    close(15)
     open(unit=15, file='options.dat')
     read(15,*)natoms
     allocate(atoms(natoms))
@@ -141,7 +153,7 @@ program main
               ordering1 = 0
               ordering2 = 0
               end_2 = 0
-              nconfs=4549
+              nconfs=2030233
               print*,mmod
               call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
       Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &
@@ -165,8 +177,8 @@ program main
     nq=npoints
     if (bitwise.eqv..False.) then
     call total_scattering_calculation(Typec, atoms, geom, state1, &
-            state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, q, nq, group, &
-            cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
+            state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
+            ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
     else
         newdat = 0
         start1 = 0

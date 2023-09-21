@@ -11,8 +11,8 @@ module main_calculation_mod
     contains
 
 subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,ga,l,m,n,xx,yy,zz, &
-        mmod,q,nq, group,&
-        cutoffz,cutoffmd,cutoffcentre,confs,civecs,q_abs,result)
+        mmod,coeffs,q,nq, group,&
+        ncontr,gs,gf,gc,cutoffz,cutoffmd,cutoffcentre,confs,civecs,q_abs,result)
 
 
 
@@ -47,11 +47,11 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
 
-        integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl,type, state1,state2
-        integer(kind=ikind), intent(in),dimension(:),allocatable :: l, m, n,group
+        integer(kind=ikind), intent(in):: ngto, ng,  nq, maxl,type, state1,state2,ncontr
+        integer(kind=ikind), intent(in),dimension(:),allocatable :: l, m, n,group, gs,gf,gc
         integer(kind=ikind), dimension(:,:), allocatable,intent(in):: confs
 
-        real(kind=dp), intent(in),dimension(:),allocatable :: ga, xx, yy, zz, q
+        real(kind=dp), intent(in),dimension(:),allocatable :: ga, xx, yy, zz, q,coeffs
         real(kind=dp), intent(in), dimension(:), allocatable:: zn
         real(kind=dp), intent(in),dimension(:,:), allocatable :: mmod, civecs,geom
         real(kind=dp),dimension(:,:,:),allocatable :: z1,z2,z1t,z2t
@@ -62,16 +62,19 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp), intent(out), dimension(:), allocatable:: result,q_abs
         REAL(kind=dp), DIMENSION(size(q),4*maxval(l)+1,4*maxval(l)+1,4*maxval(l)+1) :: P0matrix
          real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
+           real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ngto,ngto) :: ddxx,ddyy,ddzz
         real(kind=dp), dimension(ng,ng) :: px,py,pz
+        real(kind=dp), dimension(ngto,ngto) :: pxx,pyy,pzz
         real(kind=dp),  dimension(:,:,:,:), allocatable :: zcontr
         real(kind=dp),  dimension(:,:), allocatable :: onerdm_matrix
         real(kind=dp),  dimension(:), allocatable :: total,newtotal
         real(kind=dp),  dimension(nq,ng,ng) :: e12
+        real(kind=dp), dimension(nq,ngto,ngto)::e12p
         real(kind=dp),  dimension(3131,ngto,ngto):: E123
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
-        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k
+        integer(kind=ikind):: nmat,i,j,nmomax,LL,MM,NN,k,bigcalc
         real(kind=dp) :: start,time1,time2,time3,time4,co,wl,rr,k0,rij
         complex(kind=dp), dimension(:,:,:,:), allocatable :: exponent1, exponent2
         complex(kind=dp), dimension(3131):: resultaligned
@@ -117,6 +120,21 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
              nmat=size(m1)
 
             print*,'size nmat', nmat
+
+            bigcalc=1
+
+            if (bigcalc==1) then
+
+
+                call variables_total_big(pxx,pyy,pzz,ddxx,ddyy,ddzz,&
+                    e12p,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+        mmod,nmat, q,coeffs,nq)
+
+                print*, 'calling total '
+                call tot_integration_contract(ncontr,coeffs,ng,pxx,pyy,pzz,l,m,n,p0matrix,ddxx,ddyy,ddzz,&
+                      e12p,gs,gf,gc,&
+                      cutoffz,cutoffmd, cutoffcentre,q,result2)
+            else
             call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t,&
                     e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
         mmod,m1,m2,m3,m4,nmat, total,q,nq)
@@ -124,7 +142,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,z1t,z2t,&
                     group_start,group_count,group, &
                 cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
-
+            endif
             result=result2
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -608,7 +626,9 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
             result=0.d0
             do i=1,ndivs
                 print*,i, 'step of', ndivs
-
+                time2=0.0
+                time3=0.0
+                call cpu_time(time2)
                 ini=1+(numberlines/ndivs*(i-1))
                 fin=1+numberlines/ndivs*i
                 if (i==ndivs) then
@@ -642,20 +662,20 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 !            close(15)
 
 
-           call variables_total(px,py,pz,ddx,ddy,ddz,z1,z2,z1t,z2t, &
-                   e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
-        mmod,m1,m2,m3,m4,nmat, totaldiv,q,nq)
+           !call variables_total_big(px,py,pz,ddx,ddy,ddz,&
+     !               e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
+     !   mmod,nmat, q,nq)
 
-            call cpu_time(time3)
-            print*,'Time variables', time3-time2
-            print*,'size of wavefunction', size(l)
-
-            call tot_integration(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,z1,z2,z1t,z2t,group_start,group_count,group, &
-                cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
-            result=result+result2
+                print*, 'calling total with', nmat
+          !      call tot_integration_otf(ng,px,py,pz,l,m,n,p0matrix,ddx,ddy,ddz,mmod,nmat,&
+          !           m1,m2,m3,m4,total, &
+           !         group_start,group_count,group, &
+           !     cutoffz,cutoffmd, cutoffcentre,q,e12,result2)
+         !   result=result+result2
             print*,result(1)
             deallocate(m1,m2,m3,m4, totaldiv)
-
+            call cpu_time(time3)
+            print*,'Time spent', time3-time2
         enddo
 
         else if (type==2) then
