@@ -70,7 +70,7 @@ print(CC.shape)
 CC = np.einsum("kr,uvrs->uvks", mmod, CC, optimize='greedy')
 print(CC.shape)
 CC1 = np.einsum("ls,uvks->uvkl", mmod, CC, optimize='greedy')
-# CC1.tofile('Zcotr.dat')
+#CC1.tofile('Zcotr.dat')
 
 # CC1.tofile('Zcotr.dat')
 del CC, temp1, temp2, temp3, temp4, m1, m2, m3, m4, totalfin, mmod, mmodt

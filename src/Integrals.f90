@@ -71,13 +71,13 @@ module integrals
         tsi=0.0_dp
 
         if (any(isnan(p0matrix))) print*,'ouch'
-        !dir$ loop count min(512)
-    !    !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2), &
-     !   !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-     !   !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
-     !   !$OMP& schedule(dynamic)
 
         count=0
+
+        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+        !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
+        !$OMP& schedule(dynamic)
         do i=1,ncap
             do j=i+1,ncap
                 do k=i+1,ncap
@@ -174,11 +174,10 @@ module integrals
             end do
         end do
 
-     ! !$OMP END parallel DO
+        !$OMP END parallel DO
 
      ! print*,OMP_get_num_threads()
       print*,'intermediate step', tsi(1),count
-        stop
 
         !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
@@ -561,38 +560,10 @@ module integrals
         ncontr2=2
         count=0
 
-!        do ii=1,ncontr
-!            do jj=ii,ncontr
-!                do kk=ii,ncontr
-!                    do rr=kk,ncontr
-                       ! Zcontrred=Zbig(ii,jj,kk,rr)
-
-
-!                        do i=gs(ii),gf(ii)
-!                            if (jj==ii) then
-!                                initj=i+1
-!
-!                            else
-!                                initj=gs(jj)
-!                            end if
-!                            do j=initj,gf(jj)
-!                                if (kk==ii) then
-!                                    initk=i+1
-!                                else
-!                                    initk=gs(kk)
-!                                end if
-!                                do k=initk, gf(kk)
-!                                    if (rr==kk) then
-!                                        initr=k+1
-!
-!                                    else
-!                                        initr=gs(rr)
-!                                    end if
-!                                    do r=initr,gf(rr)
-  !$OMP PARALLEL do private(ii,jj,kk,rr,Zcontrred), &
-                         !$OMP& private(f,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n,gf,gc,gs,p0matrix,Zbig), &
-                         !$OMP& shared( cutoffz,cutoffmd) REDUCTION(+:tsi), &
-                         !$OMP& schedule(dynamic)
+        !$OMP PARALLEL do private(ii,jj,kk,rr,Zcontrred), &
+        !$OMP& private(f,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n,gf,gc,gs,p0matrix,Zbig), &
+        !$OMP& shared( cutoffz,cutoffmd) REDUCTION(+:tsi), &
+        !$OMP& schedule(dynamic)
                  do i=1,ngto
                     do j=i+1,ngto
                       do k=i+1,ngto
@@ -653,313 +624,186 @@ module integrals
                             end do
                         end do
                         !$OMP END parallel DO
-!
-!                    end do
-!                end do
-!            end do
-!        end do
-
 
       print*,OMP_get_num_threads()
       print*,'intermediate step', tsi(1),count
 
-!        !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-!        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-!        !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
-!        do i=1,ncap
-!            do j=i+1,ncap
-!                do r=i+1,ncap
-!                    hx = px(i, r) - px(i, j)
-!                    hy = py(i, r) - py(i, j)
-!                    hz = pz(i, r) - pz(i, j)
-!                    h = sqrt((hx * hx + hy * hy + hz * hz))
-!                    allocate(posI(size(posits(i,:group_count(i)))),posJ(size(posits(j,:group_count(j)))) &
-!                               ,posR(size(posits(r,:group_count(r)))))
-!
-!
-!                        posI = posits(i,:group_count(i))
-!                        posJ = posits(j,:group_count(j))
-!
-!                        posR = posits(r,:group_count(r))
-!
-!                        spi = size(posI)
-!                        spj = size(posJ)
-!                        spr = size(posR)
-!
-!                        allocate(zcontrred(spj, spi, spr, spi), za(szo, spj), zb(szo, spi), &
-!                       &         cmat(spj, spi), zcontrred2(spr, spi, spj, spi))
-!
-!                          do ii = 1, spi
-!                            do jj = 1, spr
-!                              ! za = transpose(z1(:,posj,posi(ii)))
-!                                za = z1(:,posj,posi(ii))
-!                                zb = z2(:,posi,posr(jj))
-!                               !cmat = matmul(za,zb)
-!                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
-!                               &           szo, zb, szo, 0.0_dp, cmat, spj)
-!                                zcontrred(:,:,jj,ii) = cmat
-!                                  za = z2(:,posj,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                                zb = z1(:,posi,posr(jj))
-!                               ! cmat = matmul(za,zb)
-!                                call dgemm('t','n', spj, spi, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spj)
-!
-!                                zcontrred2(jj,ii,:,:) = cmat
-!                            enddo
-!                          enddo
-!
-!!
-!                    dx1=>dx(:,:,:,j,i)
-!                    dy1=>dy(:,:,:,j,i)
-!                    dz1=>dz(:,:,:,j,i)
-!                    dx2=>dx(:,:,:,r,i)
-!                    dy2=>dy(:,:,:,r,i)
-!                    dz2=>dz(:,:,:,r,i)
-!
-!
-!                    if (h < cutoffcentre) then
-!                        call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, j, i, r, &
-!                               zcontrred,  zcontrred2,  cutoffz, cutoffmd,f)
-!                    else
-!
-!                        call tot_integral_k_ijkr(q, l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, j, i, r, &
-!                                zcontrred,  zcontrred2,  cutoffz, cutoffmd,f)
-!
-!
-!
-!                    end if
-!                    tsi = tsi + 4.000 * f * e12(:, i, j) * e12(:, i, r)
-!                    count=count+1
-!                    deallocate(posI,posJ,posR,za,zb,cmat)
-!                    deallocate(zcontrred, zcontrred2)
-!                  !   deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
-!
-!                end do
-!            end do
-!
-!        end do
-!    !$OMP END parallel DO
-!         print*,'intermediate step', tsi(1)
-!
-!      !$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
-!        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-!        !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
-!        do i=1,ncap
-!            do k=1,ncap
-!                do r=k+1,ncap
-!                    hx = px(k, r) - px(i, i)
-!                    hy = py(k, r) - py(i, i)
-!                    hz = pz(k, r) - pz(i, i)
-!                    h = sqrt((hx * hx + hy * hy + hz * hz))
-!
-!                    allocate(posI(size(posits(i,:group_count(i)))) &
-!                                ,posK(size(posits(k,:group_count(k)))),posR(size(posits(r,:group_count(r)))))
-!
-!
-!                        posI = posits(i,:group_count(i))
-!
-!                        posK = posits(k,:group_count(k))
-!                        posR = posits(r,:group_count(r))
-!
-!                    spi = size(posI)
-!                    spk = size(posK)
-!                    spr = size(posR)
-!
-!                    allocate(zcontrred(spi, spk, spr, spi), za(szo, spi), zb(szo, spk), &
-!                   &         cmat(spi, spk), zcontrred2(spr, spi, spi, spk))
-!
-!                    do ii = 1, spi
-!                        do jj = 1, spr
-!                          !  za = transpose(z1(:,posi,posi(ii)))
-!                            za = z1(:,posi,posi(ii))
-!                            zb = z2(:,posk,posr(jj))
-!                           ! cmat = matmul(za,zb)
-!                            call  dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                           &           szo, zb, szo, 0.0_dp, cmat, spi)
-!                            zcontrred(:,:,jj,ii) = cmat
-!                             za = z2(:,posi,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                                zb = z1(:,posk,posr(jj))
-!                               ! cmat = matmul(za,zb)
-!                                call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spi)
-!
-!                                zcontrred2(jj,ii,:,:) = cmat
-!                        enddo
-!                    enddo
-!
-!
-!                    dx1=>dx(:,:,:,i,i)
-!                    dy1=>dy(:,:,:,i,i)
-!                    dz1=>dz(:,:,:,i,i)
-!                    dx2=>dx(:,:,:,r,k)
-!                    dy2=>dy(:,:,:,r,k)
-!                    dz2=>dz(:,:,:,r,k)
-!!                    zcontrred=zcontrred
-!!                    zcontrred2=zcontrred2
-!
-!                    if (h < cutoffcentre) then
-!                        call tot_integral_ijkr_pzero(nq,l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, k, r, &
-!                                    zcontrred, zcontrred2, cutoffz, cutoffmd, f)
-!                    else
-!
-!                        call tot_integral_k_ijkr(q, l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, k, r, &
-!                                    zcontrred, zcontrred2,  cutoffz, cutoffmd, f)
-!
-!
-!
-!                    end if
-!                    tsi = tsi+ 4.000 * f * e12(:, i, i) * e12(:, k, r)
-!                    count=count+1
-!                    deallocate(posI,posK,posR,za,zb,cmat)
-!                    deallocate(zcontrred, zcontrred2)
-!               !     deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
-!
-!                end do
-!            end do
-!        end do
-!
-!        !$OMP END parallel DO
-!        print*,'intermediate step', tsi(1)
-!
-!          !$OMP PARALLEL do private(posI,posK,spi,spk,zcontrred,zcontrred2,za,zb,cmat), &
-!        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
-!          !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
-!        do i=1,ncap
-!            do k=i+1,ncap
-!
-!                hx = px(k, k) - px(i, i)
-!                hy = py(k, k) - py(i, i)
-!                hz = pz(k, k) - pz(i, i)
-!                h = sqrt((hx * hx + hy * hy + hz * hz))
-!
-!                allocate(posI(size(posits(i,:group_count(i)))), &
-!                        posK(size(posits(k,:group_count(k)))))
-!
-!
-!                posI = posits(i,:group_count(i))
-!
-!                posK = posits(k,:group_count(k))
-!
-!
-!                spi = size(posI)
-!                spk = size(posK)
-!
-!                allocate(zcontrred(spi, spk, spk, spi), za(szo, spi), zb(szo, spk), &
-!               &         cmat(spi, spk), zcontrred2(spk, spi, spi, spk))
-!
-!                do ii = 1, spi
-!                    do jj = 1, spk
-!                       ! za = transpose(z1(:,posi,posi(ii)))
-!                        za = z1(:,posi,posi(ii))
-!                        zb = z2(:,posk,posk(jj))
-!!                        cmat = matmul(za,zb)
-!                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                       &           szo, zb, szo, 0.0_dp, cmat, spi)
-!                        zcontrred(:,:,jj,ii) = cmat
-!                        za = z2(:,posi,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                        zb = z1(:,posk,posk(jj))
-!                               ! cmat = matmul(za,zb)
-!                        call dgemm('t','n', spi, spk, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spi)
-!
-!                        zcontrred2(jj,ii,:,:) = cmat
-!                    enddo
-!                enddo
-!
-!
-!                dx1=>dx(:,:,:,i,i)
-!                dy1=>dy(:,:,:,i,i)
-!                dz1=>dz(:,:,:,i,i)
-!                dx2=>dx(:,:,:,k,k)
-!                dy2=>dy(:,:,:,k,k)
-!                dz2=>dz(:,:,:,k,k)
-!
-!
-!                if (h < cutoffcentre) then
-!                    call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, k, k, &
-!                                    zcontrred, zcontrred2,  cutoffz, cutoffmd, f)
-!                else
-!
-!                    call tot_integral_k_ijkr(q,l,m,n,group_start, group_count, hx, hy, hz, h, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, k, k, &
-!                                    zcontrred, zcontrred2,  cutoffz, cutoffmd, f)
-!                end if
-!                tsi = tsi+ 2.000 * f * e12(:, i, i) * e12(:, k, k)
-!                deallocate(posI,posK,za,zb,cmat)
-!                deallocate(zcontrred, zcontrred2)
-!               ! deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
-!
-!            end do
-!        end do
-!
-!
-!        !$OMP END parallel DO
-!
-!        !$OMP PARALLEL do private(posI,spi,zcontrred,zcontrred2,za,zb,cmat), &
-!        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,ll, p0matrix), &
-!          !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
-!        do i=1,ncap
-!                              allocate(posI(size(posits(i,:group_count(i)))))
-!
-!
-!                        posI = posits(i,:group_count(i))
-!
-!
-!
-!            spi = size(posI)
-!
-!            allocate(zcontrred(spi, spi, spi, spi), za(szo, spi), zb(szo, spi), &
-!           &         cmat(spi, spi), zcontrred2(spi, spi, spi, spi))
-!
-!            do ii = 1, spi
-!                do jj = 1, spi
-!                  !  za = transpose(z1(:,posi,posi(ii)))
-!                    za = z1(:,posi,posi(ii))
-!                    zb = z2(:,posi,posi(jj))
-!                   ! cmat = matmul(za,zb)
-!                    call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
-!                   &           szo, zb, szo, 0.0_dp, cmat, spi)
-!                    zcontrred(:,:,jj,ii) = cmat
-!                     za = z2(:,posi,posi(ii))
-!                              !  za = transpose(z1(:,posj,posi(ii)))
-!                                zb = z1(:,posi,posi(jj))
-!                               ! cmat = matmul(za,zb)
-!                                call dgemm('t','n', spi, spi, szo, 1.0_dp/8.0_dp, za, &
-!                              &           szo, zb, szo, 0.0_dp, cmat, spi)
-!
-!                                zcontrred2(jj,ii,:,:) = cmat
-!                enddo
-!            enddo
-!
-!            dx1=>dx(:,:,:,i,i)
-!            dy1=>dy(:,:,:,i,i)
-!            dz1=>dz(:,:,:,i,i)
-!            dx2=>dx(:,:,:,i,i)
-!            dy2=>dy(:,:,:,i,i)
-!            dz2=>dz(:,:,:,i,i)
-!!            zcontrred=zcontrred/8.0
-!!            zcontrred2=zcontrred2/8.0
-!
-!            call tot_integral_ijkr_pzero(nq, l,m,n,group_start, group_count, p0matrix, dx1,dy1,dz1,dx2,&
-!                                dy2,dz2,i, i, i, i, &
-!                                    zcontrred, zcontrred2,  cutoffz, cutoffmd,f)
-!
-!            tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
-!            count=count+1
-!            deallocate(posI,za,zb,cmat)
-!            deallocate(zcontrred, zcontrred2)
-!
-!
-!        end do
-!        !$OMP END parallel DO
+        !$OMP PARALLEL do private(zcontrred,ii,jj,kk,rr), &
+        !$OMP& private(f,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n,gf,gc,gs,p0matrix,Zbig), &
+        !$OMP& shared( cutoffz,cutoffmd) REDUCTION(+:tsi), &
+        !$OMP& schedule(dynamic)
+        do i=1,ngto
+            do j=i+1,ngto
+                do r=i+1,ngto
+                    hx = px(i, r) - px(i, j)
+                    hy = py(i, r) - py(i, j)
+                    hz = pz(i, r) - pz(i, j)
+                    h = sqrt((hx * hx + hy * hy + hz * hz))
+                    ii=veccounts(i)
+                    jj=veccounts(j)
+                    kk=veccounts(i)
+                    rr=veccounts(r)
+                    Zcontrred=Zbig(ii,jj,kk,rr)
+
+
+                    dx1=>dx(:,:,:,j,i)
+                    dy1=>dy(:,:,:,j,i)
+                    dz1=>dz(:,:,:,j,i)
+                    dx2=>dx(:,:,:,r,i)
+                    dy2=>dy(:,:,:,r,i)
+                    dz2=>dz(:,:,:,r,i)
+
+
+                    if (h < cutoffcentre) then
+                        call tot_integral_ijkr_pzero_read(nq, l,m,n, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, j, i, r, &
+                                cutoffz, cutoffmd,f)
+                    else
+
+                        call tot_integral_k_ijkr_read(q, l,m,n,h,hx, hy, hz, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, j, i, r, &
+                                cutoffz, cutoffmd,f)
+
+
+
+                    end if
+                    tsi = tsi + 4.000 * f * zcontrred *e12(:, i, j) * e12(:, i, r)
+                    count=count+1
+
+                  !   deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+                end do
+            end do
+
+        end do
+    !$OMP END parallel DO
+         print*,'intermediate step', tsi(1)
+!
+       !$OMP PARALLEL do private(ii,kk,rr,Zcontrred), &
+        !$OMP& private(f,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+        !$OMP& shared( cutoffz,cutoffmd) REDUCTION(+:tsi), &
+        !$OMP& schedule(dynamic)
+        do i=1,ngto
+            do k=1,ngto
+                do r=k+1,ngto
+                    hx = px(k, r) - px(i, i)
+                    hy = py(k, r) - py(i, i)
+                    hz = pz(k, r) - pz(i, i)
+                    h = sqrt((hx * hx + hy * hy + hz * hz))
+                    ii=veccounts(i)
+
+                    kk=veccounts(k)
+                    rr=veccounts(r)
+                    Zcontrred=Zbig(ii,ii,kk,rr)
+
+
+                    dx1=>dx(:,:,:,i,i)
+                    dy1=>dy(:,:,:,i,i)
+                    dz1=>dz(:,:,:,i,i)
+                    dx2=>dx(:,:,:,r,k)
+                    dy2=>dy(:,:,:,r,k)
+                    dz2=>dz(:,:,:,r,k)
+!                    zcontrred=zcontrred
+!                    zcontrred2=zcontrred2
+
+                    if (h < cutoffcentre) then
+                        call tot_integral_ijkr_pzero_read(nq,l,m,n, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, r, &
+                                cutoffz, cutoffmd, f)
+                    else
+
+                        call tot_integral_k_ijkr_read(q, l,m,n,h, hx, hy, hz, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, r, &
+                                cutoffz, cutoffmd, f)
+
+
+
+                    end if
+                    tsi = tsi+ 4.000 * Zcontrred* f * e12(:, i, i) * e12(:, k, r)
+                    count=count+1
+               !     deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+                end do
+            end do
+        end do
+
+        !$OMP END parallel DO
+        print*,'intermediate step', tsi(1)
+!
+       !$OMP PARALLEL do private(ii,kk,zcontrred), &
+        !$OMP& private(f,h,hx,hy,hz,i,k,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+          !$OMP& shared( cutoffz, cutoffmd) REDUCTION(+:tsi), &
+              !$OMP& schedule(dynamic)
+        do i=1,ngto
+            do k=i+1,ngto
+
+                hx = px(k, k) - px(i, i)
+                hy = py(k, k) - py(i, i)
+                hz = pz(k, k) - pz(i, i)
+                h = sqrt((hx * hx + hy * hy + hz * hz))
+
+                 ii=veccounts(i)
+
+                 kk=veccounts(k)
+
+                 Zcontrred=Zbig(ii,ii,kk,kk)
+
+
+                dx1=>dx(:,:,:,i,i)
+                dy1=>dy(:,:,:,i,i)
+                dz1=>dz(:,:,:,i,i)
+                dx2=>dx(:,:,:,k,k)
+                dy2=>dy(:,:,:,k,k)
+                dz2=>dz(:,:,:,k,k)
+
+
+                if (h < cutoffcentre) then
+                    call tot_integral_ijkr_pzero_read(nq, l,m,n, p0matrix, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, k, &
+                                cutoffz, cutoffmd, f)
+                else
+
+                    call tot_integral_k_ijkr_read(q,l,m,n,h, hx, hy, hz, dx1,dy1,dz1,dx2,&
+                                dy2,dz2,i, i, k, k, &
+                                 cutoffz, cutoffmd, f)
+                end if
+                tsi = tsi+ 2.000 * f *Zcontrred* e12(:, i, i) * e12(:, k, k)
+
+               ! deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
+
+            end do
+        end do
+
+
+        !$OMP END parallel DO
+        print*,tsi(1)
+        !$OMP PARALLEL do private(ii,Zcontrred), &
+        !$OMP& private(f,h,hx,hy,hz,i,dx1,dy1,dz1) shared(q,ll, p0matrix), &
+          !$OMP& shared( cutoffz, cutoffmd) REDUCTION(+:tsi), &
+            !$OMP& schedule(dynamic)
+        do i=1,ngto
+
+             ii=veccounts(i)
+             Zcontrred=Zbig(ii,ii,ii,ii)
+
+            dx1=>dx(:,:,:,i,i)
+            dy1=>dy(:,:,:,i,i)
+            dz1=>dz(:,:,:,i,i)
+
+!            zcontrred=zcontrred/8.0
+!            zcontrred2=zcontrred2/8.0
+
+            call tot_integral_ijkr_pzero_read(nq, l,m,n,p0matrix, dx1,dy1,dz1,dx1,&
+                                dy1,dz1,i, i, i, i, &
+                                 cutoffz, cutoffmd,f)
+
+            tsi = tsi + Zcontrred*f * e12(:, i, i) * e12(:, i, i)
+            count=count+1
+
+
+
+        end do
+        !$OMP END parallel DO
         print*,tsi(1)
 
     end subroutine tot_integration_contract

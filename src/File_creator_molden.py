@@ -94,7 +94,7 @@ elif bagel:
     gtos, atoms= bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro or readtwordm:
     Nmo_max=100
-    gtos, atoms, coeffs,mos,groupC = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+    gtos, atoms, coeffs,mos,groupC = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=False)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:
     f.write(str(np.size(atoms.atomic_numbers())) + '\n')
