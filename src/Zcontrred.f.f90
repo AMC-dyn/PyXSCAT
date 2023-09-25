@@ -1,74 +1,123 @@
 program Zcontrred
-    use omp_lib
+
+    use linspace
     implicit none
      INTEGER, PARAMETER :: dpp = SELECTED_REAL_KIND(kind(1.d0))
      INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
      INTEGER, PARAMETER :: ikind = SELECTED_int_KIND(8)
-     integer(kind=ikind), dimension(:), allocatable:: m1,m2,m3,m4
-     real(kind=dp), dimension(:), allocatable::totalfin
-     real(kind=dp), allocatable,dimension(:,:,:):: z1,z2
-     real(kind=dpp), allocatable, dimension(:,:,:,:)::zcontr
-     real(kind=dp), allocatable, dimension(:,:):: mmod
-     integer(kind=ikind)::i,j,k,r,nmat,norbs,ngtos,ncap,ic,jc,kc,rc
+     integer,parameter :: n=100
+     real(kind=SELECTED_REAL_KIND(15)):: fact
+     real(kind=dp),allocatable,dimension(:)::q
+    real(kind=dp), dimension(n):: qe
+    real(kind=dp),dimension(500,n)::result
+    real(kind=dp),dimension(500,n)::result2
+     real(kind=dp),dimension(n)::x2
+     real(kind=dp),dimension(500,n)::factvec
+      real(kind=dp):: time1, time2, time3
+     integer(kind=ikind)::i,j,k,r,nq
 
 
 
-    open(unit=15, file='MOs.dat')
-    read(15,*)norbs,ngtos
-    allocate(mmod(norbs,ngtos))
-    print*,norbs,ngtos
-    do i=1,norbs
-        read(15,*) (mmod(i,j), j=1, ngtos)
+    call linspace_1(0.00001_dp,10.0_dp,n,q)
+    print*,'after linspace'
+
+    x2(:)=100.0
+
+    qe=q
+    i=2
+call cpu_time(time1)
+
+    print*,'before dphrec'
+  do j=1,100000
+    call dphrec(qe*4.d0,result,500,500,n)
+enddo
+call cpu_time(time2)
+
+    print*,result(6,3)
+
+    call dphrec(qe,result2,500,500,n)
+    x2=0.0_dp
+     do i=0,200
+         factvec(i,:)=(-1.0_dp)**float(i)/fact(float(i))*(4.0**2.0_dp-1.0_dp)**float(i)*(qe/2.d0)**float(i)
     end do
-    close(15)
-    nmat=1324
+call cpu_time(time2)
+    print*,factvec(:,1)
+do j=1,100000
+     x2=0.0_dp
+    do i=0,200
 
-    allocate(m1(nmat), m2(nmat),m3(nmat), m4(nmat), totalfin(nmat))
-    open(unit=15,file='twordm_fortran.dat')
-            do i=1,1324
-            read(15,*)m1(i),m2(i),m3(i),m4(i), totalfin(i)
-            enddo
-            close(15)
+     x2=x2+(4.0**2.0_dp-1.0_dp)*factvec(i,:)*result2(i+6,:)
 
-
-    allocate(z1(nmat,ngtos,ngtos), z2(nmat,ngtos,ngtos))
-    ncap=ngtos
-    ic=0
-    jc=0
-    kc=0
-    rc=0
-
-
-
-
-    ngtos=240
-     do  i=1,ngtos
-            do j=1,ngtos
-
-
-                        z1(:,i, j) = totalfin * (mmod(m1, i) * mmod(m2, j) + mmod(m1, j) * mmod(m2, i))
-                        z2(:, i, j)= mmod(m3, i) * mmod(m4, j) + mmod(m3, j) * mmod(m4, i)
-            enddo
-        enddo
-
-     print*,'allocating the megabig matrix'
-
-     allocate(zcontr(ngtos,ngtos,ngtos,ngtos))
-
-     zcontr=0.0_dpp
-     print*,'can we populate it?'
-     do i=1,ngtos
-         do j=i+1,ngtos
-
-              call dgemm('t','n', ngtos, ngtos, nmat, 1.0_dp/8.0_dp, z1(:,:,i), &
-                              &           nmat, z2(:,:,j), nmat, 0.0_dp, zcontr(:,:,j,i), ngtos)
-
-         end do
     end do
-
-
-
-
-
+    x2=x2*4.0_dp**5.0_dp
+enddo
+    print*,abs(x2(3)-result(6,3))
+call cpu_time(time3)
+    print*,time2-time1
+    print*,time3-time2
 
 end program Zcontrred
+
+
+subroutine dphrec(x,rbes,leps1,lmax1,nq)
+ INTEGER, PARAMETER :: dpp = SELECTED_REAL_KIND(kind(1.d0))
+ INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+ INTEGER, PARAMETER :: ikind = SELECTED_int_KIND(8)
+integer(kind=ikind):: K,LU,LEPS1,nq,lmax1
+real(kind=dp),DIMENSION(LEPS1,nq) :: RNEU
+ real(kind=dp),DIMENSION(LEPS1,nq), intent(out)::RBES
+real(kind=dp),DIMENSION(nq):: X, XX, CX, DX, CU, A,SX
+
+
+XX=X*X
+!LEPS=0.5D0*dsqrt(XX/EPSL**(1.D0/3.00)+9.00) + 0.5D0
+!IF(LEPS>=LEPS1) GOTO 101
+
+rbes=0.0d0
+rneu=0.0d0
+RBES(LEPS1,:) =1.0D0
+RBES(LEPS1-1,:)=1.0D0
+CX=DCOS(X)
+SX=DSIN(X)
+RNEU(1,:)=CX
+RNEU(2,:)=CX+X*SX
+
+DO K=3,LEPS1
+LU=LEPS1-K+2
+RBES(LU-1,:)=RBES(LU,:)-XX/(4.D0*LU*LU-1.D0)*RBES(LU+1,:)
+end do
+A=RBES(1,:)*RNEU(2,:)-XX/3.0d0*RBES(2,:)*CX
+DO K=1, LEPS1
+RBES(K,:)=RBES(K,:)/A
+end do
+CU= 1.0D0/X
+
+DO K=1, LMAX1
+W=2.D0*(K-1)
+CU=X/(W+1.D0)*CU
+RBES(K,:)= CU*RBES(K,:)
+end do
+
+
+message=0
+    return
+END
+
+real(kind=SELECTED_REAL_KIND(15))  recursive function fact(n) result (ans)
+implicit none
+real(kind=SELECTED_REAL_KIND(15)), intent(in) :: n
+    if(n == 0) then
+        ans=1
+        return
+    end if
+
+    if (n == 1) then
+        ans = 1
+
+    else
+
+        ans = n * fact(n-1)
+    end if
+
+    return
+end function fact
