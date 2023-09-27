@@ -18,7 +18,7 @@ module linspace
     do i = 1, n
         array(i) = from + range * (i - 1) / (n - 1)
     end do
-    print*,array
+
     return
 end subroutine
 end module linspace

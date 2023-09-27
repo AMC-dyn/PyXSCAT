@@ -1,10 +1,11 @@
 import numpy as np
-import molden_reader_nikola as mldreader
+import molden_reader_nikola_morder as mldreader
 import molden_reader_nikola_molcas as mcmldreader
 import molden_reader_nikola_bagel as bgmldreader
 import molcas_ci_reader as mc
 import twordm_red as td
 from textwrap import wrap
+
 # If there is an external file with CIvecs or 2rdms JeremyR==True
 molpro = True
 bagel = False
@@ -21,7 +22,7 @@ hf = False
 state1 = 1
 state2 = 1
 closed = 2
-qmin =1E-10
+qmin = 1E-10
 qmax = 10
 npoints = 100
 cutoffcentre = 0.1  # suggested: cutoffcentre = 0.01;
@@ -40,7 +41,7 @@ largeconf = False
 # ELASTIC ELECTRON --> 6
 # TOTAL J2 --> 7
 # ELASTIC J2 --> 8
-Type = 1
+Type = 11
 # Ouput name
 mldfile = 'co_cas.mld'
 punfile = 'co_cas.pun'
@@ -53,7 +54,7 @@ if not jeremyR and not hf and not readtwordm:
     # This routine reads the CIvectors and the configurations
     if molcas:
         logfile = 'molcas.log'
-        civs, confs = mc.get_civs_and_confs(logfile, caspt2,extra_precision_molcas)
+        civs, confs = mc.get_civs_and_confs(logfile, caspt2, extra_precision_molcas)
         print("civs")
         print(civs)
         print("confs")
@@ -61,12 +62,11 @@ if not jeremyR and not hf and not readtwordm:
 
     elif bagel:
         print('will be implemented soon')
-        confs = ['ab'*18+'00'*2]
+        confs = ['ab' * 18 + '00' * 2]
         civs = [1.000]
 
     elif molpro:
-        civs, confs = td.twordmconst(closed,punfile)  # state1 and state2 should be used here
-
+        civs, confs = td.twordmconst(closed, punfile)  # state1 and state2 should be used here
 
     Nmo_max = len(confs[0]) / 2
     print('Nmo_max:', Nmo_max)
@@ -74,10 +74,10 @@ if not jeremyR and not hf and not readtwordm:
 elif not jeremyR and hf:
     civs = [1.000]
     # The number of occupied orbs or he configuration used must be specified by the user in hf
-    norbs = 29
+    norbs = 37
     confs = ['ab' * norbs]
     print(confs)
-    Nmo_max = 29
+    Nmo_max = 37
 else:
     # If the 2rdm or Civector is constructed in a bit-wise manner, the number or orbitals needs to be specified here by the user
     confs = 0
@@ -87,14 +87,14 @@ civs = np.array(civs)
 
 if molcas:
     mldfile = 'molcas.rasscf.molden'
-    gtos, atoms= mcmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+    gtos, atoms = mcmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif bagel:
     mldfile = 'orbitals.molden'
     Nmo_max = 20
-    gtos, atoms= bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+    gtos, atoms = bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro or readtwordm:
-    Nmo_max=100
-    gtos, atoms, coeffs,mos,groupC = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=False)
+    Nmo_max = 100
+    gtos, atoms, coeffs, mos, groupC = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=False)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:
     f.write(str(np.size(atoms.atomic_numbers())) + '\n')
@@ -127,11 +127,12 @@ with open('options.dat', 'w') as f:
             print('Normal integration')
             for i in range(np.size(confs)):
 
-                lst = wrap(confs[i].replace('a', '1').replace('b', '2'),1) #[*confs[i].replace('a', '1').replace('b', '2')]
+                lst = wrap(confs[i].replace('a', '1').replace('b', '2'),
+                           1)  # [*confs[i].replace('a', '1').replace('b', '2')]
                 confs2 = np.asarray(lst, dtype=np.int64)
 
                 g1 = [int(i) for i in lst]
-                f.write(str(g1)[1:-1].replace(',',' '))
+                f.write(str(g1)[1:-1].replace(',', ' '))
                 for j in range(np.size(civs[0, :])):
                     f.write(' ' + str(civs[i, j]) + ' ')
                 f.write(str('\n'))
@@ -185,9 +186,9 @@ with open('options.dat', 'w') as f:
         f.write(str(np.size(civs[0, :])) + '\n')
         #  f.write('molcas')
         for i in range(np.size(confs)):
-            lst = wrap(confs[i].replace('a', '1').replace('b', '2'),1)
+            lst = wrap(confs[i].replace('a', '1').replace('b', '2'), 1)
             confs2 = [int(i) for i in lst]
-            f.write(str(confs2)[1:-1].replace(',',''))
+            f.write(str(confs2)[1:-1].replace(',', ''))
             for j in range(np.size(civs[0, :])):
                 f.write(' ' + str(civs[i, j]) + ' ')
             f.write(str('\n'))
@@ -199,7 +200,7 @@ with open('options.dat', 'w') as f:
 
         f.write(str(len(confs[0])) + '\n')
 
-        f.write(str(1)+ '\n')
+        f.write(str(1) + '\n')
 
         lst = [*confs[0].replace('a', '1').replace('b', '2')]
         confs2 = np.asarray(lst, dtype=np.int64)
@@ -238,12 +239,12 @@ with open('MOs.dat', 'w') as f:
         for j in range(np.size(mmod[0, :])):
             f.write(str(mmod[i, j]) + ' ')
         f.write('\n')
-with open('coeffs.dat','w') as f:
+with open('coeffs.dat', 'w') as f:
     f.write(str(np.size(l)) + '\n')
     for i in range(np.size(l)):
-        f.write(str(coeffs[i])+'\n')
-    f.write(str(np.size(groupC))+'\n')
-    count=1
+        f.write(str(coeffs[i]) + '\n')
+    f.write(str(np.size(groupC)) + '\n')
+    count = 1
     for i in range(np.size(groupC)):
-        f.write(str(count)+' '+str(count+groupC[i]-1)+' '+str(groupC[i])+'\n')
-        count=count+groupC[i]
+        f.write(str(count) + ' ' + str(count + groupC[i] - 1) + ' ' + str(groupC[i]) + '\n')
+        count = count + groupC[i]

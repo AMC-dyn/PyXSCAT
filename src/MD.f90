@@ -1,0 +1,949 @@
+! Created by  on 26/09/2023.
+!Module that calculates recursively the Mcmurchie-Davidson coefficient for a given angular momentum,
+!position, and gaussian exponent. The code stores the MD coefficients in a precomputed table
+
+module MD
+    implicit none
+    contains
+
+    SUBROUTINE fill_md_table(D, l, x, ga)
+
+        implicit none
+        INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        ! The MD table to be populated D(Ngto, Ngto, 2maxl+1,maxl+1,maxl+1)
+        REAL(kind=dp), INTENT(OUT), DIMENSION(:,:,:,:,:)    :: D
+        ! vectors that contains the x coordinates for all GTOs, and all gammas
+        REAl(kind=dp), INTENT(IN), DIMENSION(:),allocatable             :: ga, x
+        ! vector that contains all the angular momenta (lx) for the GTOs
+        INTEGER(kind=ikind), INTENT(IN), DIMENSION(:),allocatable       :: l
+
+
+        ! loop and temp vars
+        INTEGER(kind=ikind) :: i, j, ii, jj, N, maxl, l1, l2
+        REAL(kind=dp)       :: gaP, Px, PA, PB, a
+
+        ! number of GTOs
+        N = size(l)
+        ! maximum angular momentum
+        maxl = maxval(l)
+
+
+        ! the offdiagonal elements
+        do i = 1,N
+            do j = i+1, N
+                gaP=ga(i)+ga(j)
+                Px=(ga(i)*x(i)+ga(j)*x(j))/gaP
+                ! order the angular momenta so that l1>=l2
+                if (l(i)<l(j)) then
+                    ii=j
+                    jj=i
+                else
+                    ii=i
+                    jj=j
+                end if
+                PA=Px-x(ii)
+                PB=Px-x(jj)
+
+                l1=l(ii)
+                l2=l(jj)
+
+                if (l1==0 .and. l2==0) then
+                   D(ii,jj,1,1,1)=1
+                   D(jj,ii,1,1,1)=1
+
+                elseif (l1==1 .and. l2==0) then
+                   a=0.5/gaP
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(jj,ii,1,1,2)=D(ii,jj,1,2,1)
+                   D(jj,ii,2,1,2)=D(ii,jj,2,2,1)
+
+                elseif (l1==1 .and. l2==1) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(jj,ii,1,2,2)=D(ii,jj,1,2,2)
+                   D(jj,ii,2,2,2)=D(ii,jj,2,2,2)
+                   D(jj,ii,3,2,2)=D(ii,jj,3,2,2)
+
+                elseif (l1==2 .and. l2==0) then
+                   a=0.5/gaP
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(jj,ii,1,1,3)=D(ii,jj,1,3,1)
+                   D(jj,ii,2,1,3)=D(ii,jj,2,3,1)
+                   D(jj,ii,3,1,3)=D(ii,jj,3,3,1)
+
+                elseif (l1==2 .and. l2==1) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(jj,ii,1,2,3)=D(ii,jj,1,3,2)
+                   D(jj,ii,2,2,3)=D(ii,jj,2,3,2)
+                   D(jj,ii,3,2,3)=D(ii,jj,3,3,2)
+                   D(jj,ii,4,2,3)=D(ii,jj,4,3,2)
+
+                elseif (l1==2 .and. l2==2) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,1,3)=PB*D(ii,jj,1,1,2)+D(ii,jj,2,1,2)
+                   D(ii,jj,2,1,3)=a*D(ii,jj,1,1,2)+PB*D(ii,jj,2,1,2)
+                   D(ii,jj,3,1,3)=a*D(ii,jj,2,1,2)
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,2,3)=PB*D(ii,jj,1,2,2)+D(ii,jj,2,2,2)
+                   D(ii,jj,2,2,3)=a*D(ii,jj,1,2,2)+PB*D(ii,jj,2,2,2)+2.0_dp*D(ii,jj,3,2,2)
+                   D(ii,jj,3,2,3)=a*D(ii,jj,2,2,2)+PB*D(ii,jj,3,2,2)
+                   D(ii,jj,4,2,3)=a*D(ii,jj,3,2,2)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,3,3)=PB*D(ii,jj,1,3,2)+D(ii,jj,2,3,2)
+                   D(ii,jj,2,3,3)=a*D(ii,jj,1,3,2)+PB*D(ii,jj,2,3,2)+2.0_dp*D(ii,jj,3,3,2)
+                   D(ii,jj,3,3,3)=a*D(ii,jj,2,3,2)+PB*D(ii,jj,3,3,2)+3.0_dp*D(ii,jj,4,3,2)
+                   D(ii,jj,4,3,3)=a*D(ii,jj,3,3,2)+PB*D(ii,jj,4,3,2)
+                   D(ii,jj,5,3,3)=a*D(ii,jj,4,3,2)
+                   D(jj,ii,1,3,3)=D(ii,jj,1,3,3)
+                   D(jj,ii,2,3,3)=D(ii,jj,2,3,3)
+                   D(jj,ii,3,3,3)=D(ii,jj,3,3,3)
+                   D(jj,ii,4,3,3)=D(ii,jj,4,3,3)
+                   D(jj,ii,5,3,3)=D(ii,jj,5,3,3)
+
+                elseif (l1==3 .and. l2==0) then
+                   a=0.5/gaP
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(jj,ii,1,1,4)=D(ii,jj,1,4,1)
+                   D(jj,ii,2,1,4)=D(ii,jj,2,4,1)
+                   D(jj,ii,3,1,4)=D(ii,jj,3,4,1)
+                   D(jj,ii,4,1,4)=D(ii,jj,4,4,1)
+
+                elseif (l1==3 .and. l2==1) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,2)=PB*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,4,2)=a*D(ii,jj,1,4,1)+PB*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,4,2)=a*D(ii,jj,2,4,1)+PB*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,4,2)=a*D(ii,jj,3,4,1)+PB*D(ii,jj,4,4,1)
+                   D(ii,jj,5,4,2)=a*D(ii,jj,4,4,1)
+                   D(jj,ii,1,2,4)=D(ii,jj,1,4,2)
+                   D(jj,ii,2,2,4)=D(ii,jj,2,4,2)
+                   D(jj,ii,3,2,4)=D(ii,jj,3,4,2)
+                   D(jj,ii,4,2,4)=D(ii,jj,4,4,2)
+                   D(jj,ii,5,2,4)=D(ii,jj,5,4,2)
+
+                elseif (l1==3 .and. l2==2) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,1,3)=PB*D(ii,jj,1,1,2)+D(ii,jj,2,1,2)
+                   D(ii,jj,2,1,3)=a*D(ii,jj,1,1,2)+PB*D(ii,jj,2,1,2)
+                   D(ii,jj,3,1,3)=a*D(ii,jj,2,1,2)
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,2,3)=PB*D(ii,jj,1,2,2)+D(ii,jj,2,2,2)
+                   D(ii,jj,2,2,3)=a*D(ii,jj,1,2,2)+PB*D(ii,jj,2,2,2)+2.0_dp*D(ii,jj,3,2,2)
+                   D(ii,jj,3,2,3)=a*D(ii,jj,2,2,2)+PB*D(ii,jj,3,2,2)
+                   D(ii,jj,4,2,3)=a*D(ii,jj,3,2,2)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,3,3)=PB*D(ii,jj,1,3,2)+D(ii,jj,2,3,2)
+                   D(ii,jj,2,3,3)=a*D(ii,jj,1,3,2)+PB*D(ii,jj,2,3,2)+2.0_dp*D(ii,jj,3,3,2)
+                   D(ii,jj,3,3,3)=a*D(ii,jj,2,3,2)+PB*D(ii,jj,3,3,2)+3.0_dp*D(ii,jj,4,3,2)
+                   D(ii,jj,4,3,3)=a*D(ii,jj,3,3,2)+PB*D(ii,jj,4,3,2)
+                   D(ii,jj,5,3,3)=a*D(ii,jj,4,3,2)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,2)=PB*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,4,2)=a*D(ii,jj,1,4,1)+PB*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,4,2)=a*D(ii,jj,2,4,1)+PB*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,4,2)=a*D(ii,jj,3,4,1)+PB*D(ii,jj,4,4,1)
+                   D(ii,jj,5,4,2)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,4,3)=PB*D(ii,jj,1,4,2)+D(ii,jj,2,4,2)
+                   D(ii,jj,2,4,3)=a*D(ii,jj,1,4,2)+PB*D(ii,jj,2,4,2)+2.0_dp*D(ii,jj,3,4,2)
+                   D(ii,jj,3,4,3)=a*D(ii,jj,2,4,2)+PB*D(ii,jj,3,4,2)+3.0_dp*D(ii,jj,4,4,2)
+                   D(ii,jj,4,4,3)=a*D(ii,jj,3,4,2)+PB*D(ii,jj,4,4,2)+4.0_dp*D(ii,jj,5,4,2)
+                   D(ii,jj,5,4,3)=a*D(ii,jj,4,4,2)+PB*D(ii,jj,5,4,2)
+                   D(ii,jj,6,4,3)=a*D(ii,jj,5,4,2)
+                   D(jj,ii,1,3,4)=D(ii,jj,1,4,3)
+                   D(jj,ii,2,3,4)=D(ii,jj,2,4,3)
+                   D(jj,ii,3,3,4)=D(ii,jj,3,4,3)
+                   D(jj,ii,4,3,4)=D(ii,jj,4,4,3)
+                   D(jj,ii,5,3,4)=D(ii,jj,5,4,3)
+                   D(jj,ii,6,3,4)=D(ii,jj,6,4,3)
+
+                elseif (l1==3 .and. l2==3) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,1,3)=PB*D(ii,jj,1,1,2)+D(ii,jj,2,1,2)
+                   D(ii,jj,2,1,3)=a*D(ii,jj,1,1,2)+PB*D(ii,jj,2,1,2)
+                   D(ii,jj,3,1,3)=a*D(ii,jj,2,1,2)
+                   D(ii,jj,1,1,4)=PB*D(ii,jj,1,1,3)+D(ii,jj,2,1,3)
+                   D(ii,jj,2,1,4)=a*D(ii,jj,1,1,3)+PB*D(ii,jj,2,1,3)+2.0_dp*D(ii,jj,3,1,3)
+                   D(ii,jj,3,1,4)=a*D(ii,jj,2,1,3)+PB*D(ii,jj,3,1,3)
+                   D(ii,jj,4,1,4)=a*D(ii,jj,3,1,3)
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,2,3)=PB*D(ii,jj,1,2,2)+D(ii,jj,2,2,2)
+                   D(ii,jj,2,2,3)=a*D(ii,jj,1,2,2)+PB*D(ii,jj,2,2,2)+2.0_dp*D(ii,jj,3,2,2)
+                   D(ii,jj,3,2,3)=a*D(ii,jj,2,2,2)+PB*D(ii,jj,3,2,2)
+                   D(ii,jj,4,2,3)=a*D(ii,jj,3,2,2)
+                   D(ii,jj,1,2,4)=PB*D(ii,jj,1,2,3)+D(ii,jj,2,2,3)
+                   D(ii,jj,2,2,4)=a*D(ii,jj,1,2,3)+PB*D(ii,jj,2,2,3)+2.0_dp*D(ii,jj,3,2,3)
+                   D(ii,jj,3,2,4)=a*D(ii,jj,2,2,3)+PB*D(ii,jj,3,2,3)+3.0_dp*D(ii,jj,4,2,3)
+                   D(ii,jj,4,2,4)=a*D(ii,jj,3,2,3)+PB*D(ii,jj,4,2,3)
+                   D(ii,jj,5,2,4)=a*D(ii,jj,4,2,3)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,3,3)=PB*D(ii,jj,1,3,2)+D(ii,jj,2,3,2)
+                   D(ii,jj,2,3,3)=a*D(ii,jj,1,3,2)+PB*D(ii,jj,2,3,2)+2.0_dp*D(ii,jj,3,3,2)
+                   D(ii,jj,3,3,3)=a*D(ii,jj,2,3,2)+PB*D(ii,jj,3,3,2)+3.0_dp*D(ii,jj,4,3,2)
+                   D(ii,jj,4,3,3)=a*D(ii,jj,3,3,2)+PB*D(ii,jj,4,3,2)
+                   D(ii,jj,5,3,3)=a*D(ii,jj,4,3,2)
+                   D(ii,jj,1,3,4)=PB*D(ii,jj,1,3,3)+D(ii,jj,2,3,3)
+                   D(ii,jj,2,3,4)=a*D(ii,jj,1,3,3)+PB*D(ii,jj,2,3,3)+2.0_dp*D(ii,jj,3,3,3)
+                   D(ii,jj,3,3,4)=a*D(ii,jj,2,3,3)+PB*D(ii,jj,3,3,3)+3.0_dp*D(ii,jj,4,3,3)
+                   D(ii,jj,4,3,4)=a*D(ii,jj,3,3,3)+PB*D(ii,jj,4,3,3)+4.0_dp*D(ii,jj,5,3,3)
+                   D(ii,jj,5,3,4)=a*D(ii,jj,4,3,3)+PB*D(ii,jj,5,3,3)
+                   D(ii,jj,6,3,4)=a*D(ii,jj,5,3,3)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,2)=PB*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,4,2)=a*D(ii,jj,1,4,1)+PB*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,4,2)=a*D(ii,jj,2,4,1)+PB*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,4,2)=a*D(ii,jj,3,4,1)+PB*D(ii,jj,4,4,1)
+                   D(ii,jj,5,4,2)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,4,3)=PB*D(ii,jj,1,4,2)+D(ii,jj,2,4,2)
+                   D(ii,jj,2,4,3)=a*D(ii,jj,1,4,2)+PB*D(ii,jj,2,4,2)+2.0_dp*D(ii,jj,3,4,2)
+                   D(ii,jj,3,4,3)=a*D(ii,jj,2,4,2)+PB*D(ii,jj,3,4,2)+3.0_dp*D(ii,jj,4,4,2)
+                   D(ii,jj,4,4,3)=a*D(ii,jj,3,4,2)+PB*D(ii,jj,4,4,2)+4.0_dp*D(ii,jj,5,4,2)
+                   D(ii,jj,5,4,3)=a*D(ii,jj,4,4,2)+PB*D(ii,jj,5,4,2)
+                   D(ii,jj,6,4,3)=a*D(ii,jj,5,4,2)
+                   D(ii,jj,1,4,4)=PB*D(ii,jj,1,4,3)+D(ii,jj,2,4,3)
+                   D(ii,jj,2,4,4)=a*D(ii,jj,1,4,3)+PB*D(ii,jj,2,4,3)+2.0_dp*D(ii,jj,3,4,3)
+                   D(ii,jj,3,4,4)=a*D(ii,jj,2,4,3)+PB*D(ii,jj,3,4,3)+3.0_dp*D(ii,jj,4,4,3)
+                   D(ii,jj,4,4,4)=a*D(ii,jj,3,4,3)+PB*D(ii,jj,4,4,3)+4.0_dp*D(ii,jj,5,4,3)
+                   D(ii,jj,5,4,4)=a*D(ii,jj,4,4,3)+PB*D(ii,jj,5,4,3)+5.0_dp*D(ii,jj,6,4,3)
+                   D(ii,jj,6,4,4)=a*D(ii,jj,5,4,3)+PB*D(ii,jj,6,4,3)
+                   D(ii,jj,7,4,4)=a*D(ii,jj,6,4,3)
+                   D(jj,ii,1,4,4)=D(ii,jj,1,4,4)
+                   D(jj,ii,2,4,4)=D(ii,jj,2,4,4)
+                   D(jj,ii,3,4,4)=D(ii,jj,3,4,4)
+                   D(jj,ii,4,4,4)=D(ii,jj,4,4,4)
+                   D(jj,ii,5,4,4)=D(ii,jj,5,4,4)
+                   D(jj,ii,6,4,4)=D(ii,jj,6,4,4)
+                   D(jj,ii,7,4,4)=D(ii,jj,7,4,4)
+
+                elseif (l1==4 .and. l2==0) then
+                   a=0.5/gaP
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,5,1)=PA*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,5,1)=a*D(ii,jj,1,4,1)+PA*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,5,1)=a*D(ii,jj,2,4,1)+PA*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,5,1)=a*D(ii,jj,3,4,1)+PA*D(ii,jj,4,4,1)
+                   D(ii,jj,5,5,1)=a*D(ii,jj,4,4,1)
+                   D(jj,ii,1,1,5)=D(ii,jj,1,5,1)
+                   D(jj,ii,2,1,5)=D(ii,jj,2,5,1)
+                   D(jj,ii,3,1,5)=D(ii,jj,3,5,1)
+                   D(jj,ii,4,1,5)=D(ii,jj,4,5,1)
+                   D(jj,ii,5,1,5)=D(ii,jj,5,5,1)
+
+                elseif (l1==4 .and. l2==1) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,2)=PB*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,4,2)=a*D(ii,jj,1,4,1)+PB*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,4,2)=a*D(ii,jj,2,4,1)+PB*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,4,2)=a*D(ii,jj,3,4,1)+PB*D(ii,jj,4,4,1)
+                   D(ii,jj,5,4,2)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,5,1)=PA*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,5,1)=a*D(ii,jj,1,4,1)+PA*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,5,1)=a*D(ii,jj,2,4,1)+PA*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,5,1)=a*D(ii,jj,3,4,1)+PA*D(ii,jj,4,4,1)
+                   D(ii,jj,5,5,1)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,5,2)=PB*D(ii,jj,1,5,1)+D(ii,jj,2,5,1)
+                   D(ii,jj,2,5,2)=a*D(ii,jj,1,5,1)+PB*D(ii,jj,2,5,1)+2.0_dp*D(ii,jj,3,5,1)
+                   D(ii,jj,3,5,2)=a*D(ii,jj,2,5,1)+PB*D(ii,jj,3,5,1)+3.0_dp*D(ii,jj,4,5,1)
+                   D(ii,jj,4,5,2)=a*D(ii,jj,3,5,1)+PB*D(ii,jj,4,5,1)+4.0_dp*D(ii,jj,5,5,1)
+                   D(ii,jj,5,5,2)=a*D(ii,jj,4,5,1)+PB*D(ii,jj,5,5,1)
+                   D(ii,jj,6,5,2)=a*D(ii,jj,5,5,1)
+                   D(jj,ii,1,2,5)=D(ii,jj,1,5,2)
+                   D(jj,ii,2,2,5)=D(ii,jj,2,5,2)
+                   D(jj,ii,3,2,5)=D(ii,jj,3,5,2)
+                   D(jj,ii,4,2,5)=D(ii,jj,4,5,2)
+                   D(jj,ii,5,2,5)=D(ii,jj,5,5,2)
+                   D(jj,ii,6,2,5)=D(ii,jj,6,5,2)
+
+                elseif (l1==4 .and. l2==2) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,1,3)=PB*D(ii,jj,1,1,2)+D(ii,jj,2,1,2)
+                   D(ii,jj,2,1,3)=a*D(ii,jj,1,1,2)+PB*D(ii,jj,2,1,2)
+                   D(ii,jj,3,1,3)=a*D(ii,jj,2,1,2)
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,2,3)=PB*D(ii,jj,1,2,2)+D(ii,jj,2,2,2)
+                   D(ii,jj,2,2,3)=a*D(ii,jj,1,2,2)+PB*D(ii,jj,2,2,2)+2.0_dp*D(ii,jj,3,2,2)
+                   D(ii,jj,3,2,3)=a*D(ii,jj,2,2,2)+PB*D(ii,jj,3,2,2)
+                   D(ii,jj,4,2,3)=a*D(ii,jj,3,2,2)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,3,3)=PB*D(ii,jj,1,3,2)+D(ii,jj,2,3,2)
+                   D(ii,jj,2,3,3)=a*D(ii,jj,1,3,2)+PB*D(ii,jj,2,3,2)+2.0_dp*D(ii,jj,3,3,2)
+                   D(ii,jj,3,3,3)=a*D(ii,jj,2,3,2)+PB*D(ii,jj,3,3,2)+3.0_dp*D(ii,jj,4,3,2)
+                   D(ii,jj,4,3,3)=a*D(ii,jj,3,3,2)+PB*D(ii,jj,4,3,2)
+                   D(ii,jj,5,3,3)=a*D(ii,jj,4,3,2)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,2)=PB*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,4,2)=a*D(ii,jj,1,4,1)+PB*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,4,2)=a*D(ii,jj,2,4,1)+PB*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,4,2)=a*D(ii,jj,3,4,1)+PB*D(ii,jj,4,4,1)
+                   D(ii,jj,5,4,2)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,4,3)=PB*D(ii,jj,1,4,2)+D(ii,jj,2,4,2)
+                   D(ii,jj,2,4,3)=a*D(ii,jj,1,4,2)+PB*D(ii,jj,2,4,2)+2.0_dp*D(ii,jj,3,4,2)
+                   D(ii,jj,3,4,3)=a*D(ii,jj,2,4,2)+PB*D(ii,jj,3,4,2)+3.0_dp*D(ii,jj,4,4,2)
+                   D(ii,jj,4,4,3)=a*D(ii,jj,3,4,2)+PB*D(ii,jj,4,4,2)+4.0_dp*D(ii,jj,5,4,2)
+                   D(ii,jj,5,4,3)=a*D(ii,jj,4,4,2)+PB*D(ii,jj,5,4,2)
+                   D(ii,jj,6,4,3)=a*D(ii,jj,5,4,2)
+                   D(ii,jj,1,5,1)=PA*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,5,1)=a*D(ii,jj,1,4,1)+PA*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,5,1)=a*D(ii,jj,2,4,1)+PA*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,5,1)=a*D(ii,jj,3,4,1)+PA*D(ii,jj,4,4,1)
+                   D(ii,jj,5,5,1)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,5,2)=PB*D(ii,jj,1,5,1)+D(ii,jj,2,5,1)
+                   D(ii,jj,2,5,2)=a*D(ii,jj,1,5,1)+PB*D(ii,jj,2,5,1)+2.0_dp*D(ii,jj,3,5,1)
+                   D(ii,jj,3,5,2)=a*D(ii,jj,2,5,1)+PB*D(ii,jj,3,5,1)+3.0_dp*D(ii,jj,4,5,1)
+                   D(ii,jj,4,5,2)=a*D(ii,jj,3,5,1)+PB*D(ii,jj,4,5,1)+4.0_dp*D(ii,jj,5,5,1)
+                   D(ii,jj,5,5,2)=a*D(ii,jj,4,5,1)+PB*D(ii,jj,5,5,1)
+                   D(ii,jj,6,5,2)=a*D(ii,jj,5,5,1)
+                   D(ii,jj,1,5,3)=PB*D(ii,jj,1,5,2)+D(ii,jj,2,5,2)
+                   D(ii,jj,2,5,3)=a*D(ii,jj,1,5,2)+PB*D(ii,jj,2,5,2)+2.0_dp*D(ii,jj,3,5,2)
+                   D(ii,jj,3,5,3)=a*D(ii,jj,2,5,2)+PB*D(ii,jj,3,5,2)+3.0_dp*D(ii,jj,4,5,2)
+                   D(ii,jj,4,5,3)=a*D(ii,jj,3,5,2)+PB*D(ii,jj,4,5,2)+4.0_dp*D(ii,jj,5,5,2)
+                   D(ii,jj,5,5,3)=a*D(ii,jj,4,5,2)+PB*D(ii,jj,5,5,2)+5.0_dp*D(ii,jj,6,5,2)
+                   D(ii,jj,6,5,3)=a*D(ii,jj,5,5,2)+PB*D(ii,jj,6,5,2)
+                   D(ii,jj,7,5,3)=a*D(ii,jj,6,5,2)
+                   D(jj,ii,1,3,5)=D(ii,jj,1,5,3)
+                   D(jj,ii,2,3,5)=D(ii,jj,2,5,3)
+                   D(jj,ii,3,3,5)=D(ii,jj,3,5,3)
+                   D(jj,ii,4,3,5)=D(ii,jj,4,5,3)
+                   D(jj,ii,5,3,5)=D(ii,jj,5,5,3)
+                   D(jj,ii,6,3,5)=D(ii,jj,6,5,3)
+                   D(jj,ii,7,3,5)=D(ii,jj,7,5,3)
+
+                elseif (l1==4 .and. l2==3) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,1,3)=PB*D(ii,jj,1,1,2)+D(ii,jj,2,1,2)
+                   D(ii,jj,2,1,3)=a*D(ii,jj,1,1,2)+PB*D(ii,jj,2,1,2)
+                   D(ii,jj,3,1,3)=a*D(ii,jj,2,1,2)
+                   D(ii,jj,1,1,4)=PB*D(ii,jj,1,1,3)+D(ii,jj,2,1,3)
+                   D(ii,jj,2,1,4)=a*D(ii,jj,1,1,3)+PB*D(ii,jj,2,1,3)+2.0_dp*D(ii,jj,3,1,3)
+                   D(ii,jj,3,1,4)=a*D(ii,jj,2,1,3)+PB*D(ii,jj,3,1,3)
+                   D(ii,jj,4,1,4)=a*D(ii,jj,3,1,3)
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,2,3)=PB*D(ii,jj,1,2,2)+D(ii,jj,2,2,2)
+                   D(ii,jj,2,2,3)=a*D(ii,jj,1,2,2)+PB*D(ii,jj,2,2,2)+2.0_dp*D(ii,jj,3,2,2)
+                   D(ii,jj,3,2,3)=a*D(ii,jj,2,2,2)+PB*D(ii,jj,3,2,2)
+                   D(ii,jj,4,2,3)=a*D(ii,jj,3,2,2)
+                   D(ii,jj,1,2,4)=PB*D(ii,jj,1,2,3)+D(ii,jj,2,2,3)
+                   D(ii,jj,2,2,4)=a*D(ii,jj,1,2,3)+PB*D(ii,jj,2,2,3)+2.0_dp*D(ii,jj,3,2,3)
+                   D(ii,jj,3,2,4)=a*D(ii,jj,2,2,3)+PB*D(ii,jj,3,2,3)+3.0_dp*D(ii,jj,4,2,3)
+                   D(ii,jj,4,2,4)=a*D(ii,jj,3,2,3)+PB*D(ii,jj,4,2,3)
+                   D(ii,jj,5,2,4)=a*D(ii,jj,4,2,3)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,3,3)=PB*D(ii,jj,1,3,2)+D(ii,jj,2,3,2)
+                   D(ii,jj,2,3,3)=a*D(ii,jj,1,3,2)+PB*D(ii,jj,2,3,2)+2.0_dp*D(ii,jj,3,3,2)
+                   D(ii,jj,3,3,3)=a*D(ii,jj,2,3,2)+PB*D(ii,jj,3,3,2)+3.0_dp*D(ii,jj,4,3,2)
+                   D(ii,jj,4,3,3)=a*D(ii,jj,3,3,2)+PB*D(ii,jj,4,3,2)
+                   D(ii,jj,5,3,3)=a*D(ii,jj,4,3,2)
+                   D(ii,jj,1,3,4)=PB*D(ii,jj,1,3,3)+D(ii,jj,2,3,3)
+                   D(ii,jj,2,3,4)=a*D(ii,jj,1,3,3)+PB*D(ii,jj,2,3,3)+2.0_dp*D(ii,jj,3,3,3)
+                   D(ii,jj,3,3,4)=a*D(ii,jj,2,3,3)+PB*D(ii,jj,3,3,3)+3.0_dp*D(ii,jj,4,3,3)
+                   D(ii,jj,4,3,4)=a*D(ii,jj,3,3,3)+PB*D(ii,jj,4,3,3)+4.0_dp*D(ii,jj,5,3,3)
+                   D(ii,jj,5,3,4)=a*D(ii,jj,4,3,3)+PB*D(ii,jj,5,3,3)
+                   D(ii,jj,6,3,4)=a*D(ii,jj,5,3,3)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,2)=PB*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,4,2)=a*D(ii,jj,1,4,1)+PB*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,4,2)=a*D(ii,jj,2,4,1)+PB*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,4,2)=a*D(ii,jj,3,4,1)+PB*D(ii,jj,4,4,1)
+                   D(ii,jj,5,4,2)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,4,3)=PB*D(ii,jj,1,4,2)+D(ii,jj,2,4,2)
+                   D(ii,jj,2,4,3)=a*D(ii,jj,1,4,2)+PB*D(ii,jj,2,4,2)+2.0_dp*D(ii,jj,3,4,2)
+                   D(ii,jj,3,4,3)=a*D(ii,jj,2,4,2)+PB*D(ii,jj,3,4,2)+3.0_dp*D(ii,jj,4,4,2)
+                   D(ii,jj,4,4,3)=a*D(ii,jj,3,4,2)+PB*D(ii,jj,4,4,2)+4.0_dp*D(ii,jj,5,4,2)
+                   D(ii,jj,5,4,3)=a*D(ii,jj,4,4,2)+PB*D(ii,jj,5,4,2)
+                   D(ii,jj,6,4,3)=a*D(ii,jj,5,4,2)
+                   D(ii,jj,1,4,4)=PB*D(ii,jj,1,4,3)+D(ii,jj,2,4,3)
+                   D(ii,jj,2,4,4)=a*D(ii,jj,1,4,3)+PB*D(ii,jj,2,4,3)+2.0_dp*D(ii,jj,3,4,3)
+                   D(ii,jj,3,4,4)=a*D(ii,jj,2,4,3)+PB*D(ii,jj,3,4,3)+3.0_dp*D(ii,jj,4,4,3)
+                   D(ii,jj,4,4,4)=a*D(ii,jj,3,4,3)+PB*D(ii,jj,4,4,3)+4.0_dp*D(ii,jj,5,4,3)
+                   D(ii,jj,5,4,4)=a*D(ii,jj,4,4,3)+PB*D(ii,jj,5,4,3)+5.0_dp*D(ii,jj,6,4,3)
+                   D(ii,jj,6,4,4)=a*D(ii,jj,5,4,3)+PB*D(ii,jj,6,4,3)
+                   D(ii,jj,7,4,4)=a*D(ii,jj,6,4,3)
+                   D(ii,jj,1,5,1)=PA*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,5,1)=a*D(ii,jj,1,4,1)+PA*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,5,1)=a*D(ii,jj,2,4,1)+PA*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,5,1)=a*D(ii,jj,3,4,1)+PA*D(ii,jj,4,4,1)
+                   D(ii,jj,5,5,1)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,5,2)=PB*D(ii,jj,1,5,1)+D(ii,jj,2,5,1)
+                   D(ii,jj,2,5,2)=a*D(ii,jj,1,5,1)+PB*D(ii,jj,2,5,1)+2.0_dp*D(ii,jj,3,5,1)
+                   D(ii,jj,3,5,2)=a*D(ii,jj,2,5,1)+PB*D(ii,jj,3,5,1)+3.0_dp*D(ii,jj,4,5,1)
+                   D(ii,jj,4,5,2)=a*D(ii,jj,3,5,1)+PB*D(ii,jj,4,5,1)+4.0_dp*D(ii,jj,5,5,1)
+                   D(ii,jj,5,5,2)=a*D(ii,jj,4,5,1)+PB*D(ii,jj,5,5,1)
+                   D(ii,jj,6,5,2)=a*D(ii,jj,5,5,1)
+                   D(ii,jj,1,5,3)=PB*D(ii,jj,1,5,2)+D(ii,jj,2,5,2)
+                   D(ii,jj,2,5,3)=a*D(ii,jj,1,5,2)+PB*D(ii,jj,2,5,2)+2.0_dp*D(ii,jj,3,5,2)
+                   D(ii,jj,3,5,3)=a*D(ii,jj,2,5,2)+PB*D(ii,jj,3,5,2)+3.0_dp*D(ii,jj,4,5,2)
+                   D(ii,jj,4,5,3)=a*D(ii,jj,3,5,2)+PB*D(ii,jj,4,5,2)+4.0_dp*D(ii,jj,5,5,2)
+                   D(ii,jj,5,5,3)=a*D(ii,jj,4,5,2)+PB*D(ii,jj,5,5,2)+5.0_dp*D(ii,jj,6,5,2)
+                   D(ii,jj,6,5,3)=a*D(ii,jj,5,5,2)+PB*D(ii,jj,6,5,2)
+                   D(ii,jj,7,5,3)=a*D(ii,jj,6,5,2)
+                   D(ii,jj,1,5,4)=PB*D(ii,jj,1,5,3)+D(ii,jj,2,5,3)
+                   D(ii,jj,2,5,4)=a*D(ii,jj,1,5,3)+PB*D(ii,jj,2,5,3)+2.0_dp*D(ii,jj,3,5,3)
+                   D(ii,jj,3,5,4)=a*D(ii,jj,2,5,3)+PB*D(ii,jj,3,5,3)+3.0_dp*D(ii,jj,4,5,3)
+                   D(ii,jj,4,5,4)=a*D(ii,jj,3,5,3)+PB*D(ii,jj,4,5,3)+4.0_dp*D(ii,jj,5,5,3)
+                   D(ii,jj,5,5,4)=a*D(ii,jj,4,5,3)+PB*D(ii,jj,5,5,3)+5.0_dp*D(ii,jj,6,5,3)
+                   D(ii,jj,6,5,4)=a*D(ii,jj,5,5,3)+PB*D(ii,jj,6,5,3)+6.0_dp*D(ii,jj,7,5,3)
+                   D(ii,jj,7,5,4)=a*D(ii,jj,6,5,3)+PB*D(ii,jj,7,5,3)
+                   D(ii,jj,8,5,4)=a*D(ii,jj,7,5,3)
+                   D(jj,ii,1,4,5)=D(ii,jj,1,5,4)
+                   D(jj,ii,2,4,5)=D(ii,jj,2,5,4)
+                   D(jj,ii,3,4,5)=D(ii,jj,3,5,4)
+                   D(jj,ii,4,4,5)=D(ii,jj,4,5,4)
+                   D(jj,ii,5,4,5)=D(ii,jj,5,5,4)
+                   D(jj,ii,6,4,5)=D(ii,jj,6,5,4)
+                   D(jj,ii,7,4,5)=D(ii,jj,7,5,4)
+                   D(jj,ii,8,4,5)=D(ii,jj,8,5,4)
+
+                elseif (l1==4 .and. l2==4) then
+                   a=0.5/gaP
+                   D(ii,jj,1,1,2)=PB
+                   D(ii,jj,2,1,2)=a
+                   D(ii,jj,1,1,3)=PB*D(ii,jj,1,1,2)+D(ii,jj,2,1,2)
+                   D(ii,jj,2,1,3)=a*D(ii,jj,1,1,2)+PB*D(ii,jj,2,1,2)
+                   D(ii,jj,3,1,3)=a*D(ii,jj,2,1,2)
+                   D(ii,jj,1,1,4)=PB*D(ii,jj,1,1,3)+D(ii,jj,2,1,3)
+                   D(ii,jj,2,1,4)=a*D(ii,jj,1,1,3)+PB*D(ii,jj,2,1,3)+2.0_dp*D(ii,jj,3,1,3)
+                   D(ii,jj,3,1,4)=a*D(ii,jj,2,1,3)+PB*D(ii,jj,3,1,3)
+                   D(ii,jj,4,1,4)=a*D(ii,jj,3,1,3)
+                   D(ii,jj,1,1,5)=PB*D(ii,jj,1,1,4)+D(ii,jj,2,1,4)
+                   D(ii,jj,2,1,5)=a*D(ii,jj,1,1,4)+PB*D(ii,jj,2,1,4)+2.0_dp*D(ii,jj,3,1,4)
+                   D(ii,jj,3,1,5)=a*D(ii,jj,2,1,4)+PB*D(ii,jj,3,1,4)+3.0_dp*D(ii,jj,4,1,4)
+                   D(ii,jj,4,1,5)=a*D(ii,jj,3,1,4)+PB*D(ii,jj,4,1,4)
+                   D(ii,jj,5,1,5)=a*D(ii,jj,4,1,4)
+                   D(ii,jj,1,2,1)=PA
+                   D(ii,jj,2,2,1)=a
+                   D(ii,jj,1,2,2)=PB*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,2,2)=a*D(ii,jj,1,2,1)+PB*D(ii,jj,2,2,1)
+                   D(ii,jj,3,2,2)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,2,3)=PB*D(ii,jj,1,2,2)+D(ii,jj,2,2,2)
+                   D(ii,jj,2,2,3)=a*D(ii,jj,1,2,2)+PB*D(ii,jj,2,2,2)+2.0_dp*D(ii,jj,3,2,2)
+                   D(ii,jj,3,2,3)=a*D(ii,jj,2,2,2)+PB*D(ii,jj,3,2,2)
+                   D(ii,jj,4,2,3)=a*D(ii,jj,3,2,2)
+                   D(ii,jj,1,2,4)=PB*D(ii,jj,1,2,3)+D(ii,jj,2,2,3)
+                   D(ii,jj,2,2,4)=a*D(ii,jj,1,2,3)+PB*D(ii,jj,2,2,3)+2.0_dp*D(ii,jj,3,2,3)
+                   D(ii,jj,3,2,4)=a*D(ii,jj,2,2,3)+PB*D(ii,jj,3,2,3)+3.0_dp*D(ii,jj,4,2,3)
+                   D(ii,jj,4,2,4)=a*D(ii,jj,3,2,3)+PB*D(ii,jj,4,2,3)
+                   D(ii,jj,5,2,4)=a*D(ii,jj,4,2,3)
+                   D(ii,jj,1,2,5)=PB*D(ii,jj,1,2,4)+D(ii,jj,2,2,4)
+                   D(ii,jj,2,2,5)=a*D(ii,jj,1,2,4)+PB*D(ii,jj,2,2,4)+2.0_dp*D(ii,jj,3,2,4)
+                   D(ii,jj,3,2,5)=a*D(ii,jj,2,2,4)+PB*D(ii,jj,3,2,4)+3.0_dp*D(ii,jj,4,2,4)
+                   D(ii,jj,4,2,5)=a*D(ii,jj,3,2,4)+PB*D(ii,jj,4,2,4)+4.0_dp*D(ii,jj,5,2,4)
+                   D(ii,jj,5,2,5)=a*D(ii,jj,4,2,4)+PB*D(ii,jj,5,2,4)
+                   D(ii,jj,6,2,5)=a*D(ii,jj,5,2,4)
+                   D(ii,jj,1,3,1)=PA*D(ii,jj,1,2,1)+D(ii,jj,2,2,1)
+                   D(ii,jj,2,3,1)=a*D(ii,jj,1,2,1)+PA*D(ii,jj,2,2,1)
+                   D(ii,jj,3,3,1)=a*D(ii,jj,2,2,1)
+                   D(ii,jj,1,3,2)=PB*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,3,2)=a*D(ii,jj,1,3,1)+PB*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,3,2)=a*D(ii,jj,2,3,1)+PB*D(ii,jj,3,3,1)
+                   D(ii,jj,4,3,2)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,3,3)=PB*D(ii,jj,1,3,2)+D(ii,jj,2,3,2)
+                   D(ii,jj,2,3,3)=a*D(ii,jj,1,3,2)+PB*D(ii,jj,2,3,2)+2.0_dp*D(ii,jj,3,3,2)
+                   D(ii,jj,3,3,3)=a*D(ii,jj,2,3,2)+PB*D(ii,jj,3,3,2)+3.0_dp*D(ii,jj,4,3,2)
+                   D(ii,jj,4,3,3)=a*D(ii,jj,3,3,2)+PB*D(ii,jj,4,3,2)
+                   D(ii,jj,5,3,3)=a*D(ii,jj,4,3,2)
+                   D(ii,jj,1,3,4)=PB*D(ii,jj,1,3,3)+D(ii,jj,2,3,3)
+                   D(ii,jj,2,3,4)=a*D(ii,jj,1,3,3)+PB*D(ii,jj,2,3,3)+2.0_dp*D(ii,jj,3,3,3)
+                   D(ii,jj,3,3,4)=a*D(ii,jj,2,3,3)+PB*D(ii,jj,3,3,3)+3.0_dp*D(ii,jj,4,3,3)
+                   D(ii,jj,4,3,4)=a*D(ii,jj,3,3,3)+PB*D(ii,jj,4,3,3)+4.0_dp*D(ii,jj,5,3,3)
+                   D(ii,jj,5,3,4)=a*D(ii,jj,4,3,3)+PB*D(ii,jj,5,3,3)
+                   D(ii,jj,6,3,4)=a*D(ii,jj,5,3,3)
+                   D(ii,jj,1,3,5)=PB*D(ii,jj,1,3,4)+D(ii,jj,2,3,4)
+                   D(ii,jj,2,3,5)=a*D(ii,jj,1,3,4)+PB*D(ii,jj,2,3,4)+2.0_dp*D(ii,jj,3,3,4)
+                   D(ii,jj,3,3,5)=a*D(ii,jj,2,3,4)+PB*D(ii,jj,3,3,4)+3.0_dp*D(ii,jj,4,3,4)
+                   D(ii,jj,4,3,5)=a*D(ii,jj,3,3,4)+PB*D(ii,jj,4,3,4)+4.0_dp*D(ii,jj,5,3,4)
+                   D(ii,jj,5,3,5)=a*D(ii,jj,4,3,4)+PB*D(ii,jj,5,3,4)+5.0_dp*D(ii,jj,6,3,4)
+                   D(ii,jj,6,3,5)=a*D(ii,jj,5,3,4)+PB*D(ii,jj,6,3,4)
+                   D(ii,jj,7,3,5)=a*D(ii,jj,6,3,4)
+                   D(ii,jj,1,4,1)=PA*D(ii,jj,1,3,1)+D(ii,jj,2,3,1)
+                   D(ii,jj,2,4,1)=a*D(ii,jj,1,3,1)+PA*D(ii,jj,2,3,1)+2.0_dp*D(ii,jj,3,3,1)
+                   D(ii,jj,3,4,1)=a*D(ii,jj,2,3,1)+PA*D(ii,jj,3,3,1)
+                   D(ii,jj,4,4,1)=a*D(ii,jj,3,3,1)
+                   D(ii,jj,1,4,2)=PB*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,4,2)=a*D(ii,jj,1,4,1)+PB*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,4,2)=a*D(ii,jj,2,4,1)+PB*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,4,2)=a*D(ii,jj,3,4,1)+PB*D(ii,jj,4,4,1)
+                   D(ii,jj,5,4,2)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,4,3)=PB*D(ii,jj,1,4,2)+D(ii,jj,2,4,2)
+                   D(ii,jj,2,4,3)=a*D(ii,jj,1,4,2)+PB*D(ii,jj,2,4,2)+2.0_dp*D(ii,jj,3,4,2)
+                   D(ii,jj,3,4,3)=a*D(ii,jj,2,4,2)+PB*D(ii,jj,3,4,2)+3.0_dp*D(ii,jj,4,4,2)
+                   D(ii,jj,4,4,3)=a*D(ii,jj,3,4,2)+PB*D(ii,jj,4,4,2)+4.0_dp*D(ii,jj,5,4,2)
+                   D(ii,jj,5,4,3)=a*D(ii,jj,4,4,2)+PB*D(ii,jj,5,4,2)
+                   D(ii,jj,6,4,3)=a*D(ii,jj,5,4,2)
+                   D(ii,jj,1,4,4)=PB*D(ii,jj,1,4,3)+D(ii,jj,2,4,3)
+                   D(ii,jj,2,4,4)=a*D(ii,jj,1,4,3)+PB*D(ii,jj,2,4,3)+2.0_dp*D(ii,jj,3,4,3)
+                   D(ii,jj,3,4,4)=a*D(ii,jj,2,4,3)+PB*D(ii,jj,3,4,3)+3.0_dp*D(ii,jj,4,4,3)
+                   D(ii,jj,4,4,4)=a*D(ii,jj,3,4,3)+PB*D(ii,jj,4,4,3)+4.0_dp*D(ii,jj,5,4,3)
+                   D(ii,jj,5,4,4)=a*D(ii,jj,4,4,3)+PB*D(ii,jj,5,4,3)+5.0_dp*D(ii,jj,6,4,3)
+                   D(ii,jj,6,4,4)=a*D(ii,jj,5,4,3)+PB*D(ii,jj,6,4,3)
+                   D(ii,jj,7,4,4)=a*D(ii,jj,6,4,3)
+                   D(ii,jj,1,4,5)=PB*D(ii,jj,1,4,4)+D(ii,jj,2,4,4)
+                   D(ii,jj,2,4,5)=a*D(ii,jj,1,4,4)+PB*D(ii,jj,2,4,4)+2.0_dp*D(ii,jj,3,4,4)
+                   D(ii,jj,3,4,5)=a*D(ii,jj,2,4,4)+PB*D(ii,jj,3,4,4)+3.0_dp*D(ii,jj,4,4,4)
+                   D(ii,jj,4,4,5)=a*D(ii,jj,3,4,4)+PB*D(ii,jj,4,4,4)+4.0_dp*D(ii,jj,5,4,4)
+                   D(ii,jj,5,4,5)=a*D(ii,jj,4,4,4)+PB*D(ii,jj,5,4,4)+5.0_dp*D(ii,jj,6,4,4)
+                   D(ii,jj,6,4,5)=a*D(ii,jj,5,4,4)+PB*D(ii,jj,6,4,4)+6.0_dp*D(ii,jj,7,4,4)
+                   D(ii,jj,7,4,5)=a*D(ii,jj,6,4,4)+PB*D(ii,jj,7,4,4)
+                   D(ii,jj,8,4,5)=a*D(ii,jj,7,4,4)
+                   D(ii,jj,1,5,1)=PA*D(ii,jj,1,4,1)+D(ii,jj,2,4,1)
+                   D(ii,jj,2,5,1)=a*D(ii,jj,1,4,1)+PA*D(ii,jj,2,4,1)+2.0_dp*D(ii,jj,3,4,1)
+                   D(ii,jj,3,5,1)=a*D(ii,jj,2,4,1)+PA*D(ii,jj,3,4,1)+3.0_dp*D(ii,jj,4,4,1)
+                   D(ii,jj,4,5,1)=a*D(ii,jj,3,4,1)+PA*D(ii,jj,4,4,1)
+                   D(ii,jj,5,5,1)=a*D(ii,jj,4,4,1)
+                   D(ii,jj,1,5,2)=PB*D(ii,jj,1,5,1)+D(ii,jj,2,5,1)
+                   D(ii,jj,2,5,2)=a*D(ii,jj,1,5,1)+PB*D(ii,jj,2,5,1)+2.0_dp*D(ii,jj,3,5,1)
+                   D(ii,jj,3,5,2)=a*D(ii,jj,2,5,1)+PB*D(ii,jj,3,5,1)+3.0_dp*D(ii,jj,4,5,1)
+                   D(ii,jj,4,5,2)=a*D(ii,jj,3,5,1)+PB*D(ii,jj,4,5,1)+4.0_dp*D(ii,jj,5,5,1)
+                   D(ii,jj,5,5,2)=a*D(ii,jj,4,5,1)+PB*D(ii,jj,5,5,1)
+                   D(ii,jj,6,5,2)=a*D(ii,jj,5,5,1)
+                   D(ii,jj,1,5,3)=PB*D(ii,jj,1,5,2)+D(ii,jj,2,5,2)
+                   D(ii,jj,2,5,3)=a*D(ii,jj,1,5,2)+PB*D(ii,jj,2,5,2)+2.0_dp*D(ii,jj,3,5,2)
+                   D(ii,jj,3,5,3)=a*D(ii,jj,2,5,2)+PB*D(ii,jj,3,5,2)+3.0_dp*D(ii,jj,4,5,2)
+                   D(ii,jj,4,5,3)=a*D(ii,jj,3,5,2)+PB*D(ii,jj,4,5,2)+4.0_dp*D(ii,jj,5,5,2)
+                   D(ii,jj,5,5,3)=a*D(ii,jj,4,5,2)+PB*D(ii,jj,5,5,2)+5.0_dp*D(ii,jj,6,5,2)
+                   D(ii,jj,6,5,3)=a*D(ii,jj,5,5,2)+PB*D(ii,jj,6,5,2)
+                   D(ii,jj,7,5,3)=a*D(ii,jj,6,5,2)
+                   D(ii,jj,1,5,4)=PB*D(ii,jj,1,5,3)+D(ii,jj,2,5,3)
+                   D(ii,jj,2,5,4)=a*D(ii,jj,1,5,3)+PB*D(ii,jj,2,5,3)+2.0_dp*D(ii,jj,3,5,3)
+                   D(ii,jj,3,5,4)=a*D(ii,jj,2,5,3)+PB*D(ii,jj,3,5,3)+3.0_dp*D(ii,jj,4,5,3)
+                   D(ii,jj,4,5,4)=a*D(ii,jj,3,5,3)+PB*D(ii,jj,4,5,3)+4.0_dp*D(ii,jj,5,5,3)
+                   D(ii,jj,5,5,4)=a*D(ii,jj,4,5,3)+PB*D(ii,jj,5,5,3)+5.0_dp*D(ii,jj,6,5,3)
+                   D(ii,jj,6,5,4)=a*D(ii,jj,5,5,3)+PB*D(ii,jj,6,5,3)+6.0_dp*D(ii,jj,7,5,3)
+                   D(ii,jj,7,5,4)=a*D(ii,jj,6,5,3)+PB*D(ii,jj,7,5,3)
+                   D(ii,jj,8,5,4)=a*D(ii,jj,7,5,3)
+                   D(ii,jj,1,5,5)=PB*D(ii,jj,1,5,4)+D(ii,jj,2,5,4)
+                   D(ii,jj,2,5,5)=a*D(ii,jj,1,5,4)+PB*D(ii,jj,2,5,4)+2.0_dp*D(ii,jj,3,5,4)
+                   D(ii,jj,3,5,5)=a*D(ii,jj,2,5,4)+PB*D(ii,jj,3,5,4)+3.0_dp*D(ii,jj,4,5,4)
+                   D(ii,jj,4,5,5)=a*D(ii,jj,3,5,4)+PB*D(ii,jj,4,5,4)+4.0_dp*D(ii,jj,5,5,4)
+                   D(ii,jj,5,5,5)=a*D(ii,jj,4,5,4)+PB*D(ii,jj,5,5,4)+5.0_dp*D(ii,jj,6,5,4)
+                   D(ii,jj,6,5,5)=a*D(ii,jj,5,5,4)+PB*D(ii,jj,6,5,4)+6.0_dp*D(ii,jj,7,5,4)
+                   D(ii,jj,7,5,5)=a*D(ii,jj,6,5,4)+PB*D(ii,jj,7,5,4)+7.0_dp*D(ii,jj,8,5,4)
+                   D(ii,jj,8,5,5)=a*D(ii,jj,7,5,4)+PB*D(ii,jj,8,5,4)
+                   D(ii,jj,9,5,5)=a*D(ii,jj,8,5,4)
+                   D(jj,ii,1,5,5)=D(ii,jj,1,5,5)
+                   D(jj,ii,2,5,5)=D(ii,jj,2,5,5)
+                   D(jj,ii,3,5,5)=D(ii,jj,3,5,5)
+                   D(jj,ii,4,5,5)=D(ii,jj,4,5,5)
+                   D(jj,ii,5,5,5)=D(ii,jj,5,5,5)
+                   D(jj,ii,6,5,5)=D(ii,jj,6,5,5)
+                   D(jj,ii,7,5,5)=D(ii,jj,7,5,5)
+                   D(jj,ii,8,5,5)=D(ii,jj,8,5,5)
+                   D(jj,ii,9,5,5)=D(ii,jj,9,5,5)
+
+                else
+                   print*, "McMurchie-Davidson Coefficients are only implemented up to g-functions."
+                   stop
+
+                end if
+
+            end do
+        end do
+
+
+        ! diagonal case
+
+        do i = 1,N
+            j=i
+
+            gaP=ga(i)+ga(j)
+            Px=(ga(i)*x(i)+ga(j)*x(j))/gaP
+            PA=Px-x(i)
+            PB=Px-x(j)
+
+            l1=l(i)
+            l2=l(j)
+
+                if (l1==0 .and. l2==0) then
+                   D(i,j,1,1,1)=1
+
+                elseif (l1==1) then
+                   a=0.5/gaP
+                   D(i,j,1,1,2)=PB
+                   D(i,j,2,1,2)=a
+                   D(i,j,1,2,1)=PA
+                   D(i,j,2,2,1)=a
+                   D(i,j,1,2,2)=PB*D(i,j,1,2,1)+D(i,j,2,2,1)
+                   D(i,j,2,2,2)=a*D(i,j,1,2,1)+PB*D(i,j,2,2,1)
+                   D(i,j,3,2,2)=a*D(i,j,2,2,1)
+
+                elseif (l1==2) then
+                   a=0.5/gaP
+                   D(i,j,1,1,2)=PB
+                   D(i,j,2,1,2)=a
+                   D(i,j,1,1,3)=PB*D(i,j,1,1,2)+D(i,j,2,1,2)
+                   D(i,j,2,1,3)=a*D(i,j,1,1,2)+PB*D(i,j,2,1,2)
+                   D(i,j,3,1,3)=a*D(i,j,2,1,2)
+                   D(i,j,1,2,1)=PA
+                   D(i,j,2,2,1)=a
+                   D(i,j,1,2,2)=PB*D(i,j,1,2,1)+D(i,j,2,2,1)
+                   D(i,j,2,2,2)=a*D(i,j,1,2,1)+PB*D(i,j,2,2,1)
+                   D(i,j,3,2,2)=a*D(i,j,2,2,1)
+                   D(i,j,1,2,3)=PB*D(i,j,1,2,2)+D(i,j,2,2,2)
+                   D(i,j,2,2,3)=a*D(i,j,1,2,2)+PB*D(i,j,2,2,2)+2.0_dp*D(i,j,3,2,2)
+                   D(i,j,3,2,3)=a*D(i,j,2,2,2)+PB*D(i,j,3,2,2)
+                   D(i,j,4,2,3)=a*D(i,j,3,2,2)
+                   D(i,j,1,3,1)=PA*D(i,j,1,2,1)+D(i,j,2,2,1)
+                   D(i,j,2,3,1)=a*D(i,j,1,2,1)+PA*D(i,j,2,2,1)
+                   D(i,j,3,3,1)=a*D(i,j,2,2,1)
+                   D(i,j,1,3,2)=PB*D(i,j,1,3,1)+D(i,j,2,3,1)
+                   D(i,j,2,3,2)=a*D(i,j,1,3,1)+PB*D(i,j,2,3,1)+2.0_dp*D(i,j,3,3,1)
+                   D(i,j,3,3,2)=a*D(i,j,2,3,1)+PB*D(i,j,3,3,1)
+                   D(i,j,4,3,2)=a*D(i,j,3,3,1)
+                   D(i,j,1,3,3)=PB*D(i,j,1,3,2)+D(i,j,2,3,2)
+                   D(i,j,2,3,3)=a*D(i,j,1,3,2)+PB*D(i,j,2,3,2)+2.0_dp*D(i,j,3,3,2)
+                   D(i,j,3,3,3)=a*D(i,j,2,3,2)+PB*D(i,j,3,3,2)+3.0_dp*D(i,j,4,3,2)
+                   D(i,j,4,3,3)=a*D(i,j,3,3,2)+PB*D(i,j,4,3,2)
+                   D(i,j,5,3,3)=a*D(i,j,4,3,2)
+
+                elseif (l1==3) then
+                   a=0.5/gaP
+                   D(i,j,1,1,2)=PB
+                   D(i,j,2,1,2)=a
+                   D(i,j,1,1,3)=PB*D(i,j,1,1,2)+D(i,j,2,1,2)
+                   D(i,j,2,1,3)=a*D(i,j,1,1,2)+PB*D(i,j,2,1,2)
+                   D(i,j,3,1,3)=a*D(i,j,2,1,2)
+                   D(i,j,1,1,4)=PB*D(i,j,1,1,3)+D(i,j,2,1,3)
+                   D(i,j,2,1,4)=a*D(i,j,1,1,3)+PB*D(i,j,2,1,3)+2.0_dp*D(i,j,3,1,3)
+                   D(i,j,3,1,4)=a*D(i,j,2,1,3)+PB*D(i,j,3,1,3)
+                   D(i,j,4,1,4)=a*D(i,j,3,1,3)
+                   D(i,j,1,2,1)=PA
+                   D(i,j,2,2,1)=a
+                   D(i,j,1,2,2)=PB*D(i,j,1,2,1)+D(i,j,2,2,1)
+                   D(i,j,2,2,2)=a*D(i,j,1,2,1)+PB*D(i,j,2,2,1)
+                   D(i,j,3,2,2)=a*D(i,j,2,2,1)
+                   D(i,j,1,2,3)=PB*D(i,j,1,2,2)+D(i,j,2,2,2)
+                   D(i,j,2,2,3)=a*D(i,j,1,2,2)+PB*D(i,j,2,2,2)+2.0_dp*D(i,j,3,2,2)
+                   D(i,j,3,2,3)=a*D(i,j,2,2,2)+PB*D(i,j,3,2,2)
+                   D(i,j,4,2,3)=a*D(i,j,3,2,2)
+                   D(i,j,1,2,4)=PB*D(i,j,1,2,3)+D(i,j,2,2,3)
+                   D(i,j,2,2,4)=a*D(i,j,1,2,3)+PB*D(i,j,2,2,3)+2.0_dp*D(i,j,3,2,3)
+                   D(i,j,3,2,4)=a*D(i,j,2,2,3)+PB*D(i,j,3,2,3)+3.0_dp*D(i,j,4,2,3)
+                   D(i,j,4,2,4)=a*D(i,j,3,2,3)+PB*D(i,j,4,2,3)
+                   D(i,j,5,2,4)=a*D(i,j,4,2,3)
+                   D(i,j,1,3,1)=PA*D(i,j,1,2,1)+D(i,j,2,2,1)
+                   D(i,j,2,3,1)=a*D(i,j,1,2,1)+PA*D(i,j,2,2,1)
+                   D(i,j,3,3,1)=a*D(i,j,2,2,1)
+                   D(i,j,1,3,2)=PB*D(i,j,1,3,1)+D(i,j,2,3,1)
+                   D(i,j,2,3,2)=a*D(i,j,1,3,1)+PB*D(i,j,2,3,1)+2.0_dp*D(i,j,3,3,1)
+                   D(i,j,3,3,2)=a*D(i,j,2,3,1)+PB*D(i,j,3,3,1)
+                   D(i,j,4,3,2)=a*D(i,j,3,3,1)
+                   D(i,j,1,3,3)=PB*D(i,j,1,3,2)+D(i,j,2,3,2)
+                   D(i,j,2,3,3)=a*D(i,j,1,3,2)+PB*D(i,j,2,3,2)+2.0_dp*D(i,j,3,3,2)
+                   D(i,j,3,3,3)=a*D(i,j,2,3,2)+PB*D(i,j,3,3,2)+3.0_dp*D(i,j,4,3,2)
+                   D(i,j,4,3,3)=a*D(i,j,3,3,2)+PB*D(i,j,4,3,2)
+                   D(i,j,5,3,3)=a*D(i,j,4,3,2)
+                   D(i,j,1,3,4)=PB*D(i,j,1,3,3)+D(i,j,2,3,3)
+                   D(i,j,2,3,4)=a*D(i,j,1,3,3)+PB*D(i,j,2,3,3)+2.0_dp*D(i,j,3,3,3)
+                   D(i,j,3,3,4)=a*D(i,j,2,3,3)+PB*D(i,j,3,3,3)+3.0_dp*D(i,j,4,3,3)
+                   D(i,j,4,3,4)=a*D(i,j,3,3,3)+PB*D(i,j,4,3,3)+4.0_dp*D(i,j,5,3,3)
+                   D(i,j,5,3,4)=a*D(i,j,4,3,3)+PB*D(i,j,5,3,3)
+                   D(i,j,6,3,4)=a*D(i,j,5,3,3)
+                   D(i,j,1,4,1)=PA*D(i,j,1,3,1)+D(i,j,2,3,1)
+                   D(i,j,2,4,1)=a*D(i,j,1,3,1)+PA*D(i,j,2,3,1)+2.0_dp*D(i,j,3,3,1)
+                   D(i,j,3,4,1)=a*D(i,j,2,3,1)+PA*D(i,j,3,3,1)
+                   D(i,j,4,4,1)=a*D(i,j,3,3,1)
+                   D(i,j,1,4,2)=PB*D(i,j,1,4,1)+D(i,j,2,4,1)
+                   D(i,j,2,4,2)=a*D(i,j,1,4,1)+PB*D(i,j,2,4,1)+2.0_dp*D(i,j,3,4,1)
+                   D(i,j,3,4,2)=a*D(i,j,2,4,1)+PB*D(i,j,3,4,1)+3.0_dp*D(i,j,4,4,1)
+                   D(i,j,4,4,2)=a*D(i,j,3,4,1)+PB*D(i,j,4,4,1)
+                   D(i,j,5,4,2)=a*D(i,j,4,4,1)
+                   D(i,j,1,4,3)=PB*D(i,j,1,4,2)+D(i,j,2,4,2)
+                   D(i,j,2,4,3)=a*D(i,j,1,4,2)+PB*D(i,j,2,4,2)+2.0_dp*D(i,j,3,4,2)
+                   D(i,j,3,4,3)=a*D(i,j,2,4,2)+PB*D(i,j,3,4,2)+3.0_dp*D(i,j,4,4,2)
+                   D(i,j,4,4,3)=a*D(i,j,3,4,2)+PB*D(i,j,4,4,2)+4.0_dp*D(i,j,5,4,2)
+                   D(i,j,5,4,3)=a*D(i,j,4,4,2)+PB*D(i,j,5,4,2)
+                   D(i,j,6,4,3)=a*D(i,j,5,4,2)
+                   D(i,j,1,4,4)=PB*D(i,j,1,4,3)+D(i,j,2,4,3)
+                   D(i,j,2,4,4)=a*D(i,j,1,4,3)+PB*D(i,j,2,4,3)+2.0_dp*D(i,j,3,4,3)
+                   D(i,j,3,4,4)=a*D(i,j,2,4,3)+PB*D(i,j,3,4,3)+3.0_dp*D(i,j,4,4,3)
+                   D(i,j,4,4,4)=a*D(i,j,3,4,3)+PB*D(i,j,4,4,3)+4.0_dp*D(i,j,5,4,3)
+                   D(i,j,5,4,4)=a*D(i,j,4,4,3)+PB*D(i,j,5,4,3)+5.0_dp*D(i,j,6,4,3)
+                   D(i,j,6,4,4)=a*D(i,j,5,4,3)+PB*D(i,j,6,4,3)
+                   D(i,j,7,4,4)=a*D(i,j,6,4,3)
+
+                elseif (l1==4) then
+                   a=0.5/gaP
+                   D(i,j,1,1,2)=PB
+                   D(i,j,2,1,2)=a
+                   D(i,j,1,1,3)=PB*D(i,j,1,1,2)+D(i,j,2,1,2)
+                   D(i,j,2,1,3)=a*D(i,j,1,1,2)+PB*D(i,j,2,1,2)
+                   D(i,j,3,1,3)=a*D(i,j,2,1,2)
+                   D(i,j,1,1,4)=PB*D(i,j,1,1,3)+D(i,j,2,1,3)
+                   D(i,j,2,1,4)=a*D(i,j,1,1,3)+PB*D(i,j,2,1,3)+2.0_dp*D(i,j,3,1,3)
+                   D(i,j,3,1,4)=a*D(i,j,2,1,3)+PB*D(i,j,3,1,3)
+                   D(i,j,4,1,4)=a*D(i,j,3,1,3)
+                   D(i,j,1,1,5)=PB*D(i,j,1,1,4)+D(i,j,2,1,4)
+                   D(i,j,2,1,5)=a*D(i,j,1,1,4)+PB*D(i,j,2,1,4)+2.0_dp*D(i,j,3,1,4)
+                   D(i,j,3,1,5)=a*D(i,j,2,1,4)+PB*D(i,j,3,1,4)+3.0_dp*D(i,j,4,1,4)
+                   D(i,j,4,1,5)=a*D(i,j,3,1,4)+PB*D(i,j,4,1,4)
+                   D(i,j,5,1,5)=a*D(i,j,4,1,4)
+                   D(i,j,1,2,1)=PA
+                   D(i,j,2,2,1)=a
+                   D(i,j,1,2,2)=PB*D(i,j,1,2,1)+D(i,j,2,2,1)
+                   D(i,j,2,2,2)=a*D(i,j,1,2,1)+PB*D(i,j,2,2,1)
+                   D(i,j,3,2,2)=a*D(i,j,2,2,1)
+                   D(i,j,1,2,3)=PB*D(i,j,1,2,2)+D(i,j,2,2,2)
+                   D(i,j,2,2,3)=a*D(i,j,1,2,2)+PB*D(i,j,2,2,2)+2.0_dp*D(i,j,3,2,2)
+                   D(i,j,3,2,3)=a*D(i,j,2,2,2)+PB*D(i,j,3,2,2)
+                   D(i,j,4,2,3)=a*D(i,j,3,2,2)
+                   D(i,j,1,2,4)=PB*D(i,j,1,2,3)+D(i,j,2,2,3)
+                   D(i,j,2,2,4)=a*D(i,j,1,2,3)+PB*D(i,j,2,2,3)+2.0_dp*D(i,j,3,2,3)
+                   D(i,j,3,2,4)=a*D(i,j,2,2,3)+PB*D(i,j,3,2,3)+3.0_dp*D(i,j,4,2,3)
+                   D(i,j,4,2,4)=a*D(i,j,3,2,3)+PB*D(i,j,4,2,3)
+                   D(i,j,5,2,4)=a*D(i,j,4,2,3)
+                   D(i,j,1,2,5)=PB*D(i,j,1,2,4)+D(i,j,2,2,4)
+                   D(i,j,2,2,5)=a*D(i,j,1,2,4)+PB*D(i,j,2,2,4)+2.0_dp*D(i,j,3,2,4)
+                   D(i,j,3,2,5)=a*D(i,j,2,2,4)+PB*D(i,j,3,2,4)+3.0_dp*D(i,j,4,2,4)
+                   D(i,j,4,2,5)=a*D(i,j,3,2,4)+PB*D(i,j,4,2,4)+4.0_dp*D(i,j,5,2,4)
+                   D(i,j,5,2,5)=a*D(i,j,4,2,4)+PB*D(i,j,5,2,4)
+                   D(i,j,6,2,5)=a*D(i,j,5,2,4)
+                   D(i,j,1,3,1)=PA*D(i,j,1,2,1)+D(i,j,2,2,1)
+                   D(i,j,2,3,1)=a*D(i,j,1,2,1)+PA*D(i,j,2,2,1)
+                   D(i,j,3,3,1)=a*D(i,j,2,2,1)
+                   D(i,j,1,3,2)=PB*D(i,j,1,3,1)+D(i,j,2,3,1)
+                   D(i,j,2,3,2)=a*D(i,j,1,3,1)+PB*D(i,j,2,3,1)+2.0_dp*D(i,j,3,3,1)
+                   D(i,j,3,3,2)=a*D(i,j,2,3,1)+PB*D(i,j,3,3,1)
+                   D(i,j,4,3,2)=a*D(i,j,3,3,1)
+                   D(i,j,1,3,3)=PB*D(i,j,1,3,2)+D(i,j,2,3,2)
+                   D(i,j,2,3,3)=a*D(i,j,1,3,2)+PB*D(i,j,2,3,2)+2.0_dp*D(i,j,3,3,2)
+                   D(i,j,3,3,3)=a*D(i,j,2,3,2)+PB*D(i,j,3,3,2)+3.0_dp*D(i,j,4,3,2)
+                   D(i,j,4,3,3)=a*D(i,j,3,3,2)+PB*D(i,j,4,3,2)
+                   D(i,j,5,3,3)=a*D(i,j,4,3,2)
+                   D(i,j,1,3,4)=PB*D(i,j,1,3,3)+D(i,j,2,3,3)
+                   D(i,j,2,3,4)=a*D(i,j,1,3,3)+PB*D(i,j,2,3,3)+2.0_dp*D(i,j,3,3,3)
+                   D(i,j,3,3,4)=a*D(i,j,2,3,3)+PB*D(i,j,3,3,3)+3.0_dp*D(i,j,4,3,3)
+                   D(i,j,4,3,4)=a*D(i,j,3,3,3)+PB*D(i,j,4,3,3)+4.0_dp*D(i,j,5,3,3)
+                   D(i,j,5,3,4)=a*D(i,j,4,3,3)+PB*D(i,j,5,3,3)
+                   D(i,j,6,3,4)=a*D(i,j,5,3,3)
+                   D(i,j,1,3,5)=PB*D(i,j,1,3,4)+D(i,j,2,3,4)
+                   D(i,j,2,3,5)=a*D(i,j,1,3,4)+PB*D(i,j,2,3,4)+2.0_dp*D(i,j,3,3,4)
+                   D(i,j,3,3,5)=a*D(i,j,2,3,4)+PB*D(i,j,3,3,4)+3.0_dp*D(i,j,4,3,4)
+                   D(i,j,4,3,5)=a*D(i,j,3,3,4)+PB*D(i,j,4,3,4)+4.0_dp*D(i,j,5,3,4)
+                   D(i,j,5,3,5)=a*D(i,j,4,3,4)+PB*D(i,j,5,3,4)+5.0_dp*D(i,j,6,3,4)
+                   D(i,j,6,3,5)=a*D(i,j,5,3,4)+PB*D(i,j,6,3,4)
+                   D(i,j,7,3,5)=a*D(i,j,6,3,4)
+                   D(i,j,1,4,1)=PA*D(i,j,1,3,1)+D(i,j,2,3,1)
+                   D(i,j,2,4,1)=a*D(i,j,1,3,1)+PA*D(i,j,2,3,1)+2.0_dp*D(i,j,3,3,1)
+                   D(i,j,3,4,1)=a*D(i,j,2,3,1)+PA*D(i,j,3,3,1)
+                   D(i,j,4,4,1)=a*D(i,j,3,3,1)
+                   D(i,j,1,4,2)=PB*D(i,j,1,4,1)+D(i,j,2,4,1)
+                   D(i,j,2,4,2)=a*D(i,j,1,4,1)+PB*D(i,j,2,4,1)+2.0_dp*D(i,j,3,4,1)
+                   D(i,j,3,4,2)=a*D(i,j,2,4,1)+PB*D(i,j,3,4,1)+3.0_dp*D(i,j,4,4,1)
+                   D(i,j,4,4,2)=a*D(i,j,3,4,1)+PB*D(i,j,4,4,1)
+                   D(i,j,5,4,2)=a*D(i,j,4,4,1)
+                   D(i,j,1,4,3)=PB*D(i,j,1,4,2)+D(i,j,2,4,2)
+                   D(i,j,2,4,3)=a*D(i,j,1,4,2)+PB*D(i,j,2,4,2)+2.0_dp*D(i,j,3,4,2)
+                   D(i,j,3,4,3)=a*D(i,j,2,4,2)+PB*D(i,j,3,4,2)+3.0_dp*D(i,j,4,4,2)
+                   D(i,j,4,4,3)=a*D(i,j,3,4,2)+PB*D(i,j,4,4,2)+4.0_dp*D(i,j,5,4,2)
+                   D(i,j,5,4,3)=a*D(i,j,4,4,2)+PB*D(i,j,5,4,2)
+                   D(i,j,6,4,3)=a*D(i,j,5,4,2)
+                   D(i,j,1,4,4)=PB*D(i,j,1,4,3)+D(i,j,2,4,3)
+                   D(i,j,2,4,4)=a*D(i,j,1,4,3)+PB*D(i,j,2,4,3)+2.0_dp*D(i,j,3,4,3)
+                   D(i,j,3,4,4)=a*D(i,j,2,4,3)+PB*D(i,j,3,4,3)+3.0_dp*D(i,j,4,4,3)
+                   D(i,j,4,4,4)=a*D(i,j,3,4,3)+PB*D(i,j,4,4,3)+4.0_dp*D(i,j,5,4,3)
+                   D(i,j,5,4,4)=a*D(i,j,4,4,3)+PB*D(i,j,5,4,3)+5.0_dp*D(i,j,6,4,3)
+                   D(i,j,6,4,4)=a*D(i,j,5,4,3)+PB*D(i,j,6,4,3)
+                   D(i,j,7,4,4)=a*D(i,j,6,4,3)
+                   D(i,j,1,4,5)=PB*D(i,j,1,4,4)+D(i,j,2,4,4)
+                   D(i,j,2,4,5)=a*D(i,j,1,4,4)+PB*D(i,j,2,4,4)+2.0_dp*D(i,j,3,4,4)
+                   D(i,j,3,4,5)=a*D(i,j,2,4,4)+PB*D(i,j,3,4,4)+3.0_dp*D(i,j,4,4,4)
+                   D(i,j,4,4,5)=a*D(i,j,3,4,4)+PB*D(i,j,4,4,4)+4.0_dp*D(i,j,5,4,4)
+                   D(i,j,5,4,5)=a*D(i,j,4,4,4)+PB*D(i,j,5,4,4)+5.0_dp*D(i,j,6,4,4)
+                   D(i,j,6,4,5)=a*D(i,j,5,4,4)+PB*D(i,j,6,4,4)+6.0_dp*D(i,j,7,4,4)
+                   D(i,j,7,4,5)=a*D(i,j,6,4,4)+PB*D(i,j,7,4,4)
+                   D(i,j,8,4,5)=a*D(i,j,7,4,4)
+                   D(i,j,1,5,1)=PA*D(i,j,1,4,1)+D(i,j,2,4,1)
+                   D(i,j,2,5,1)=a*D(i,j,1,4,1)+PA*D(i,j,2,4,1)+2.0_dp*D(i,j,3,4,1)
+                   D(i,j,3,5,1)=a*D(i,j,2,4,1)+PA*D(i,j,3,4,1)+3.0_dp*D(i,j,4,4,1)
+                   D(i,j,4,5,1)=a*D(i,j,3,4,1)+PA*D(i,j,4,4,1)
+                   D(i,j,5,5,1)=a*D(i,j,4,4,1)
+                   D(i,j,1,5,2)=PB*D(i,j,1,5,1)+D(i,j,2,5,1)
+                   D(i,j,2,5,2)=a*D(i,j,1,5,1)+PB*D(i,j,2,5,1)+2.0_dp*D(i,j,3,5,1)
+                   D(i,j,3,5,2)=a*D(i,j,2,5,1)+PB*D(i,j,3,5,1)+3.0_dp*D(i,j,4,5,1)
+                   D(i,j,4,5,2)=a*D(i,j,3,5,1)+PB*D(i,j,4,5,1)+4.0_dp*D(i,j,5,5,1)
+                   D(i,j,5,5,2)=a*D(i,j,4,5,1)+PB*D(i,j,5,5,1)
+                   D(i,j,6,5,2)=a*D(i,j,5,5,1)
+                   D(i,j,1,5,3)=PB*D(i,j,1,5,2)+D(i,j,2,5,2)
+                   D(i,j,2,5,3)=a*D(i,j,1,5,2)+PB*D(i,j,2,5,2)+2.0_dp*D(i,j,3,5,2)
+                   D(i,j,3,5,3)=a*D(i,j,2,5,2)+PB*D(i,j,3,5,2)+3.0_dp*D(i,j,4,5,2)
+                   D(i,j,4,5,3)=a*D(i,j,3,5,2)+PB*D(i,j,4,5,2)+4.0_dp*D(i,j,5,5,2)
+                   D(i,j,5,5,3)=a*D(i,j,4,5,2)+PB*D(i,j,5,5,2)+5.0_dp*D(i,j,6,5,2)
+                   D(i,j,6,5,3)=a*D(i,j,5,5,2)+PB*D(i,j,6,5,2)
+                   D(i,j,7,5,3)=a*D(i,j,6,5,2)
+                   D(i,j,1,5,4)=PB*D(i,j,1,5,3)+D(i,j,2,5,3)
+                   D(i,j,2,5,4)=a*D(i,j,1,5,3)+PB*D(i,j,2,5,3)+2.0_dp*D(i,j,3,5,3)
+                   D(i,j,3,5,4)=a*D(i,j,2,5,3)+PB*D(i,j,3,5,3)+3.0_dp*D(i,j,4,5,3)
+                   D(i,j,4,5,4)=a*D(i,j,3,5,3)+PB*D(i,j,4,5,3)+4.0_dp*D(i,j,5,5,3)
+                   D(i,j,5,5,4)=a*D(i,j,4,5,3)+PB*D(i,j,5,5,3)+5.0_dp*D(i,j,6,5,3)
+                   D(i,j,6,5,4)=a*D(i,j,5,5,3)+PB*D(i,j,6,5,3)+6.0_dp*D(i,j,7,5,3)
+                   D(i,j,7,5,4)=a*D(i,j,6,5,3)+PB*D(i,j,7,5,3)
+                   D(i,j,8,5,4)=a*D(i,j,7,5,3)
+                   D(i,j,1,5,5)=PB*D(i,j,1,5,4)+D(i,j,2,5,4)
+                   D(i,j,2,5,5)=a*D(i,j,1,5,4)+PB*D(i,j,2,5,4)+2.0_dp*D(i,j,3,5,4)
+                   D(i,j,3,5,5)=a*D(i,j,2,5,4)+PB*D(i,j,3,5,4)+3.0_dp*D(i,j,4,5,4)
+                   D(i,j,4,5,5)=a*D(i,j,3,5,4)+PB*D(i,j,4,5,4)+4.0_dp*D(i,j,5,5,4)
+                   D(i,j,5,5,5)=a*D(i,j,4,5,4)+PB*D(i,j,5,5,4)+5.0_dp*D(i,j,6,5,4)
+                   D(i,j,6,5,5)=a*D(i,j,5,5,4)+PB*D(i,j,6,5,4)+6.0_dp*D(i,j,7,5,4)
+                   D(i,j,7,5,5)=a*D(i,j,6,5,4)+PB*D(i,j,7,5,4)+7.0_dp*D(i,j,8,5,4)
+                   D(i,j,8,5,5)=a*D(i,j,7,5,4)+PB*D(i,j,8,5,4)
+                   D(i,j,9,5,5)=a*D(i,j,8,5,4)
+
+                else
+                   print*, "McMurchie-Davidson Coefficients are only implemented up to g-functions."
+                   stop
+
+                end if
+
+        end do
+
+    END SUBROUTINE fill_md_table
+
+end module MD

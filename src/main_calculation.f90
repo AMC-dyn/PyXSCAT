@@ -61,8 +61,8 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp), dimension(nq):: result2
         real(kind=dp), intent(out), dimension(:), allocatable:: result,q_abs
         REAL(kind=dp), DIMENSION(size(q),4*maxval(l)+1,4*maxval(l)+1,4*maxval(l)+1) :: P0matrix
-         real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
-           real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ngto,ngto) :: ddxx,ddyy,ddzz
+        real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ng,ng) :: ddx,ddy,ddz
+        real(kind=dp),  dimension(maxl*2+1,maxl+1,maxl+1,ngto,ngto) :: ddxx,ddyy,ddzz
         real(kind=dp), dimension(ng,ng) :: px,py,pz
         real(kind=dp), dimension(ngto,ngto) :: pxx,pyy,pzz
         real(kind=dp),  dimension(:,:,:,:), allocatable :: zcontr
@@ -70,7 +70,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp),  dimension(:), allocatable :: total,newtotal
         real(kind=dp),  dimension(nq,ng,ng) :: e12
         real(kind=dp), dimension(nq,ngto,ngto)::e12p
-        real(kind=dp),  dimension(3131,ngto,ngto):: E123
+        real(kind=dp),  dimension(3131,1,1):: E123
         INTEGER(kind=ikind), DIMENSION(maxval(group))   :: group_start, group_count
         integer(kind=ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind=ikind), dimension(:,:), allocatable :: mat,ep3,ndiff2
@@ -82,6 +82,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
         real(kind=dp),dimension(3131):: q_abs_2
         real(KIND=dp), dimension(nq) :: ss,ss2,Iee,Inn,Ine
 
+         print*,'Entering Main routine'
          print*,nq
          print*,ngto,size(E123(:,1,1)),size(E123(1,:,1)), size(E123(1,1,:))
          print*,ngto,size(E12(:,1,1)),size(E12(1,:,1)), size(E12(1,1,:))
@@ -107,9 +108,10 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
             P0matrix = 0.0_dp
             CALL set_P0(P0matrix, 4*maxval(l), q)
+            print*,'calling max coincidence'
            ! CALL set_P0(P0matrix, 4*maxval(l), q)
             call maxcoincidence(confs,ep3,ndiff2)
-
+            print*,'twordm routine'
             call createtwordm(confs,civecs,ndiff2,ep3,mat,total,state1,state2)
 
             allocate(m1(size(mat(:,1))), m2(size(mat(:,1))), m3(size(mat(:,1))), m4(size(mat(:,1))))
@@ -121,7 +123,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
             print*,'size nmat', nmat
 
-            bigcalc=1
+            bigcalc=0
 
             if (bigcalc==1) then
 

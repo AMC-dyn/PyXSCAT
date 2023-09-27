@@ -121,7 +121,7 @@ subroutine total_scattering_calculation(type,Zn,geom,state1,state2,maxl,ngto,ng,
 
             print*,'size nmat', nmat
 
-            bigcalc=1
+            bigcalc=0
 
             if (bigcalc==1) then
 

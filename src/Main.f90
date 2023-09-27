@@ -1,7 +1,10 @@
 program main
     use omp_lib
     use main_calculation_mod
+    use Reader
     use linspace
+    use TSj0groups
+    use TSj0contr
     implicit none
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
@@ -11,7 +14,7 @@ program main
     integer(kind=ikind):: ngtos,norbs,nconfs,nstates,state1,state2,natoms,ncontr
     integer(kind=ikind),dimension(:,:), allocatable:: confs
     real(kind=dp),dimension(:), allocatable:: q
-     real(kind=dp),dimension(:), allocatable:: coeffs
+    real(kind=dp),dimension(:), allocatable:: coeffs
     real(kind=dp),dimension(:,:), allocatable:: civs
     real(kind=dp),dimension(:,:), allocatable:: mmod
     real(kind=dp),dimension(:,:), allocatable:: geom
@@ -21,106 +24,19 @@ program main
     integer*8, dimension(1,1):: newdat
     real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc
-    integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq
+    integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq,count
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
      
-     !call OMP_set_num_threads(20) 
-     print*,OMP_get_num_threads()    
-    open(unit=15, file='basis2.dat')
-    read(15,*)ngtos
-    allocate(xx(ngtos), yy(ngtos), zz(ngtos), ga(ngtos), l(ngtos), m(ngtos), n(ngtos), group(ngtos))
-    do i=1,ngtos
-        read(15,*)xx(i), yy(i),zz(i), ga(i), l(i), m(i), n(i), group(i)
-    end do
-    close(15)
-    maxl=maxval(l)
-    ng=maxval(group)
 
-    open(unit=15, file='MOs.dat')
-    read(15,*)norbs,ngtos
-    allocate(mmod(norbs,ngtos))
-    print*,norbs,ngtos
-    do i=1,norbs
-        read(15,*) (mmod(i,j), j=1, ngtos)
-    end do
-    close(15)
-     open(unit=15, file='coeffs2.dat')
-     read(15,*)
-     allocate(coeffs(ngtos))
-     do i=1,ngtos
-      read(15,*) coeffs(i)
-    end do
-     read(15,*)ncontr
-     allocate(gs(ncontr), gf(ncontr), gc(ncontr))
-     do i=1,ncontr
-         read(15,*) gs(i), gf(i),gc(i)
-    end do
-    close(15)
-    open(unit=15, file='options.dat')
-    read(15,*)natoms
-    allocate(atoms(natoms))
-    read(15,*)(atoms(i), i=1,natoms)
-    allocate(geom(natoms,3))
-    do i=1,natoms
-        read(15,*)(geom(i,j), j=1,3)
-    end do
-    read(15,*)cutoffcentre
-    read(15,*)cutoffz
-    read(15,*)cutoffmd
-    read(15,*)jeremyR
-    print*,'jeremyR is ', jeremyR
+    call read_files(nconfs,ngtos,norbs,ng,ncontr,state1,state2,natoms,typec,maxl,npoints, &
+               cutoffcentre,cutoffz,cutoffmd,atoms,coeffs,xx,yy,zz,ga,l,m,n,group,mmod,geom, &
+               jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,&
+               file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,bitwise)
 
-    read(15,*)mcci
-    read(15,*)hf
-    read(15,*)qmin,qmax,npoints
-    read(15,*)Typec
-    read(15,*)state1,state2
-    read(15,*)file_out
-  read(15,*)molpro
-  read(15,*)molcas
-  read(15,*)bagel
-  print*,'molpro is ', molpro
-  print*,'molcas is ', molcas
-  print*,'bagel is ', bagel
-    if (molpro.eqv..True.) then
-        read(15,*)nconfs
-        read(15,*)lconfs
-        read(15,*)ncivs
-        if (nconfs<1E5) then
 
-            allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
 
-            do i=1,nconfs
-
-                read(15,*)(confs(i,j),j=1,lconfs),(civs(i,j), j=1,ncivs)
-            end do
-        else
-          bitwise=.True.
-          file_bit='bitwise.dat'
-        end if
-
-  else if (molcas.eqv..True.) then
-    read(15,*)nconfs
-    read(15,*)lconfs
-    read(15,*)ncivs
-    allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
-
-    do i=1,nconfs
-
-    read(15,*)(confs(i,j),j=1,lconfs),(civs(i,j), j=1,ncivs)
-    end do
-  else if (bagel.eqv..True.) then
-    read(15,*)nconfs
-    read(15,*)lconfs
-    read(15,*)ncivs
-    allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
-
-    do i=1,nconfs
-
-    read(15,*)(confs(i,j),j=1,lconfs),(civs(i,j), j=1,ncivs)
-    end do
-    else
-            read(15,*) var
+    if (molpro.eqv..False. .and. molcas.eqv..False. .and. bagel.eqv..False.)  then
+            !read(15,*) var
             print*,var
             var2rdm='readtwordm'
             print*,var2rdm
@@ -128,9 +44,20 @@ program main
             if (var==var2rdm) then
               print*,'We have a 2RDM to read'
 
-              read(15,*) file_bit
+              !read(15,*) file_bit
               print*,file_bit
-              close(15)
+              open(unit=15, file=file_bit)
+              count=0
+              do while(.true.)
+                  read (10, *, end=999) i
+                  count=count+1
+              end do
+
+
+999           continue
+              nconfs=count
+
+              !close(15)
 
               call linspace_1(qmin,qmax,npoints,q)
 
@@ -153,7 +80,7 @@ program main
               ordering1 = 0
               ordering2 = 0
               end_2 = 0
-              nconfs=2030233
+
               print*,mmod
               call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
       Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &
@@ -173,12 +100,24 @@ program main
     print*,'out of loop'
     close(15)
     call linspace_1(qmin,qmax,npoints,q)
-    print*,nq, npoints
+    print*,nq, npoints,maxl,ngtos
     nq=npoints
     if (bitwise.eqv..False.) then
+    print*,'calling total_scattering'
+    if (typec/=1 .and. typec/=11) then
     call total_scattering_calculation(Typec, atoms, geom, state1, &
             state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
             ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
+    elseif (typec==1) then
+        call total_scattering_j0_groups(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
+            cutoffmd, cutoffz, cutoffcentre, result)
+    elseif (typec==11) then
+        call total_scattering_j0_ncontr(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
+            cutoffmd, cutoffz, cutoffcentre, result)
+
+    end if
     else
         newdat = 0
         start1 = 0

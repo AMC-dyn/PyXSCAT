@@ -545,13 +545,13 @@ module integrals
         if (any(isnan(p0matrix))) print*,'ouch'
 
 
-         ngto=44
+         ngto=sum(gc)
          call dphrec(q,BesselQ,206,206,nq)
          print*,'BesselQ', BesselQ(1,10), size(BesselQ)
          do i=0,199
               BesselQ2(i+1,:)=(-1.0_dp)**float(i)/fact(dble(i))*(q/2.d0)**float(i)
          end do
-         print*,BesselQ(1,1)
+         print*,BesselQ(1,1),ncontr,ngto
 
         allocate(Zbig(ncontr,ncontr,ncontr,ncontr))
 
