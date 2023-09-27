@@ -45,7 +45,7 @@ Type = 11
 # Ouput name
 mldfile = 'co_cas.mld'
 punfile = 'co_cas.pun'
-outfile = 'try_new_routine.dat'
+outfile = 'try_new_routine_2.dat'
 
 readtwordm = False
 file_read_twordm = 'QC-2RDM-AD.dat'
