@@ -487,7 +487,7 @@ contains
           print*,'Main routine with ', ncontr, ' and ', ngto
 
          call dphrec(q,BesselQ,206,206,nq)
-
+         BesselQ2=0.0_dp
          do i=0,199
               BesselQ2(i+1,:)=(-1.0_dp)**float(i)/fact(dble(i))*(q/2.d0)**float(i)
          end do
@@ -504,7 +504,6 @@ contains
         print*,gf(:)
         do i=1,ncontr
             veccounts(gs(i):gf(i))=i
-
         end do
         newgto=CEILING(1.d0/24.d0*(ngto-2)*(ngto-1)*(3*ngto-1)*ngto)
         ncontr2=2
@@ -534,6 +533,7 @@ contains
         do iii=1,newgto
             !print*,i,j,k,r
             !Sprint*,ii,jj,kk,rr,i,j,k,r
+
             i=bigvec(1,iii)
             j=bigvec(2,iii)
             k=bigvec(3,iii)

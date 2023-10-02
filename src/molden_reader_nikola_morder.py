@@ -271,13 +271,13 @@ def _read_contractions(file):
     for a in (GTOs):
         contr.append(a.contraction)
     contr=np.asarray(contr)
-    print(contr)
+    print('contr',contr)
     idx=np.argsort(contr, kind='mergesort')
     print(contr[idx])
 
     print(idx)
 
-    return GTOs, groupC,idx
+    return GTOs, groupC,idx,contr
 
 
 def _read_MO(file, mo_cutoff):
@@ -494,7 +494,7 @@ def _gtos2numpy(GTOs,idx):
         group[i] = GTOs[i].group
         mo[i, :] = GTOs[i].mo
 
-    return ArrayGTO(mo, x[idx], y[idx], z[idx], ga[idx], l[idx], m[idx], n[idx], group[idx])
+    return ArrayGTO(mo, x, y, z, ga, l, m, n, group)
 
 
 def _read_MO_GTOs(file, N, decontract=True):
@@ -502,7 +502,7 @@ def _read_MO_GTOs(file, N, decontract=True):
     # read the geometry
     molecule = _read_atoms_file(file)
     # read the GTOs
-    GTOs, GroupC,idx = _read_contractions(file)
+    GTOs, GroupC,idx,contr = _read_contractions(file)
     # read the MO and assign to each primitive
     (mo_table, occ, energy, syms) = _read_MO(file, N)
 
@@ -521,7 +521,7 @@ def _read_MO_GTOs(file, N, decontract=True):
     gto_array.energy = energy
     gto_array.syms = syms
 
-    return gto_array, coeffs[idx], mo_table, GroupC
+    return gto_array, coeffs, mo_table, GroupC,contr
 
 
 def read_orbitals(file, N=10000, decontract=True):
@@ -532,11 +532,11 @@ def read_orbitals(file, N=10000, decontract=True):
     """
     if isinstance(file, str):
         with open(file, 'r') as f:
-            gtos, coeffs, mo_table, GroupC = _read_MO_GTOs(f, N, decontract)
+            gtos, coeffs, mo_table, GroupC ,contr= _read_MO_GTOs(f, N, decontract)
             atoms = _read_atoms_file(f)
     else:
         return _read_MO_GTOs(file, N, decontract)
-    return gtos, atoms, coeffs, mo_table, GroupC
+    return gtos, atoms, coeffs, mo_table, GroupC,contr
 
 
 def read_occupied_orbitals(file, decontract=False):

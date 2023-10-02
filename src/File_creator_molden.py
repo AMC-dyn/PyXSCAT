@@ -41,7 +41,7 @@ largeconf = False
 # ELASTIC ELECTRON --> 6
 # TOTAL J2 --> 7
 # ELASTIC J2 --> 8
-Type = 11
+Type = 1
 # Ouput name
 mldfile = 'co_cas.mld'
 punfile = 'co_cas.pun'
@@ -74,10 +74,10 @@ if not jeremyR and not hf and not readtwordm:
 elif not jeremyR and hf:
     civs = [1.000]
     # The number of occupied orbs or he configuration used must be specified by the user in hf
-    norbs = 37
+    norbs = 12
     confs = ['ab' * norbs]
     print(confs)
-    Nmo_max = 37
+    Nmo_max = 12
 else:
     # If the 2rdm or Civector is constructed in a bit-wise manner, the number or orbitals needs to be specified here by the user
     confs = 0
@@ -94,7 +94,7 @@ elif bagel:
     gtos, atoms = bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro or readtwordm:
     Nmo_max = 100
-    gtos, atoms, coeffs, mos, groupC = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=False)
+    gtos, atoms, coeffs, mos, groupC,contr = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=False)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:
     f.write(str(np.size(atoms.atomic_numbers())) + '\n')
@@ -228,11 +228,15 @@ n = np.asarray(n)
 ga = np.asarray(ga)
 mmod = np.asarray(mmod, dtype=np.float64)
 
+print(np.argsort(group))
+
+
+
 with open('basis.dat', 'w') as f:
     f.write(str(np.size(l)) + '\n')
     for i in range(np.size(l)):
         f.write(str(xx[i]) + ' ' + str(yy[i]) + ' ' + str(zz[i]) + ' ' + str(ga[i]) + ' ' + str(l[i]) + ' ' + str(
-            m[i]) + ' ' + str(n[i]) + ' ' + str(group[i]) + '\n')
+            m[i]) + ' ' + str(n[i]) + ' ' + str(group[i]) + ' '+ str(contr[i])+'\n')
 with open('MOs.dat', 'w') as f:
     f.write(str(np.size(mmod[:, 0])) + ' ' + str(np.size(mmod[0, :])) + '\n')
     for i in range(np.size(mmod[:, 0])):

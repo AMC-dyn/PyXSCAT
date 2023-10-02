@@ -1,4 +1,4 @@
-Module TSj0groups
+Module TSj0groupsfast
     use Bessels_j0
     use p0_cases
     use twordms
@@ -6,9 +6,9 @@ Module TSj0groups
     implicit none
 contains
 
-    subroutine total_scattering_j0_groups(q, l, m, n, ngto, ng, nq, maxl, typec, state1, &
+    subroutine total_scattering_j0_groups_fast(q, l, m, n, ngto, ng, nq, maxl, typec, state1, &
             state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civecs, geom, &
-            cutoffmd, cutoffz, cutoffcentre, result2)
+            cutoffmd, cutoffz, cutoffcentre,contrvec, result2)
         implicit none
         !Precision parameters
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
@@ -16,7 +16,7 @@ contains
 
         !Entering variables from readers
         integer(kind = ikind), intent(in) :: ngto, ng, nq, maxl, typec, state1, state2, ncontr
-        integer(kind = ikind), intent(in), dimension(:), allocatable :: l, m, n, group, gs, gf, gc
+        integer(kind = ikind), intent(in), dimension(:), allocatable :: l, m, n, group, gs, gf, gc,contrvec
         integer(kind = ikind), dimension(:, :), allocatable, intent(in) :: confs
         real(kind = dp), intent(in), dimension(:), allocatable :: ga, xx, yy, zz, q, coeffs
         real(kind = dp), intent(in), dimension(:, :), allocatable :: mmod, civecs, geom
@@ -35,13 +35,15 @@ contains
         real(kind = dp), dimension(:,:),allocatable :: px, py, pz
         real(kind = dp), dimension(:, :, :),allocatable :: e12
         integer(kind = ikind), dimension(maxval(group)) :: group_start, group_count
+        integer(kind = ikind), dimension(size(group)) :: group_sorted
 
         !Result out
         real(kind = dp), allocatable, dimension(:), intent(out) :: Result2
-
+        group_sorted=group
+        call Bubble_Sort(group_sorted)
         do i = 1, Ng
             do j = 1, Ngto
-                if (group(j) == i) then
+                if (group_sorted(j) == i) then
                     group_start(i) = j
                     group_count(i) = count(group==i)
                     exit
@@ -56,6 +58,8 @@ contains
 
         call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
 
+        call system('python3 Zcontr.py')
+
         allocate(m1(size(mat(:, 1))), m2(size(mat(:, 1))), m3(size(mat(:, 1))), m4(size(mat(:, 1))))
         m1 = mat(:, 1)
         m2 = mat(:, 2)
@@ -66,9 +70,9 @@ contains
                 e12, maxl, ngto, ng, group_start, group_count, group, ga, l, m, n, xx, yy, zz, &
                 mmod, m1, m2, m3, m4, nmat, total, q, nq)
 
-        call tot_integration(ng, px, py, pz, l, m, n, p0matrix, ddx, ddy, ddz, z1, z2, &
+        call tot_integration(ng, ncontr,px, py, pz, l, m, n, p0matrix, ddx, ddy, ddz, z1, z2, &
                 group_start, group_count, group, &
-                cutoffz, cutoffmd, cutoffcentre, q, e12, result2)
+                gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeffs, e12, result2)
 
     end subroutine
 
@@ -181,7 +185,7 @@ contains
 
             enddo
         enddo
-        print*, 'suma1223',(sum(Z11(:, 1, 2) * Z22(:, 2, 3))+sum(Z11(:, 2, 3) * Z22(:, 1, 2)))/8.000
+        print*, sum(Z11(:, 1, 1) * Z22(:, 1, 1))
 
         obwohl = sum(abs(z11 - z22))
         if (counter==ngto**2) then
@@ -267,9 +271,9 @@ contains
 
     end subroutine variables_total
 
-    subroutine tot_integration(ncap, px, py, pz, l, m, n, p0matrix, dx, dy, dz, z1, z2, &
+    subroutine tot_integration(ncap,ncontr, px, py, pz, l, m, n, p0matrix, dx, dy, dz, z1, z2, &
             group_start, group_count, group, &
-            cutoffz, cutoffmd, cutoffcentre, q, e12, tsi)
+            gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeff, e12, tsi)
 
         use omp_lib
         implicit none
@@ -278,8 +282,11 @@ contains
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
 
         real(kind = kind(1.d0)), external :: ddot
-        INTEGER(kind = ikind), INTENT(IN) :: ncap
+        INTEGER(kind = ikind), INTENT(IN) :: ncap,ncontr
         INTEGER(kind = ikind), INTENT(IN), DIMENSION(:) :: l, m, n, group, group_start, group_count
+        INTEGER(kind = ikind), INTENT(IN), DIMENSION(:),allocatable:: gs,gf,gc,contrvec
+        real(kind=dp), intent(in), dimension(:)::coeff
+        real(kind=dp),  dimension(:),allocatable::c1,c2,c3,c4
 
         REAL(kind = dp), intent(in), dimension(:, :, :, :, :), target :: dx, dy, dz
         real(kind = dp), dimension(:, :, :), pointer :: dx1, dy1, dz1, dx2, dy2, dz2
@@ -292,32 +299,77 @@ contains
         REAL(kind = dp), intent(in) :: cutoffz, cutoffmd, cutoffcentre
 
         REAL(kind = dp), dimension(size(q)) :: f
-        integer(kind = ikind), dimension(:, :), allocatable :: posits
+        integer(kind = ikind), dimension(:, :), allocatable :: posits,vecgroup,vecgto
         real(kind = dp), dimension(:, :), allocatable :: za, zb, cmat
         integer(kind = ikind), dimension(:), allocatable :: posi, posj, posk, posr
         REAL(kind = dp), intent(out), dimension(:), allocatable :: tsi
         real(kind = dp) :: hx, hy, hz, h
         integer(kind = ikind), dimension(size(l)) :: ll
-        integer(kind = ikind) :: nq, i, j, k, r, count, ng, ii, jj
+        integer(kind = ikind) :: nq, i, j, k, r, count1, ng, ii, jj,npos
         integer(kind = ikind) :: spi, spj, spk, spr, szo, nt, ngto
         real(kind = dp), dimension(:, :, :, :), allocatable :: Zbig
+        integer(kind=ikind),dimension(size(l)) :: veccounts
+        integer(kind=ikind), dimension(:), allocatable::group_pos,ngtovec,group_sorted,group_pos2
 
         nq = size(q)
         ng = maxval(group)
         ll = l + m + n
-        allocate(posits(ng, maxval(group_count)), tsi(nq))
+        ngto = size(z1(1, :, 1))
+        allocate(ngtovec(ngto),posits(ng, maxval(group_count)),&
+                tsi(nq),vecgroup(ng, maxval(group_count)), group_pos(maxval(group_count)),&
+                vecgto(ng,maxval(group_count)), group_sorted(size(group)), group_pos2(maxval(group_count)))
+
+        group_sorted=group
+        call Bubble_Sort(group_sorted)
         posits = 1
-        count = 1
+        count1 = 1
         do i = 1, ncap
-            count = 1
+            count1 = 1
             do j = group_start(i), group_start(i) + group_count(i) - 1
-                posits(i, count) = j
-                count = count + 1
+                posits(i, count1) = j
+                count1 = count1 + 1
             end do
         end do
 
         szo = size(z1(:, 1, 1))
-        ngto = size(z1(1, :, 1))
+
+        do i=1,ncontr
+            veccounts(gs(i):gf(i))=i
+        end do
+
+        group_pos=0
+        ngtovec=0
+        print*,size(group_pos)
+        do i=1,ngto
+            ngtovec(i)=i
+
+        end do
+        print*,group
+        print*,group_start
+
+        do j=1,ng
+
+            npos=COUNT(group==j)
+
+            group_pos(1:npos)=pack(ngtovec, group==j)
+            group_pos2(1:npos)=pack(ngtovec,group_sorted==j)
+            if (group_count(j)/=npos) then
+                print*,'ouch'
+                stop
+            end if
+             do i=1,npos
+                 vecgroup(j,i)=contrvec(group_pos(i))
+                 vecgto(j,i)=group_pos(i)
+            end do
+            !print*,j,group_pos
+!         do i=1,count
+!
+!             vecgroup(j,i)=group_pos(i)
+!         end do
+        enddo
+
+
+
 
         print*, OMP_get_num_threads()
         call OMP_set_num_threads(16)
@@ -329,10 +381,15 @@ contains
 
         if (any(isnan(p0matrix))) print*, 'ouch'
 
-        count = 0
+        count1 = 0
+        allocate(Zbig(ncontr,ncontr,ncontr,ncontr))
 
-        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2), &
-        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
+        open(40, file='Zcotr.dat', status='old', access='stream', form='unformatted')
+        read(40) Zbig
+        close(40)
+        print*,'starting loop'
+        !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred), &
+        !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2,c1,c2,c3,c4) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz, posits,cutoffmd,group_count,group_start) REDUCTION(+:tsi), &
         !$OMP& schedule(dynamic)
         do i = 1, ncap
@@ -347,49 +404,29 @@ contains
                         allocate(posI(size(posits(i, :group_count(i)))), posJ(size(posits(j, :group_count(j)))) &
                                 , posK(size(posits(k, :group_count(k)))), posR(size(posits(r, :group_count(r)))))
 
-                        posI = posits(i, :group_count(i))
-                        posJ = posits(j, :group_count(j))
-                        posK = posits(k, :group_count(k))
-                        posR = posits(r, :group_count(r))
+
+                          posI = vecgroup(i, :group_count(i))
+                          posJ = vecgroup(j, :group_count(j))
+                          posK = vecgroup(k, :group_count(k))
+                          posR = vecgroup(r, :group_count(r))
 
                         spi = size(posI)
                         spj = size(posJ)
                         spk = size(posK)
                         spr = size(posR)
 
-                        allocate(zcontrred(spj, spk, spr, spi), &
-                                &        zcontrred2(spr, spi, spj, spk))
 
-                        !                         allocate(zcontrred(spi, spj, spk, spr), &
-                        !                      &        zcontrred2(spr, spi, spj, spk))
+                        allocate(zcontrred(spi, spj, spk, spr), c1(spi), c2(spj), c3(spk), c4(spr))
+                        Zcontrred=Zbig(posI,posJ,posK,posR)
+                        posI = vecgto(i, :group_count(i))
+                        posJ = vecgto(j, :group_count(j))
+                        posK = vecgto(k, :group_count(k))
+                        posR = vecgto(r, :group_count(r))
+                        c1=coeff(posI)
+                        c2=coeff(posJ)
+                        c3=coeff(posK)
+                        c4=coeff(posR)
 
-                        !     if ((spi+spj+spk+spr)==4) then
-                        !         Zcontrred(1,1,1,1)=ddot(szo,z1(:,posi(1),posj(1)),1, z2(:,posr(1),posk(1)),1)/8.d0
-                        !        Zcontrred2(1,1,1,1)=ddot(szo,z2(:,posi(1),posj(1)),1, z1(:,posr(1),posk(1)),1)/8.d0
-                        !   else
-                        do ii = 1, spi
-                            do jj = 1, spr
-
-                                !  za = transpose(z1(:,posj,posi(ii)))
-                                !print*,shape(matmul(z1t(posj,:,posi(ii)),z2(:,posk,posr(jj)))), spj,spk
-                                !   zcontrred(:,:,jj,ii)= matmul(z1t(posI,:,posi(ii)),z2(:,posk,posr(jj)))/8.0d0
-                                call dgemm('t', 'n', spj, spk, szo, 1.0_dp / 8.0_dp, z1(:, posj, posi(ii)), &
-                                        &           szo, z2(:, posk, posr(jj)), szo, 0.0_dp, zcontrred(:, :, jj, ii), spj)
-
-
-                                !  za = transpose(z1(:,posj,posi(ii)))
-
-                                !    zcontrred2(jj,ii,:,:) = matmul(z2t(posj,:,posi(ii)),z1(:,posk,posr(jj)))/8.0d0
-                                call dgemm('t', 'n', spj, spk, szo, 1.0_dp / 8.0_dp, z2(:, posj, posi(ii)), &
-                                        &           szo, z1(:, posk, posr(jj)), szo, 0.0_dp, zcontrred2(jj, ii, :, :), spj)
-                                !
-
-                            enddo
-                        enddo
-
-
-                        !print*,posI,posJ,posK,posR, Zcontrred, Zcontrred2
-                        !stop
 
                         deallocate(posI, posJ, posK, posR)
                         dx1 => dx(:, :, :, j, i)
@@ -403,19 +440,20 @@ contains
 
                             call tot_integral_ijkr_pzero(nq, l, m, n, group_start, group_count, p0matrix, dx1, dy1, dz1, dx2, &
                                     dy2, dz2, i, j, k, r, &
-                                    zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                                    zcontrred, c1,c2,c3,c4,cutoffz, cutoffmd, f)
 
                         else
 
                             call tot_integral_k_ijkr(q, l, m, n, group_start, group_count, hx, hy, hz, h, dx1, dy1, dz1, dx2, &
                                     dy2, dz2, i, j, k, r, &
-                                    zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                                    zcontrred,c1,c2,c3,c4, cutoffz, cutoffmd, f)
 
                         end if
                         tsi = tsi + 8.000 * f * e12(:, i, j) * e12(:, k, r)
-                        count = count + 1
+                        count1 = count1 + 1
 
-                        deallocate(zcontrred, zcontrred2)
+                        deallocate(zcontrred,c1,c2,c3,c4)
+
                         !        deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
                     end do
@@ -423,12 +461,12 @@ contains
             end do
         end do
 
-        !!$OMP END parallel DO
+       !$OMP END parallel DO
 
-        ! print*,OMP_get_num_threads()
-        print*, 'intermediate step', tsi(1), count
+         print*,OMP_get_num_threads()
+        print*, 'intermediate step', tsi(1), count1
 
-        !$OMP PARALLEL do private(posI,posJ,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+        !$OMP PARALLEL do private(c1,c2,c4,posI,posJ,posR,spi,spj,spk,spr,zcontrred), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,j,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
         do i = 1, ncap
@@ -441,37 +479,25 @@ contains
                     allocate(posI(size(posits(i, :group_count(i)))), posJ(size(posits(j, :group_count(j)))) &
                             , posR(size(posits(r, :group_count(r)))))
 
-                    posI = posits(i, :group_count(i))
-                    posJ = posits(j, :group_count(j))
+                     posI = vecgroup(i, :group_count(i))
+                     posJ = vecgroup(j, :group_count(j))
 
-                    posR = posits(r, :group_count(r))
+                     posR = vecgroup(r, :group_count(r))
 
                     spi = size(posI)
                     spj = size(posJ)
                     spr = size(posR)
 
-                    allocate(zcontrred(spj, spi, spr, spi), za(szo, spj), zb(szo, spi), &
-                            &         cmat(spj, spi), zcontrred2(spr, spi, spj, spi))
+                    allocate(zcontrred(spi, spj, spi, spk), c1(spi), c2(spi), c4(spr))
+                    Zcontrred=Zbig(posI,posJ,posI,posR)
+                    posI = vecgto(i, :group_count(i))
+                    posJ = vecgto(j, :group_count(j))
+                    posR = vecgto(r, :group_count(r))
+                    c1=coeff(posI)
+                    c2=coeff(posJ)
 
-                    do ii = 1, spi
-                        do jj = 1, spr
-                            ! za = transpose(z1(:,posj,posi(ii)))
-                            za = z1(:, posj, posi(ii))
-                            zb = z2(:, posi, posr(jj))
-                            !cmat = matmul(za,zb)
-                            call dgemm('t', 'n', spj, spi, szo, 1.0_dp / 8.0_dp, za, &
-                                    &           szo, zb, szo, 0.0_dp, cmat, spj)
-                            zcontrred(:, :, jj, ii) = cmat
-                            za = z2(:, posj, posi(ii))
-                            !  za = transpose(z1(:,posj,posi(ii)))
-                            zb = z1(:, posi, posr(jj))
-                            ! cmat = matmul(za,zb)
-                            call dgemm('t', 'n', spj, spi, szo, 1.0_dp / 8.0_dp, za, &
-                                    &           szo, zb, szo, 0.0_dp, cmat, spj)
+                    c4=coeff(posR)
 
-                            zcontrred2(jj, ii, :, :) = cmat
-                        enddo
-                    enddo
 
                     !
                     dx1 => dx(:, :, :, j, i)
@@ -484,18 +510,18 @@ contains
                     if (h < cutoffcentre) then
                         call tot_integral_ijkr_pzero(nq, l, m, n, group_start, group_count, p0matrix, dx1, dy1, dz1, dx2, &
                                 dy2, dz2, i, j, i, r, &
-                                zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                                zcontrred, c1,c2,c1,c4, cutoffz, cutoffmd, f)
                     else
 
                         call tot_integral_k_ijkr(q, l, m, n, group_start, group_count, hx, hy, hz, h, dx1, dy1, dz1, dx2, &
                                 dy2, dz2, i, j, i, r, &
-                                zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                                zcontrred, c1,c2,c1,c4, cutoffz, cutoffmd, f)
 
                     end if
                     tsi = tsi + 4.000 * f * e12(:, i, j) * e12(:, i, r)
-                    count = count + 1
-                    deallocate(posI, posJ, posR, za, zb, cmat)
-                    deallocate(zcontrred, zcontrred2)
+                    count1= count1 + 1
+                    deallocate(posI, posJ, posR)
+                    deallocate(zcontrred,c1,c2,c4)
                     !   deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
                 end do
@@ -504,8 +530,8 @@ contains
         end do
         !$OMP END parallel DO
         print*, 'intermediate step', tsi(1)
-
-        !$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,zcontrred,zcontrred2,za,zb,cmat), &
+!
+        !$OMP PARALLEL do private(posI,posK,posR,spi,spj,spk,spr,zcontrred,c1,c3,c4), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,r,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz,posits, cutoffmd,group_count,group_start) REDUCTION(+:tsi)
         do i = 1, ncap
@@ -519,37 +545,25 @@ contains
                     allocate(posI(size(posits(i, :group_count(i)))) &
                             , posK(size(posits(k, :group_count(k)))), posR(size(posits(r, :group_count(r)))))
 
-                    posI = posits(i, :group_count(i))
 
-                    posK = posits(k, :group_count(k))
-                    posR = posits(r, :group_count(r))
-
+                    posI = vecgroup(i, :group_count(i))
+                    posK = vecgroup(k, :group_count(k))
+                    posR = vecgroup(r, :group_count(r))
                     spi = size(posI)
                     spk = size(posK)
                     spr = size(posR)
 
-                    allocate(zcontrred(spi, spk, spr, spi), za(szo, spi), zb(szo, spk), &
-                            &         cmat(spi, spk), zcontrred2(spr, spi, spi, spk))
+                    allocate(zcontrred(spi, spi, spk, spr),c1(spi),c3(spk),c4(spr) )
+                    Zcontrred=Zbig(posI,posI,posK,posR)
+                    posI = vecgto(i, :group_count(i))
+                    posK = vecgto(k, :group_count(k))
+                    posR = vecgto(r, :group_count(r))
+                    c1=coeff(posI)
+                    c3=coeff(posK)
+                    c4=coeff(posR)
 
-                    do ii = 1, spi
-                        do jj = 1, spr
-                            !  za = transpose(z1(:,posi,posi(ii)))
-                            za = z1(:, posi, posi(ii))
-                            zb = z2(:, posk, posr(jj))
-                            ! cmat = matmul(za,zb)
-                            call  dgemm('t', 'n', spi, spk, szo, 1.0_dp / 8.0_dp, za, &
-                                    &           szo, zb, szo, 0.0_dp, cmat, spi)
-                            zcontrred(:, :, jj, ii) = cmat
-                            za = z2(:, posi, posi(ii))
-                            !  za = transpose(z1(:,posj,posi(ii)))
-                            zb = z1(:, posk, posr(jj))
-                            ! cmat = matmul(za,zb)
-                            call dgemm('t', 'n', spi, spk, szo, 1.0_dp / 8.0_dp, za, &
-                                    &           szo, zb, szo, 0.0_dp, cmat, spi)
 
-                            zcontrred2(jj, ii, :, :) = cmat
-                        enddo
-                    enddo
+
 
                     dx1 => dx(:, :, :, i, i)
                     dy1 => dy(:, :, :, i, i)
@@ -563,18 +577,18 @@ contains
                     if (h < cutoffcentre) then
                         call tot_integral_ijkr_pzero(nq, l, m, n, group_start, group_count, p0matrix, dx1, dy1, dz1, dx2, &
                                 dy2, dz2, i, i, k, r, &
-                                zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                                zcontrred, c1,c1,c3,c4, cutoffz, cutoffmd, f)
                     else
 
                         call tot_integral_k_ijkr(q, l, m, n, group_start, group_count, hx, hy, hz, h, dx1, dy1, dz1, dx2, &
                                 dy2, dz2, i, i, k, r, &
-                                zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                                zcontrred, c1,c1,c3,c4, cutoffz, cutoffmd, f)
 
                     end if
                     tsi = tsi + 4.000 * f * e12(:, i, i) * e12(:, k, r)
-                    count = count + 1
-                    deallocate(posI, posK, posR, za, zb, cmat)
-                    deallocate(zcontrred, zcontrred2)
+                    count1 = count1 + 1
+                    deallocate(posI, posK, posR)
+                    deallocate(zcontrred,c1,c3,c4)
                     !     deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
                 end do
@@ -583,8 +597,8 @@ contains
 
         !$OMP END parallel DO
         print*, 'intermediate step', tsi(1)
-
-        !$OMP PARALLEL do private(posI,posK,spi,spk,zcontrred,zcontrred2,za,zb,cmat), &
+!
+        !$OMP PARALLEL do private(posI,posK,spi,spk,zcontrred,c1,c3), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,k,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,l,m,n, p0matrix), &
         !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
         do i = 1, ncap
@@ -597,36 +611,20 @@ contains
 
                 allocate(posI(size(posits(i, :group_count(i)))), &
                         posK(size(posits(k, :group_count(k)))))
+                posI = vecgroup(i, :group_count(i))
+                posK = vecgroup(k, :group_count(k))
 
-                posI = posits(i, :group_count(i))
-
-                posK = posits(k, :group_count(k))
 
                 spi = size(posI)
                 spk = size(posK)
 
-                allocate(zcontrred(spi, spk, spk, spi), za(szo, spi), zb(szo, spk), &
-                        &         cmat(spi, spk), zcontrred2(spk, spi, spi, spk))
+                allocate(zcontrred(spi, spi, spk, spk),c1(spi),c3(spk))
+                Zcontrred=Zbig(posI,posI,posK,posK)
+                posI = vecgto(i, :group_count(i))
+                posK = vecgto(k, :group_count(k))
 
-                do ii = 1, spi
-                    do jj = 1, spk
-                        ! za = transpose(z1(:,posi,posi(ii)))
-                        za = z1(:, posi, posi(ii))
-                        zb = z2(:, posk, posk(jj))
-                        !                        cmat = matmul(za,zb)
-                        call dgemm('t', 'n', spi, spk, szo, 1.0_dp / 8.0_dp, za, &
-                                &           szo, zb, szo, 0.0_dp, cmat, spi)
-                        zcontrred(:, :, jj, ii) = cmat
-                        za = z2(:, posi, posi(ii))
-                        !  za = transpose(z1(:,posj,posi(ii)))
-                        zb = z1(:, posk, posk(jj))
-                        ! cmat = matmul(za,zb)
-                        call dgemm('t', 'n', spi, spk, szo, 1.0_dp / 8.0_dp, za, &
-                                &           szo, zb, szo, 0.0_dp, cmat, spi)
-
-                        zcontrred2(jj, ii, :, :) = cmat
-                    enddo
-                enddo
+                    c1=coeff(posI)
+                    c3=coeff(posK)
 
                 dx1 => dx(:, :, :, i, i)
                 dy1 => dy(:, :, :, i, i)
@@ -638,16 +636,16 @@ contains
                 if (h < cutoffcentre) then
                     call tot_integral_ijkr_pzero(nq, l, m, n, group_start, group_count, p0matrix, dx1, dy1, dz1, dx2, &
                             dy2, dz2, i, i, k, k, &
-                            zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                            zcontrred, c1,c1,c3,c3, cutoffz, cutoffmd, f)
                 else
 
                     call tot_integral_k_ijkr(q, l, m, n, group_start, group_count, hx, hy, hz, h, dx1, dy1, dz1, dx2, &
                             dy2, dz2, i, i, k, k, &
-                            zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                            zcontrred, c1,c1,c3,c3, cutoffz, cutoffmd, f)
                 end if
                 tsi = tsi + 2.000 * f * e12(:, i, i) * e12(:, k, k)
-                deallocate(posI, posK, za, zb, cmat)
-                deallocate(zcontrred, zcontrred2)
+                deallocate(posI, posK,c1,c3)
+                deallocate(zcontrred)
                 ! deallocate(dx1red, dy1red,dz1red,dx2red,dy2red,dz2red)
 
             end do
@@ -656,39 +654,22 @@ contains
 
         !$OMP END parallel DO
         print*,tsi(1)
-
-        !$OMP PARALLEL do private(posI,spi,zcontrred,zcontrred2,za,zb,cmat), &
+!
+        !$OMP PARALLEL do private(posI,spi,zcontrred,c1), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,i,dx1,dx2,dy1,dy2,dz1,dz2) shared(q,ll, p0matrix), &
         !$OMP& shared( cutoffz, cutoffmd,posits,group_count,group_start) REDUCTION(+:tsi)
         do i = 1, ncap
             allocate(posI(size(posits(i, :group_count(i)))))
 
-            posI = posits(i, :group_count(i))
-
+            posI = vecgroup(i, :group_count(i))
             spi = size(posI)
+            allocate(zcontrred(spi, spi, spi, spi),c1(spi))
+            zcontrred=Zbig(posI,posI,posI,posI)
+            posI = vecgto(i, :group_count(i))
 
-            allocate(zcontrred(spi, spi, spi, spi), za(szo, spi), zb(szo, spi), &
-                    &         cmat(spi, spi), zcontrred2(spi, spi, spi, spi))
 
-            do ii = 1, spi
-                do jj = 1, spi
-                    !  za = transpose(z1(:,posi,posi(ii)))
-                    za = z1(:, posi, posi(ii))
-                    zb = z2(:, posi, posi(jj))
-                    ! cmat = matmul(za,zb)
-                    call dgemm('t', 'n', spi, spi, szo, 1.0_dp / 8.0_dp, za, &
-                            &           szo, zb, szo, 0.0_dp, cmat, spi)
-                    zcontrred(:, :, jj, ii) = cmat
-                    za = z2(:, posi, posi(ii))
-                    !  za = transpose(z1(:,posj,posi(ii)))
-                    zb = z1(:, posi, posi(jj))
-                    ! cmat = matmul(za,zb)
-                    call dgemm('t', 'n', spi, spi, szo, 1.0_dp / 8.0_dp, za, &
-                            &           szo, zb, szo, 0.0_dp, cmat, spi)
+            c1=coeff(posI)
 
-                    zcontrred2(jj, ii, :, :) = cmat
-                enddo
-            enddo
 
             dx1 => dx(:, :, :, i, i)
             dy1 => dy(:, :, :, i, i)
@@ -701,12 +682,12 @@ contains
 
             call tot_integral_ijkr_pzero(nq, l, m, n, group_start, group_count, p0matrix, dx1, dy1, dz1, dx2, &
                     dy2, dz2, i, i, i, i, &
-                    zcontrred, zcontrred2, cutoffz, cutoffmd, f)
+                    zcontrred, c1,c1,c1,c1, cutoffz, cutoffmd, f)
 
             tsi = tsi + f * e12(:, i, i) * e12(:, i, i)
-            count = count + 1
-            deallocate(posI, za, zb, cmat)
-            deallocate(zcontrred, zcontrred2)
+            count1 = count1 + 1
+            deallocate(posI,c1)
+            deallocate(zcontrred)
 
         end do
         !$OMP END parallel DO
@@ -715,8 +696,8 @@ contains
     end subroutine tot_integration
 
 
-    subroutine tot_integral_ijkr_pzero(nq, l, m, n, gs, gc, p0mat, dx1, dy1, dz1, dx2, dy2, dz2, gi, gj, gk, gr, zcontr, zcontr2, &
-            cutoff1, cutoff2, f)
+    subroutine tot_integral_ijkr_pzero(nq, l, m, n, gs, gc, p0mat, dx1, dy1, dz1, dx2, dy2, dz2, gi, gj, gk, gr, zcontr, &
+            coeff1,coeff2,coeff3,coeff4,cutoff1, cutoff2, f)
 
         implicit none
 
@@ -727,8 +708,8 @@ contains
         REAL(kind = dp), INTENT(IN) :: cutoff1, cutoff2
         REAL(kind = dp), INTENT(IN), DIMENSION(:, :, :, :) :: p0mat
         real(kind = dp), intent(in), dimension(:, :, :) :: dx1, dy1, dz1, dx2, dy2, dz2
-        REAL(kind = dp), INTENT(IN), DIMENSION(:, :, :, :) :: zcontr, zcontr2
-
+        REAL(kind = dp), INTENT(IN), DIMENSION(:, :, :, :) :: zcontr
+        real(kind=dp), intent(in), dimension(:)::coeff1,coeff2,coeff3,coeff4
         INTEGER(kind = ikind), INTENT(IN), DIMENSION(:) :: gs, gc, l, m, n
         ! definition of output
         REAL(kind = dp), INTENT(OUT), DIMENSION(nq) :: f
@@ -756,7 +737,8 @@ contains
                 do k = gs(gk), gs(gk) + gc(gk) - 1
                     posr = 1
                     do r = gs(gr), gs(gr) + gc(gr) - 1
-                        ztot = zcontr(posJ, posK, posR, posI) + zcontr2(posR, posI, posJ, posK)
+                        ztot = zcontr(posI, posJ, posK, posR)*coeff1(posI)*&
+                                coeff2(posJ)*coeff3(posK)*coeff4(posR)
                         !
 
                         ! continue only if larger
@@ -824,7 +806,7 @@ contains
 
 
     subroutine tot_integral_k_ijkr(mu, l, m, n, group_start, group_count, hx, hy, hz, h, dx1, dy1, dz1, dx2, dy2, dz2, gi, gj, gk, gr, &
-            zcontr, zcontr2, &
+            zcontr, coeff1,coeff2,coeff3,coeff4, &
             cutoff1, cutoff2, f)
 
         implicit none
@@ -833,10 +815,11 @@ contains
         !INTEGER, PARAMETER :: dp = selected_real_kind(2*precision(1.0_dp))
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        real(kind=dp), intent(in), dimension(:)::coeff1,coeff2,coeff3,coeff4
         integer(kind = selected_int_kind(8)), intent(in) :: gi, gj, gk, gr
         integer(kind = selected_int_kind(8)), dimension(:), intent(in) :: l, m, n, group_start, group_count
         real(kind = dp), intent(in) :: cutoff1, cutoff2, hx, hy, hz, h
-        real(kind = dp), intent(in), dimension(:, :, :, :) :: zcontr, zcontr2
+        real(kind = dp), intent(in), dimension(:, :, :, :) :: zcontr
         real(kind = dp), intent(in), dimension(:), allocatable :: mu
 
         real(kind = dp), intent(in), dimension(:, :, :) :: dx1, dy1, dz1, dx2, dy2, dz2
@@ -846,7 +829,7 @@ contains
         integer(kind = selected_int_kind(8)) :: h1
         integer(kind = selected_int_kind(8)) :: ll, mm, nn, llp, mmp, nnp, llmax
 
-        real(kind = dp) :: coeff, prodd, ztot, mdn, mdl, mdm, mdlp, mdmp, mdnp, z11, z22
+        real(kind = dp) ::  prodd, ztot, mdn, mdl, mdm, mdlp, mdmp, mdnp, z11, z22
         INTEGER(kind = ikind), parameter :: dim = 20
         real(kind = dp) :: prod1, prod2, prod3, prod4, prod5, prod6
         REAL(kind = dp), DIMENSION(dim, dim) :: a, b, c
@@ -908,9 +891,10 @@ contains
                     posr = 1
                     do r = group_start(gr), group_start(gr) + group_count(gr) - 1
 
-                        ztot = zcontr(posJ, posK, posR, posI) + zcontr2(posR, posI, posJ, posK)
+                       ztot = zcontr(posI, posJ, posK, posR)*coeff1(posI)*&
+                                coeff2(posJ)*coeff3(posK)*coeff4(posR)
 
-                        !
+
                         ! continue only if larger
                         if (abs(ztot) < cutoff1) then
                             posr = posr + 1
@@ -974,4 +958,4 @@ contains
     end subroutine
 
 
-End Module TSj0groups
+End Module TSj0groupsfast

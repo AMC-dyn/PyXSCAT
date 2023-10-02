@@ -4,10 +4,11 @@ import molden_reader_nikola as mldr
 from scipy.io import FortranFile
 from copy import deepcopy
 i = 0
-nmomax = 10
+nmomax = 18
 
 gtos, atoms, coeffs, mos, groupC = mldr.read_orbitals('co_cas.mld', N=nmomax, decontract=False)
-mmod = mos
+
+
 print('MO shape: ', mos.shape)
 
 mmodt = np.transpose(mos)
@@ -33,8 +34,12 @@ with open(file='twordm_fortran.dat') as f:
         trdm[int(m1[i]), int(m2[i]), int(m3[i]), int(m4[i])] = totalfin[i]
         i += 1
 print('trying a masiva calculacion')
+print(m1)
 
-i = 0
+
+
+mmod=mos
+
 
 CC = np.einsum("up,pqrs->uqrs", mmod, trdm, optimize='greedy')
 print(CC.shape)
@@ -44,10 +49,6 @@ CC = np.einsum("kr,uvrs->uvks", mmod, CC, optimize='greedy')
 print(CC.shape)
 CC1 = np.einsum("ls,uvks->uvkl", mmod, CC, optimize='greedy')
 #CC1.tofile('Zcotr.dat')
-
-# CC1.tofile('Zcotr.dat')
-del CC,  m1, m2, m3, m4, totalfin, mmod, mmodt
-
 CC = CC1
 
 CC = CC + np.einsum('abcd->bacd', CC1, optimize='greedy')
@@ -67,5 +68,7 @@ CC = CC + np.einsum('abcd->cdba', CC1, optimize='greedy')
 
 CC = CC + np.einsum('abcd->dcba', CC1, optimize='greedy')
 
-Zbig = CC / 8.000
+Zbig = CC / 8.0000
 Zbig.tofile('Zcotr.dat')
+print(CC1.shape)
+

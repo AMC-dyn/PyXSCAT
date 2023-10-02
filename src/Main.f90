@@ -3,6 +3,7 @@ program main
     use main_calculation_mod
     use Reader
     use linspace
+    use TSj0groupsfast
     use TSj0groups
     use TSj0contr
     implicit none
@@ -23,7 +24,7 @@ program main
     integer*8, dimension(1):: nnn,start1,end1, nnn2, start_2, end_2,ordering1,ordering2
     integer*8, dimension(1,1):: newdat
     real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax
-    integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc
+    integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc,contrvec
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq,count
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
      
@@ -31,7 +32,7 @@ program main
     call read_files(nconfs,ngtos,norbs,ng,ncontr,state1,state2,natoms,typec,maxl,npoints, &
                cutoffcentre,cutoffz,cutoffmd,atoms,coeffs,xx,yy,zz,ga,l,m,n,group,mmod,geom, &
                jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,&
-               file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,bitwise)
+               file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,contrvec,bitwise)
 
 
 
@@ -109,6 +110,9 @@ program main
             state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
             ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
     elseif (typec==1) then
+!         call total_scattering_j0_groups_fast(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+!            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
+!            cutoffmd, cutoffz, cutoffcentre,contrvec, result)
         call total_scattering_j0_groups(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
             state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
             cutoffmd, cutoffz, cutoffcentre, result)

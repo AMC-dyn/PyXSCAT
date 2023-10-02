@@ -8,7 +8,7 @@ module Reader
     subroutine read_files(nconfs,ngtos,norbs,ng,ncontr,state1,state2,natoms,typec,maxl,npoints, &
                cutoffcentre,cutoffz,cutoffmd,atoms,coeffs,xx,yy,zz,ga,l,m,n,group,mmod,geom, &
                jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,&
-               file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,bitwise)
+               file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,contrvec,bitwise)
     implicit none
 
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
@@ -18,7 +18,7 @@ module Reader
     integer(kind=ikind),intent(out):: lconfs,ncivs
     real(kind=dp), intent(out) :: cutoffcentre,cutoffz,cutoffmd, qmin,qmax
     real(kind=dp),dimension(:), allocatable,intent(out)::atoms,coeffs,ga,xx,yy,zz
-    integer(kind=ikind), dimension(:), allocatable, intent(out):: l,m,n,group,gs,gc, gf
+    integer(kind=ikind), dimension(:), allocatable, intent(out):: l,m,n,group,gs,gc, gf,contrvec
     integer(kind=ikind),dimension(:,:), allocatable,intent(out):: confs
     real(kind=dp),dimension(:,:),intent(out), allocatable:: civs,mmod,geom
     logical, intent(out) :: jeremyR,mcci,hf,molpro,molcas,bagel,bitwise
@@ -31,9 +31,9 @@ module Reader
 
     open(unit=15, file='basis.dat')
     read(15,*)ngtos
-    allocate(xx(ngtos), yy(ngtos), zz(ngtos), ga(ngtos), l(ngtos), m(ngtos), n(ngtos), group(ngtos))
+    allocate(xx(ngtos), yy(ngtos), zz(ngtos), ga(ngtos), l(ngtos), m(ngtos), n(ngtos), group(ngtos),contrvec(ngtos))
     do i=1,ngtos
-        read(15,*)xx(i), yy(i),zz(i), ga(i), l(i), m(i), n(i), group(i)
+        read(15,*)xx(i), yy(i),zz(i), ga(i), l(i), m(i), n(i), group(i),contrvec(i)
     end do
     close(15)
     maxl=maxval(l)
