@@ -34,39 +34,40 @@ with open(file='twordm_fortran.dat') as f:
         trdm[int(m1[i]), int(m2[i]), int(m3[i]), int(m4[i])] = totalfin[i]
         i += 1
 print('trying a masiva calculacion')
-print(m1)
+
 
 
 
 mmod=mos
 
 
-CC = np.einsum("up,pqrs->uqrs", mmod, trdm, optimize='greedy')
+CC = np.einsum("up,pqrs->uqrs", mmod, trdm, optimize='optimal')
 print(CC.shape)
-CC = np.einsum("vq,uqrs->uvrs", mmod, CC, optimize='greedy')
+CC = np.einsum("vq,uqrs->uvrs", mmod, CC, optimize='optimal')
 print(CC.shape)
-CC = np.einsum("kr,uvrs->uvks", mmod, CC, optimize='greedy')
+CC = np.einsum("kr,uvrs->uvks", mmod, CC, optimize='optimal')
 print(CC.shape)
-CC1 = np.einsum("ls,uvks->uvkl", mmod, CC, optimize='greedy')
+CC1 = np.einsum("ls,uvks->uvkl", mmod, CC, optimize='optimal')
 #CC1.tofile('Zcotr.dat')
+
 CC = CC1
 
-CC = CC + np.einsum('abcd->bacd', CC1, optimize='greedy')
+CC = CC + np.einsum('abcd->bacd', CC1, optimize='optimal')
 
-CC = CC + np.einsum('abcd->abdc', CC1, optimize='greedy')
+CC = CC + np.einsum('abcd->abdc', CC1, optimize='optimal')
 
 print('up to here')
 
-CC = CC + np.einsum('abcd->badc', CC1, optimize='greedy')
+CC = CC + np.einsum('abcd->badc', CC1, optimize='optimal')
 
-CC = CC + np.einsum('abcd->cdab', CC1, optimize='greedy')
+CC = CC + np.einsum('abcd->cdab', CC1, optimize='optimal')
 
 print('half way')
-CC = CC + np.einsum('abcd->dcab', CC1, optimize='greedy')
+CC = CC + np.einsum('abcd->dcab', CC1, optimize='optimal')
 
-CC = CC + np.einsum('abcd->cdba', CC1, optimize='greedy')
+CC = CC + np.einsum('abcd->cdba', CC1, optimize='optimal')
 
-CC = CC + np.einsum('abcd->dcba', CC1, optimize='greedy')
+CC = CC + np.einsum('abcd->dcba', CC1, optimize='optimal')
 
 Zbig = CC / 8.0000
 Zbig.tofile('Zcotr.dat')

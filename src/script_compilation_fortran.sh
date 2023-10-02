@@ -3,7 +3,7 @@
 
 f1='ifort -O3 -xhost -fPIC -align array64byte  -qopenmp -heap-arrays  -qmkl -c'
 
-rm -rf *.mod *.o
+#rm -rf *.mod *.o
 
 $f1 Reader.f90
 $f1 calculate_form_factors.f90

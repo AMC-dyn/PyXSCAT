@@ -66,18 +66,18 @@ contains
         m3 = mat(:, 3)
         m4 = mat(:, 4)
         nmat = size(m1)
-        call variables_total(px, py, pz, ddx, ddy, ddz, z1, z2, &
+        call variables_total(px, py, pz, ddx, ddy, ddz, &
                 e12, maxl, ngto, ng, group_start, group_count, group, ga, l, m, n, xx, yy, zz, &
                 mmod, m1, m2, m3, m4, nmat, total, q, nq)
 
-        call tot_integration(ng, ncontr,px, py, pz, l, m, n, p0matrix, ddx, ddy, ddz, z1, z2, &
+        call tot_integration(ng, ncontr,px, py, pz, l, m, n, p0matrix, ddx, ddy, ddz, &
                 group_start, group_count, group, &
                 gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeffs, e12, result2)
 
     end subroutine
 
 
-    subroutine variables_total(px, py, pz, ddx, ddy, ddz, z11, z22, &
+    subroutine variables_total(px, py, pz, ddx, ddy, ddz, &
             e12, maxl, ngto, ng, group_start, group_count, group, ga, l, m, n, xx, yy, zz, &
             mmod, m1, m2, m3, m4, nmat, total, q, nq)
 
@@ -105,7 +105,7 @@ contains
         integer(kind = ikind) :: max4l, max2l, i, j, k, N1, N2, nn1, nn2, ii, jj, ls, ms, ns, count
         integer(kind = ikind), dimension(ngto) :: ll
         integer(kind = ikind), dimension(nmat) :: indexing1, indexing2
-        real(kind = dp), dimension(:, :, :), intent(out), allocatable :: z11, z22
+       ! real(kind = dp), dimension(:, :, :), intent(out), allocatable :: z11, z22
 
         real(kind = dp) :: pi, gap, time1, time2, time3, time4
 
@@ -150,8 +150,8 @@ contains
         !matfin=mat1
         !totalfin=total
         allocate(m11(size(totalfin)), m22(size(totalfin)), m33(size(totalfin)), m44(size(totalfin)))
-        allocate(z11(size(totalfin), ngto, ngto), z22(size(totalfin), ngto, ngto), &
-                temp1(size(totalfin)), temp2(size(totalfin)))
+       ! allocate(z11(size(totalfin), ngto, ngto), z22(size(totalfin), ngto, ngto), &
+             !   temp1(size(totalfin)), temp2(size(totalfin)))
         m11 = matfin(:, 1)
         m22 = matfin(:, 2)
         m33 = matfin(:, 3)
@@ -159,35 +159,35 @@ contains
 
         write(*, *)'shape of unique mat', shape(totalfin)
         !  print*,shape(z11), nmat
-        z11 = 0.0_dp
-        z22 = 0.0_dp
+        !z11 = 0.0_dp
+       ! z22 = 0.0_dp
 
-        print*, z11(1, 1, 1), m11(1)
+       ! print*, z11(1, 1, 1), m11(1)
 
         temp1 = 0.0
         temp2 = 0.0
-        print*, ngto, shape(z11), shape(z22), shape(mmod)
+        print*, ngto, shape(mmod)
 
-        counter = 0
-        do  ii = 1, ngto
+!        counter = 0
+!        do  ii = 1, ngto
+!
+!            do jj = 1, ngto
+!
+!                temp1 = totalfin * (mmod(m11, ii) * mmod(m22, jj) + mmod(m11, jj) * mmod(m22, ii))
+!                temp2 = mmod(m33, ii) * mmod(m44, jj) + mmod(m33, jj) * mmod(m44, ii)
+!
+!                z11(:, ii, jj) = temp1
+!                z22(:, ii, jj) = temp2
+!
+!                if (sum(abs(temp1 - temp2))<1E-10) then
+!                    counter = counter + 1
+!                end if
+!
+!            enddo
+!        enddo
+!        print*, sum(Z11(:, 1, 1) * Z22(:, 1, 1))
 
-            do jj = 1, ngto
-
-                temp1 = totalfin * (mmod(m11, ii) * mmod(m22, jj) + mmod(m11, jj) * mmod(m22, ii))
-                temp2 = mmod(m33, ii) * mmod(m44, jj) + mmod(m33, jj) * mmod(m44, ii)
-
-                z11(:, ii, jj) = temp1
-                z22(:, ii, jj) = temp2
-
-                if (sum(abs(temp1 - temp2))<1E-10) then
-                    counter = counter + 1
-                end if
-
-            enddo
-        enddo
-        print*, sum(Z11(:, 1, 1) * Z22(:, 1, 1))
-
-        obwohl = sum(abs(z11 - z22))
+      !  obwohl = sum(abs(z11 - z22))
         if (counter==ngto**2) then
             print*, 'Las gustones con las muchachas'
         else
@@ -271,7 +271,7 @@ contains
 
     end subroutine variables_total
 
-    subroutine tot_integration(ncap,ncontr, px, py, pz, l, m, n, p0matrix, dx, dy, dz, z1, z2, &
+    subroutine tot_integration(ncap,ncontr, px, py, pz, l, m, n, p0matrix, dx, dy, dz,&
             group_start, group_count, group, &
             gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeff, e12, tsi)
 
@@ -292,7 +292,7 @@ contains
         real(kind = dp), dimension(:, :, :), pointer :: dx1, dy1, dz1, dx2, dy2, dz2
         REAL(kind = dp), intent(in), dimension(:, :, :, :) :: p0matrix
         REAL(kind = dp), intent(in), dimension(:, :, :),allocatable :: e12
-        real(kind = dp), intent(in), dimension(:, :, :) :: z1, z2
+        !real(kind = dp), intent(in), dimension(:, :, :) :: z1, z2
         real(kind = dp), dimension(:, :, :, :), allocatable :: zcontrred, zcontrred2
         REAL(kind = dp), intent(in), dimension(:, :),allocatable :: px, py, pz
         REAL(kind = dp), intent(in), dimension(:), allocatable :: q
@@ -314,7 +314,7 @@ contains
         nq = size(q)
         ng = maxval(group)
         ll = l + m + n
-        ngto = size(z1(1, :, 1))
+        ngto = size(l)
         allocate(ngtovec(ngto),posits(ng, maxval(group_count)),&
                 tsi(nq),vecgroup(ng, maxval(group_count)), group_pos(maxval(group_count)),&
                 vecgto(ng,maxval(group_count)), group_sorted(size(group)), group_pos2(maxval(group_count)))
@@ -331,7 +331,7 @@ contains
             end do
         end do
 
-        szo = size(z1(:, 1, 1))
+       ! szo = size(z1(:, 1, 1))
 
         do i=1,ncontr
             veccounts(gs(i):gf(i))=i
