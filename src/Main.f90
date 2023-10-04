@@ -103,7 +103,7 @@ program main
     call linspace_1(qmin,qmax,npoints,q)
     print*,nq, npoints,maxl,ngtos
     nq=npoints
-    if (bitwise.eqv..False.) then
+    if (2.eqv..False.) then
     print*,'calling total_scattering'
     if (typec/=1 .and. typec/=11) then
     call total_scattering_calculation(Typec, atoms, geom, state1, &

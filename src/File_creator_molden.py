@@ -122,7 +122,7 @@ with open('options.dat', 'w') as f:
         f.write(str(len(confs[0])) + '\n')
         f.write(str(np.size(civs[0, :])) + '\n')
 
-        if np.size(confs) < 1E5:
+        if np.size(confs) < 10:
             bitwise = False
             print('Normal integration')
             for i in range(np.size(confs)):

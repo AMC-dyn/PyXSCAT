@@ -89,7 +89,7 @@ module Reader
         read(15,*)nconfs
         read(15,*)lconfs
         read(15,*)ncivs
-        if (nconfs<1E5) then
+        if (nconfs<10) then
 
             allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
 

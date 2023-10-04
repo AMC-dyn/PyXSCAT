@@ -3,6 +3,8 @@ Module TSj0groupsfast
     use p0_cases
     use twordms
     use MD
+    use twordms
+    use onerdm
     implicit none
 contains
 
@@ -25,7 +27,7 @@ contains
         !twordm variables
         integer(kind = ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind = ikind), dimension(:, :), allocatable :: mat, ep3, ndiff2
-        integer(kind = ikind) :: nmat, i, j
+        integer(kind = ikind) :: nmat, i, j,numberlines
         real(kind = dp), dimension(:), allocatable :: total
 
         !Variables to create total_variables
@@ -36,6 +38,7 @@ contains
         real(kind = dp), dimension(:, :, :),allocatable :: e12
         integer(kind = ikind), dimension(maxval(group)) :: group_start, group_count
         integer(kind = ikind), dimension(size(group)) :: group_sorted
+         character(len=60):: File_in,File_out
 
         !Result out
         real(kind = dp), allocatable, dimension(:), intent(out) :: Result2
@@ -54,9 +57,27 @@ contains
         P0matrix = 0.0_dp
         call set_P0(P0matrix, 4 * maxval(l), q)
 
-        call maxcoincidence(confs, ep3, ndiff2)
+       ! fileout_8='es.dat'
+        open(unit=15, file='bitwise.dat')
+              numberlines=0
+              do while(.true.)
+                  read (15, *, end=999) i
+                  numberlines=numberlines+1
+              end do
+              
 
-        call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
+999 continue
+        close(15)
+        print*,numberlines
+        file_in='bitwise.dat'
+        file_out='es.dat'
+        call mcci_to_bit(file_in,file_out,numberlines)
+
+        call createtwordm_bit(file_out,numberlines,mat,total)
+
+       ! call maxcoincidence(confs, ep3, ndiff2)
+
+       !call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
 
         call system('python3 Zcontr.py')
 

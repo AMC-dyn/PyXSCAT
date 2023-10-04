@@ -14,7 +14,7 @@ print('MO shape: ', mos.shape)
 mmodt = np.transpose(mos)
 
 trdm = np.zeros((nmomax, nmomax, nmomax, nmomax))
-with open(file='twordm_fortran.dat') as f:
+with open(file='twordm_fortran_bit_2.dat') as f:
     lines = f.readlines()
     print(len(lines))
     totalfin = np.zeros(len(lines))
