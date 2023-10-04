@@ -12,7 +12,12 @@ $f1 twordms.f90
 $f1 one_rdm.f90
 $f1 Integrals.f90
 $f1 Variables.f90
-
+$f1 p0_cases.f90
+$f1 MD.f90
+$f1 Bessels_j0.f90
+$f1 Total_scattering_j0_contr.f90
+$f1 Total_scattering_j0_groups.f90
+$f1 Total_scattering_j0_groups_fast.f90 
 $f1 main_calculation.f90 
 $f1 linspace.f90
  ifort -O3 -align array64byte  -xhost -fPIC -qopenmp  -heap-arrays  -qmkl  Main.f90 *.o -o  Main2.exe
