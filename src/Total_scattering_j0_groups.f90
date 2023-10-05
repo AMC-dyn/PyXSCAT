@@ -3,6 +3,7 @@ Module TSj0groups
     use p0_cases
     use twordms
     use MD
+    use onerdm
     implicit none
 contains
 
@@ -25,7 +26,7 @@ contains
         !twordm variables
         integer(kind = ikind), dimension(:), allocatable :: m1, m2, m3, m4
         integer(kind = ikind), dimension(:, :), allocatable :: mat, ep3, ndiff2
-        integer(kind = ikind) :: nmat, i, j
+        integer(kind = ikind) :: nmat, i, j,numberlines
         real(kind = dp), dimension(:), allocatable :: total
 
         !Variables to create total_variables
@@ -38,6 +39,7 @@ contains
 
         !Result out
         real(kind = dp), allocatable, dimension(:), intent(out) :: Result2
+        character(len=60):: File_in,File_out
 
         do i = 1, Ng
             do j = 1, Ngto
@@ -52,9 +54,27 @@ contains
         P0matrix = 0.0_dp
         call set_P0(P0matrix, 4 * maxval(l), q)
 
-        call maxcoincidence(confs, ep3, ndiff2)
+        !call maxcoincidence(confs, ep3, ndiff2)
 
-        call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
+        !call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
+
+        open(unit=15, file='bitwise.dat')
+              numberlines=0
+              do while(.true.)
+                  read (15, *, end=999) i
+                  numberlines=numberlines+1
+              end do
+
+
+999 continue
+        close(15)
+        print*,numberlines
+        file_in='bitwise.dat'
+        file_out='es.dat'
+        call mcci_to_bit(file_in,file_out,numberlines)
+
+        call createtwordm_bit(file_out,numberlines,mat,total)
+
 
         allocate(m1(size(mat(:, 1))), m2(size(mat(:, 1))), m3(size(mat(:, 1))), m4(size(mat(:, 1))))
         m1 = mat(:, 1)
@@ -201,17 +221,12 @@ contains
         dx = 0.0
         dy = 0.0
         dz = 0.0
-        print*, 'hijos de la rata '
-
-        call cpu_time(time3)
-
-        print*, 'hijos de la rata I'
 
         call fill_md_table(dx, l, xx, ga)
         call fill_md_table(dy, m, yy, ga)
         call fill_md_table(dz, n, zz, ga)
 
-        print*, 'hijos de la rata II'
+
         ! allocate( ga2(size(apos)), xx2(size(apos)), yy2(size(apos)), zz2(size(apos)) )
 
         !        ll = l + m + n
