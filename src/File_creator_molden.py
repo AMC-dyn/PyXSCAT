@@ -93,8 +93,9 @@ elif bagel:
     Nmo_max = 20
     gtos, atoms = bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro or readtwordm:
-    Nmo_max = 100
+    Nmo_max = 10
     gtos, atoms, coeffs, mos, groupC,contr = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=False)
+    print(mos.shape)
 geom = atoms.geometry()
 with open('options.dat', 'w') as f:
     f.write(str(np.size(atoms.atomic_numbers())) + '\n')
@@ -242,6 +243,12 @@ with open('MOs.dat', 'w') as f:
     for i in range(np.size(mmod[:, 0])):
         for j in range(np.size(mmod[0, :])):
             f.write(str(mmod[i, j]) + ' ')
+        f.write('\n')
+with open('MOs2.dat', 'w') as f:
+    f.write(str(np.size(mos[:, 0])) + ' ' + str(np.size(mos[0, :])) + '\n')
+    for i in range(np.size(mos[:, 0])):
+        for j in range(np.size(mos[0, :])):
+            f.write(str(mos[i, j]) + ' ')
         f.write('\n')
 with open('coeffs.dat', 'w') as f:
     f.write(str(np.size(l)) + '\n')

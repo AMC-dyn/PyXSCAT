@@ -4,7 +4,7 @@ import molden_reader_nikola as mldr
 from scipy.io import FortranFile
 from copy import deepcopy
 i = 0
-nmomax = 18
+nmomax = 10
 
 gtos, atoms, coeffs, mos, groupC = mldr.read_orbitals('co_cas.mld', N=nmomax, decontract=False)
 
@@ -42,6 +42,7 @@ mmod=mos
 
 
 CC = np.einsum("up,pqrs->uqrs", mmod, trdm, optimize='optimal')
+print('number to compare 1 : ',CC[0,0,0,2])
 print(CC.shape)
 CC = np.einsum("vq,uqrs->uvrs", mmod, CC, optimize='optimal')
 print(CC.shape)
@@ -49,7 +50,7 @@ CC = np.einsum("kr,uvrs->uvks", mmod, CC, optimize='optimal')
 print(CC.shape)
 CC1 = np.einsum("ls,uvks->uvkl", mmod, CC, optimize='optimal')
 #CC1.tofile('Zcotr.dat')
-
+print('number to compare: ',CC1[0,0,0,0])
 CC = CC1
 
 CC = CC + np.einsum('abcd->bacd', CC1, optimize='optimal')
