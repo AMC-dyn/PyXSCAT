@@ -255,8 +255,8 @@ contains
         ll = l + m + n
         ngto = size(l)
         allocate(ngtovec(ngto),posits(ng, maxval(group_count)),&
-                tsi(nq),vecgroup(ng, maxval(group_count)), group_pos(maxval(group_count)),&
-                vecgto(ng,maxval(group_count)), group_sorted(size(group)), group_pos2(maxval(group_count)))
+                tsi(nq),vecgroup(maxval(group_count),ng), group_pos(maxval(group_count)),&
+                vecgto(maxval(group_count),ng), group_sorted(size(group)), group_pos2(maxval(group_count)))
 
         group_sorted=group
         call Bubble_Sort(group_sorted)
@@ -297,8 +297,8 @@ contains
                 stop
             end if
             do i=1,npos
-                vecgroup(j,i)=contrvec(group_pos(i))
-                vecgto(j,i)=group_pos(i)
+                vecgroup(i,j)=contrvec(group_pos(i))
+                vecgto(i,j)=group_pos(i)
             end do
 
         enddo
@@ -361,10 +361,10 @@ contains
                     , posK(size(posits(k, :group_count(k)))), posR(size(posits(r, :group_count(r)))))
 
 
-            posI = vecgroup(i, :group_count(i))
-            posJ = vecgroup(j, :group_count(j))
-            posK = vecgroup(k, :group_count(k))
-            posR = vecgroup(r, :group_count(r))
+            posI = vecgroup(:group_count(i),i)
+            posJ = vecgroup( :group_count(j),j)
+            posK = vecgroup( :group_count(k),k)
+            posR = vecgroup( :group_count(r),r)
 
             spi = size(posI)
             spj = size(posJ)
@@ -374,10 +374,10 @@ contains
 
             allocate(zcontrred(spi, spj, spk, spr), c1(spi), c2(spj), c3(spk), c4(spr))
             Zcontrred=Zbig(posI,posJ,posK,posR)
-            posI = vecgto(i, :group_count(i))
-            posJ = vecgto(j, :group_count(j))
-            posK = vecgto(k, :group_count(k))
-            posR = vecgto(r, :group_count(r))
+            posI = vecgto( :group_count(i),i)
+            posJ = vecgto( :group_count(j),j)
+            posK = vecgto( :group_count(k),k)
+            posR = vecgto( :group_count(r),r)
             c1=coeff(posI)
             c2=coeff(posJ)
             c3=coeff(posK)
@@ -431,10 +431,10 @@ contains
                     allocate(posI(size(posits(i, :group_count(i)))), posJ(size(posits(j, :group_count(j)))) &
                             , posR(size(posits(r, :group_count(r)))))
 
-                    posI = vecgroup(i, :group_count(i))
-                    posJ = vecgroup(j, :group_count(j))
+                    posI = vecgroup( :group_count(i),i)
+                    posJ = vecgroup( :group_count(j),j)
 
-                    posR = vecgroup(r, :group_count(r))
+                    posR = vecgroup( :group_count(r),r)
 
                     spi = size(posI)
                     spj = size(posJ)
@@ -442,9 +442,9 @@ contains
 
                     allocate(zcontrred(spi, spj, spi, spk), c1(spi), c2(spi), c4(spr))
                     Zcontrred=Zbig(posI,posJ,posI,posR)
-                    posI = vecgto(i, :group_count(i))
-                    posJ = vecgto(j, :group_count(j))
-                    posR = vecgto(r, :group_count(r))
+                    posI = vecgto( :group_count(i),i)
+                    posJ = vecgto( :group_count(j),j)
+                    posR = vecgto( :group_count(r),r)
                     c1=coeff(posI)
                     c2=coeff(posJ)
 
@@ -498,18 +498,18 @@ contains
                             , posK(size(posits(k, :group_count(k)))), posR(size(posits(r, :group_count(r)))))
 
 
-                    posI = vecgroup(i, :group_count(i))
-                    posK = vecgroup(k, :group_count(k))
-                    posR = vecgroup(r, :group_count(r))
+                    posI = vecgroup(:group_count(i),i)
+                    posK = vecgroup( :group_count(k),k)
+                    posR = vecgroup( :group_count(r),r)
                     spi = size(posI)
                     spk = size(posK)
                     spr = size(posR)
 
                     allocate(zcontrred(spi, spi, spk, spr),c1(spi),c3(spk),c4(spr) )
                     Zcontrred=Zbig(posI,posI,posK,posR)
-                    posI = vecgto(i, :group_count(i))
-                    posK = vecgto(k, :group_count(k))
-                    posR = vecgto(r, :group_count(r))
+                    posI = vecgto( :group_count(i),i)
+                    posK = vecgto( :group_count(k),k)
+                    posR = vecgto( :group_count(r),r)
                     c1=coeff(posI)
                     c3=coeff(posK)
                     c4=coeff(posR)
@@ -561,8 +561,8 @@ contains
 
                 allocate(posI(size(posits(i, :group_count(i)))), &
                         posK(size(posits(k, :group_count(k)))))
-                posI = vecgroup(i, :group_count(i))
-                posK = vecgroup(k, :group_count(k))
+                posI = vecgroup( :group_count(i),i)
+                posK = vecgroup( :group_count(k),k)
 
 
                 spi = size(posI)
@@ -570,8 +570,8 @@ contains
 
                 allocate(zcontrred(spi, spi, spk, spk),c1(spi),c3(spk))
                 Zcontrred=Zbig(posI,posI,posK,posK)
-                posI = vecgto(i, :group_count(i))
-                posK = vecgto(k, :group_count(k))
+                posI = vecgto( :group_count(i),i)
+                posK = vecgto( :group_count(k),k)
 
                 c1=coeff(posI)
                 c3=coeff(posK)
@@ -611,11 +611,11 @@ contains
         do i = 1, ncap
             allocate(posI(size(posits(i, :group_count(i)))))
 
-            posI = vecgroup(i, :group_count(i))
+            posI = vecgroup(:group_count(i),i)
             spi = size(posI)
             allocate(zcontrred(spi, spi, spi, spi),c1(spi))
             zcontrred=Zbig(posI,posI,posI,posI)
-            posI = vecgto(i, :group_count(i))
+            posI = vecgto(:group_count(i),i)
 
 
             c1=coeff(posI)

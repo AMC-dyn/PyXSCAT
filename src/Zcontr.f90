@@ -27,7 +27,7 @@ Program Zcontr
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq,count
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
     integer(kind = ikind), dimension(:, :), allocatable :: mat
-    real(kind=dp), dimension(:,:,:,:), allocatable :: twordm,zcontract,prueba1
+    real(kind=dp), dimension(:,:,:,:), allocatable :: twordm,zcontract,prueba1,prueba2
     real(kind=dp), dimension(:,:), allocatable:: interm,interm2,mos
 
 
@@ -53,7 +53,7 @@ Program Zcontr
     call mcci_to_bit(file_in,file_out,numberlines)
 
     call createtwordm_bit(file_out,numberlines,mat,total)
-    norbs=maxval(mat(:,1))
+    !norbs=maxval(mat(:,1))
     allocate(twordm(norbs,norbs,norbs,norbs), zcontract(ncontr,ncontr,ncontr,ncontr))
     open(unit=15, file='MOs2.dat')
     read(15,*)norbs2,ngtos2
@@ -63,66 +63,79 @@ Program Zcontr
         read(15,*) (mos(i,j), j=1, ngtos2)
     end do
     close(15)
-    print*,shape(mos),norbs
+    print*,shape(mos),norbs,norbs2
+    print*,mos(1,:)
+    twordm=0.0_dp
     do i=1,size(total)
-
 
         twordm(mat(i,1), mat(i,2), mat(i,3),mat(i,4))=total(i)
 
     end do
 
-
-    allocate(interm(norbs**3,norbs),interm2(norbs**3,ncontr))
-    interm=reshape(twordm, (/norbs**3,norbs/))
-    print*,shape(interm)
-
-    call dgemm('n', 't', norbs**3, ncontr, norbs, 1.0_dp ,interm , &
-                                        &           norbs**3,mos , ncontr, 0.0_dp, interm2, norbs**3)
+    print*,'twordm', twordm(1,2,3,4)
+    allocate(prueba1(ncontr,norbs,norbs,norbs))
 
 
-    allocate(prueba1(norbs,norbs,norbs,ncontr))
-     prueba1=reshape(interm2,(/norbs,norbs,norbs,ncontr/),order=[2,1])
-    print*,prueba1(3,1,1,1)
-    stop
-    deallocate(interm)
-    allocate(interm(norbs**2*ncontr,norbs))
-    interm=reshape(interm2, (/norbs**2*ncontr,norbs/))
-    deallocate(interm2)
-    allocate(interm2(norbs**2*ncontr,ncontr))
-    print*,shape(interm), shape(interm2)
+    print*,shape(twordm),shape(mos),norbs,ncontr
 
-    call dgemm('n', 't', norbs**2*ncontr, ncontr, norbs, 1.0_dp ,interm , &
-                                        &           ncontr*norbs**2,mos , ncontr, 0.0_dp, interm2, norbs**2*ncontr)
+    call dgemm('n', 'n', ncontr, norbs*norbs*norbs, norbs, 1.0_dp ,mos , &
+                                        &           ncontr,twordm, norbs, 0.0_dp, prueba1, ncontr)
 
 
+    print*,shape(prueba1),norbs,ncontr
+    !allocate(prueba1(ncontr,norbs,norbs,norbs))
+   ! prueba1=reshape(interm2,(/ncontr,norbs,norbs,norbs/))
+    print*,'first mult', prueba1(1,2,3,4)
+    allocate(prueba2(norbs,ncontr,norbs,norbs))
+
+    print*,'reshaping '
+    print*,size(prueba1), size(prueba2)
+    prueba2=reshape(prueba1,(/norbs,ncontr,norbs,norbs/), order=[2,1,3,4])
+    print*,'reallocating'
+    deallocate(prueba1)
+    allocate(prueba1(ncontr,ncontr,norbs,norbs))
+    print*,'entering 2nd dgemm'
+    prueba1=0.0_dp
+    call dgemm('n', 'n', ncontr, norbs*norbs*ncontr, norbs, 1.0_dp ,mos , &
+                                        &           ncontr,prueba2, norbs, 0.0_dp, prueba1, ncontr)
+
+    deallocate(prueba2)
+    allocate(prueba2(norbs,ncontr,ncontr,norbs))
+    print*,'second mult', prueba1(2,1,3,4)
+    prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,norbs/), order=[3,2,1,4])
+
+    deallocate(prueba1)
+    allocate(prueba1(ncontr,ncontr,ncontr,norbs))
+    print*,'entering 3rd dgemm'
+    call dgemm('n', 'n', ncontr,norbs*ncontr*ncontr, norbs, 1.0_dp ,mos , &
+                                        &           ncontr,prueba2, norbs, 0.0_dp, prueba1, ncontr)
 
 
-    print*,shape(interm2)
+    deallocate(prueba2)
+    allocate(prueba2(norbs,ncontr,ncontr,ncontr))
 
-    deallocate(interm)
-    allocate(interm(norbs*ncontr**2,norbs))
-    interm=reshape(interm2, (/norbs*ncontr**2,norbs/))
-    deallocate(interm2)
-    allocate(interm2(norbs*ncontr**2,ncontr))
-    print*,shape(interm), shape(interm2)
+    prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,ncontr/), order=[4,2,3,1])
 
-    call dgemm('n', 't', norbs*ncontr**2, ncontr, norbs, 1.0_dp ,interm , &
-                                        &           ncontr**2*norbs,mos , ncontr, 0.0_dp, interm2, norbs*ncontr**2)
+    deallocate(prueba1)
+    allocate(prueba1(ncontr,ncontr,ncontr,ncontr))
+    call dgemm('n', 'n', ncontr,ncontr*ncontr*ncontr, norbs, 1.0_dp ,mos , &
+                                        &           ncontr,prueba2, norbs, 0.0_dp, prueba1, ncontr)
 
-    print*,shape(interm2)
-      print*,shape(interm2)
+    print*,prueba1(1,2,2,3)
 
-    deallocate(interm)
-    allocate(interm(ncontr**3,norbs))
-    interm=reshape(interm2, (/ncontr**3,norbs/))
-    deallocate(interm2)
-    allocate(interm2(ncontr**3,ncontr))
-    print*,shape(interm), shape(interm2)
+    prueba1=reshape(prueba1, (/ncontr,ncontr,ncontr,ncontr/), order=[2,3,4,1])
 
-    call dgemm('n', 't', ncontr**3, ncontr, norbs, 1.0_dp ,interm , &
-                                        &           ncontr**3,mos , ncontr, 0.0_dp, interm2, ncontr**3)
-
-    print*,shape(interm2)
-    zcontract=reshape(interm2,(/ncontr,ncontr,ncontr,ncontr/))
-    print*,zcontract(1,1,1,1)
+    print*,prueba1(1,2,2,3)
+    deallocate(prueba2)
+    allocate(prueba2(ncontr,ncontr,ncontr,ncontr))
+    prueba2=prueba1
+    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[2,1,3,4])
+    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[1,2,4,3])
+    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[2,1,4,3])
+    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[3,4,1,2])
+    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[3,4,2,1])
+    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[4,3,2,1])
+    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[4,3,1,2])
+    prueba2=prueba2/8.00
+    print*,prueba2(1,2,2,3)
 End Program Zcontr

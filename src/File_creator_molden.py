@@ -43,8 +43,8 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'co_cas.mld'
-punfile = 'co_cas.pun'
+mldfile = 'lif_ac.mld'
+punfile = 'lif_ac.pun'
 outfile = 'try_new_routine_2.dat'
 
 readtwordm = False
@@ -93,7 +93,7 @@ elif bagel:
     Nmo_max = 20
     gtos, atoms = bgmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif molpro or readtwordm:
-    Nmo_max = 10
+    Nmo_max = 100
     gtos, atoms, coeffs, mos, groupC,contr = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=False)
     print(mos.shape)
 geom = atoms.geometry()

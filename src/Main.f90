@@ -110,12 +110,12 @@ program main
             state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
             ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
     elseif (typec==1) then
-!         call total_scattering_j0_groups_fast(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
-!            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
-!            cutoffmd, cutoffz, cutoffcentre,contrvec, result)
-        call total_scattering_j0_groups(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+         call total_scattering_j0_groups_fast(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
             state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
-            cutoffmd, cutoffz, cutoffcentre, result)
+            cutoffmd, cutoffz, cutoffcentre,contrvec, result)
+  !      call total_scattering_j0_groups(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+  !          state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
+  !          cutoffmd, cutoffz, cutoffcentre, result)
     elseif (typec==11) then
         call total_scattering_j0_ncontr(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
             state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
