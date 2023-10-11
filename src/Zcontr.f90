@@ -22,9 +22,9 @@ Program Zcontr
     real(kind=dp), dimension(:), allocatable:: result,q_abs
     integer*8, dimension(1):: nnn,start1,end1, nnn2, start_2, end_2,ordering1,ordering2
     integer*8, dimension(1,1):: newdat
-    real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax
+    real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax,time1,time2,time3
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc,contrvec
-    integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq,count
+    integer(kind=ikind):: typec, i, j,k,ll, npoints,ncivs,lconfs,maxl,ng,nq,count
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
     integer(kind = ikind), dimension(:, :), allocatable :: mat
     real(kind=dp), dimension(:,:,:,:), allocatable :: twordm,zcontract,prueba1,prueba2
@@ -76,21 +76,19 @@ Program Zcontr
     allocate(prueba1(ncontr,norbs,norbs,norbs))
 
 
-    print*,shape(twordm),shape(mos),norbs,ncontr
+
 
     call dgemm('n', 'n', ncontr, norbs*norbs*norbs, norbs, 1.0_dp ,mos , &
                                         &           ncontr,twordm, norbs, 0.0_dp, prueba1, ncontr)
 
-
-    print*,shape(prueba1),norbs,ncontr
-    !allocate(prueba1(ncontr,norbs,norbs,norbs))
-   ! prueba1=reshape(interm2,(/ncontr,norbs,norbs,norbs/))
     print*,'first mult', prueba1(1,2,3,4)
     allocate(prueba2(norbs,ncontr,norbs,norbs))
 
     print*,'reshaping '
-    print*,size(prueba1), size(prueba2)
-    prueba2=reshape(prueba1,(/norbs,ncontr,norbs,norbs/), order=[2,1,3,4])
+
+   ! prueba2=reshape(prueba1,(/norbs,ncontr,norbs,norbs/), order=[2,1,3,4])
+     forall(ll=1:norbs,k=1:norbs,j=1:ncontr,i=1:norbs) &
+      prueba2(i,j,k,ll)=prueba1(j,i,k,ll)
     print*,'reallocating'
     deallocate(prueba1)
     allocate(prueba1(ncontr,ncontr,norbs,norbs))
@@ -101,9 +99,10 @@ Program Zcontr
 
     deallocate(prueba2)
     allocate(prueba2(norbs,ncontr,ncontr,norbs))
-    print*,'second mult', prueba1(2,1,3,4)
-    prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,norbs/), order=[3,2,1,4])
 
+    !prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,norbs/), order=[3,2,1,4])
+     forall(ll=1:norbs,k=1:ncontr,j=1:ncontr,i=1:norbs) &
+      prueba2(i,j,k,ll)=prueba1(k,j,i,ll)
     deallocate(prueba1)
     allocate(prueba1(ncontr,ncontr,ncontr,norbs))
     print*,'entering 3rd dgemm'
@@ -114,28 +113,45 @@ Program Zcontr
     deallocate(prueba2)
     allocate(prueba2(norbs,ncontr,ncontr,ncontr))
 
-    prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,ncontr/), order=[4,2,3,1])
+    !prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,ncontr/), order=[4,2,3,1])
+    forall(ll=1:ncontr,k=1:ncontr,j=1:ncontr,i=1:norbs) &
+      prueba2(i,j,k,ll)=prueba1(ll,j,k,i)
 
+    print*,'trying shape', shape(prueba2)
     deallocate(prueba1)
     allocate(prueba1(ncontr,ncontr,ncontr,ncontr))
     call dgemm('n', 'n', ncontr,ncontr*ncontr*ncontr, norbs, 1.0_dp ,mos , &
                                         &           ncontr,prueba2, norbs, 0.0_dp, prueba1, ncontr)
 
     print*,prueba1(1,2,2,3)
-
-    prueba1=reshape(prueba1, (/ncontr,ncontr,ncontr,ncontr/), order=[2,3,4,1])
-
-    print*,prueba1(1,2,2,3)
     deallocate(prueba2)
-    allocate(prueba2(ncontr,ncontr,ncontr,ncontr))
-    prueba2=prueba1
-    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[2,1,3,4])
-    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[1,2,4,3])
-    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[2,1,4,3])
-    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[3,4,1,2])
-    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[3,4,2,1])
-    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[4,3,2,1])
-    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[4,3,1,2])
-    prueba2=prueba2/8.00
-    print*,prueba2(1,2,2,3)
+    print*,'before last reshape'
+    prueba1=reshape(prueba1, (/ncontr,ncontr,ncontr,ncontr/), order=[2,3,4,1])
+    print*,'before last reshape 2'
+    forall(ll=1:ncontr,k=1:ncontr,j=1:ncontr,i=1:ncontr) &
+      prueba1(i,j,k,ll)=prueba1(j,k,ll,i)
+    print*,prueba1(1,2,2,3)
+
+    print*,'here we are'
+    !allocate(prueba2(ncontr,ncontr,ncontr,ncontr))
+!    call cpu_time(time1)
+!    prueba2=prueba1
+!    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[2,1,3,4])
+!    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[1,2,4,3])
+!    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[2,1,4,3])
+!    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[3,4,1,2])
+!    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[3,4,2,1])
+!    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[4,3,2,1])
+!    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[4,3,1,2])
+!    prueba2=prueba2/8.00
+    call cpu_time(time2)
+    !print*,time2-time1
+
+    forall(ll=1:ncontr,k=1:ncontr,j=1:ncontr,i=1:ncontr) &
+      prueba1(i,j,k,ll)=prueba1(i,j,k,ll)+prueba1(j,i,k,ll)+prueba1(i,j,ll,k)+prueba1(j,i,ll,k)+ &
+              prueba1(k,ll,i,j)+prueba1(k,ll,j,i)+prueba1(ll,k,i,j)+prueba1(ll,k,j,i)
+
+      prueba1=prueba1/8.00
+      call cpu_time(time3)
+    print*,time3-time2
 End Program Zcontr
