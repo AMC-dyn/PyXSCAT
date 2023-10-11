@@ -964,13 +964,14 @@ integer(kind=ikind)::  newdiff,mytemp,n,count2,count_p,p,q,r,s
   double precision, parameter :: phase_dbl(0:1)=(/1.d0,-1.d0/)
   double precision c_term,temp
   double precision :: c1(length), c2(length)
-  integer(kind=ikind)::  icij(2,1,length)
+  integer(kind=ikind),allocatable,dimension(:,:,:)::  icij
  logical(4), dimension(:), allocatable :: logicaltwordms
     integer(kind=ikind),  dimension(:,:), allocatable :: matdum
     real(kind=dp), dimension(:), allocatable :: totaldum
 
 
-
+allocate(icij(2,1,length))
+icij=1
 open(15,file=file_read)
 nword=1
 print*,'reading ', length, ' lines'
@@ -980,11 +981,11 @@ print*,'reading ', length, ' lines'
 
             read(15,*)dummy, c1(i),c2(i),icij(1,1,i), icij(2,1,i)
 
-     enddo
+ enddo
 close(15)
 
 
- nbft=maxval(integer2binary_orbs(maxval(icij)))
+nbft=maxval(integer2binary_orbs(maxval(icij)))
 print*,'max orbs', nbft
 ALLOCATE(SpinFree2RDM(nbft,nbft,nbft,nbft))
 
@@ -1007,15 +1008,18 @@ dtemp=0.0D0
 
 length2=length
 
-!$OMP PARALLEL DO private(ici,c_term,buffer,sorb,ispin2,buffer2,qorb) shared(icij, c1,c2,length2), &
-!$OMP& schedule(dynamic) REDUCTION(+:SpinFree2RDM)
-do ici=1,length2
+print*,'starting omp'
 
+!!$OMP PARALLEL DO private(ici,c_term,buffer,ispin,ispin2,buffer2,qorb,sorb) shared(icij, c1,c2,length2,length), &
+!!$OMP& schedule(dynamic) REDUCTION(+:SpinFree2RDM)
+do ici=1,length2
 
 !only zero differences by construction  ! could try to make further improvements but there are only length terms for no differences not O(length**2) as for 1 and 2
 c_term=c1(ici)*c2(ici) !calculate once as  common to all zero differences for this ici
 do ispin=1,2
+
 buffer=icij(ispin,1,ici)
+
 
 do while(buffer.ne.0)
 sorb=trailz(buffer)+1
@@ -1023,6 +1027,7 @@ buffer=IAND(buffer,buffer-1)
 
 do ispin2=1,2
 buffer2=icij(ispin2,1,ici)
+
 do while(buffer2.ne.0)
 qorb=trailz(buffer2)+1
 buffer2=IAND(buffer2,buffer2-1)
@@ -1047,7 +1052,8 @@ end do ! end of zero differences
 
 
 end do !end of ici loop
-!$OMP END PARALLEL DO
+
+!!$OMP END PARALLEL DO
 print*,'starting big loop'
 
 
@@ -1056,8 +1062,8 @@ print*,'starting big loop'
 !now jci>ici and double values so we don't need to do jci<ici
 
 
-!$OMP PARALLEL DO private(exc,temp,n,mytemp,newdiff,ici,jci,c_term,buffer,sorb,ispin2,buffer2,qorb) shared(phase_dbl,icij, c1,c2,length2), &
-!$OMP& private(nperm,samespin,myspin,idx_part,idx_hole,hole,part,tz,mylow,myhigh,mya,myb,myc,myd) schedule(dynamic) REDUCTION(+:SpinFree2RDM)
+!!$OMP PARALLEL DO private(exc,temp,n,mytemp,newdiff,ici,jci,c_term,buffer,sorb,ispin2,buffer2,qorb) shared(phase_dbl,icij, c1,c2,length2), &
+!!$OMP& private(nperm,samespin,myspin,idx_part,idx_hole,hole,part,tz,mylow,myhigh,mya,myb,myc,myd) schedule(dynamic) REDUCTION(+:SpinFree2RDM)
 do ici=1,length2
 do jci=1,length2
 
@@ -1305,7 +1311,7 @@ end if  ! end of  single difference, newdiff.eq.2
 
 end do !end of ici loop
 end do !end of jci loop
-!$OMP END PARALLEL DO
+!!$OMP END PARALLEL DO
 print*,'here we are'
 
 print*, maxval(SpinFree2RDM)
@@ -1784,14 +1790,15 @@ enddo
            integer, parameter :: ikind  = int64
            character(len=60), intent(in):: file_read,file_write
            integer(kind=ikind),intent(in):: numberlines
-           integer(kind=ikind):: icij(2,1,numberlines), j, k,i,nbft,itemp,ici,ntotal,phase,iperm
+           integer(kind=ikind)::  j, k,i,nbft,itemp,ici,ntotal,phase,iperm
+           integer(kind=ikind), allocatable,dimension(:,:,:) ::icij
            integer(kind=ikind), allocatable, dimension(:,:):: list
            real(kind=SELECTED_REAL_KIND(15)):: c1(numberlines), c2(numberlines)
            double precision, parameter :: phase_dbl(0:1) = (/ 1.d0, -1.d0 /)
 
-
+           allocate(icij(2,1,numberlines))
            open(file=file_read,unit=15)
-
+           icij=1
            do i=1,numberlines
                read(15,*)ici, c1(i), c2(i), icij(1,1,i), icij(2,1,i)
                !if (icij(1,1,i)<0) then
@@ -1809,7 +1816,7 @@ enddo
            allocate(list(2,popcnt(icij(1,1,1))*2))
            open(file=file_write,unit=17)
            do ici=1,numberlines
-               print*,icij(1,1,ici), ici
+
                 k=0
                do j=0,nbft-1
                    if(btest(icij(1,1,ici), j)) THEN

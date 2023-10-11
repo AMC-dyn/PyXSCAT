@@ -4,9 +4,9 @@ import molden_reader_nikola as mldr
 from scipy.io import FortranFile
 from copy import deepcopy
 i = 0
-nmomax =76
+nmomax =39
 
-gtos, atoms, coeffs, mos, groupC = mldr.read_orbitals('lif_ac.mld', N=nmomax, decontract=False)
+gtos, atoms, coeffs, mos, groupC = mldr.read_orbitals('sf6-22-15.mld', N=nmomax, decontract=False)
 
 
 print('MO shape: ', mos.shape)

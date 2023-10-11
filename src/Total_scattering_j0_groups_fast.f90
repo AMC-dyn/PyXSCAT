@@ -3,7 +3,6 @@ Module TSj0groupsfast
     use p0_cases
     use twordms
     use MD
-    use twordms
     use onerdm
     use iso_fortran_env, only:  int8, int16, int32, int64
     implicit none
@@ -71,13 +70,13 @@ contains
               
 
 999 continue
-        numberlines=numberlines-1
+        !numberlines=numberlines-1
         close(15)
         print*,numberlines
         file_in='bitwise.dat'
         file_out='es.dat'
         call mcci_to_bit(file_in,file_out,numberlines)
-        print*,'created twordm'
+        print*,'created twordm',numberlines
         call createtwordm_bit(file_out,numberlines,mat,total)
 
        ! call maxcoincidence(confs, ep3, ndiff2)

@@ -139,7 +139,7 @@ with open('options.dat', 'w') as f:
                 f.write(str('\n'))
         else:
             print('bitwise integration')
-            f.write('bitwise.dat\n')
+            f.write('bitwise.dat')
             bitwise = True
             alpha = 0
             beta = 0
