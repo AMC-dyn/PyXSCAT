@@ -71,8 +71,9 @@ Program Zcontr
         twordm(mat(i,1), mat(i,2), mat(i,3),mat(i,4))=total(i)
 
     end do
-
+     call cpu_time(time1)
     print*,'twordm', twordm(1,2,3,4)
+
     allocate(prueba1(ncontr,norbs,norbs,norbs))
 
 
@@ -101,8 +102,20 @@ Program Zcontr
     allocate(prueba2(norbs,ncontr,ncontr,norbs))
 
     !prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,norbs/), order=[3,2,1,4])
-     forall(ll=1:norbs,k=1:ncontr,j=1:ncontr,i=1:norbs) &
-      prueba2(i,j,k,ll)=prueba1(k,j,i,ll)
+!     forall(ll=1:norbs,k=1:ncontr,j=1:ncontr,i=1:norbs) &
+!      prueba2(i,j,k,ll)=prueba1(k,j,i,ll)
+!
+    do ll=1,norbs
+        do k=1,ncontr
+            do j=1,ncontr
+                do i=1,norbs
+                    prueba2(i,j,k,ll)=prueba1(k,j,i,ll)
+
+                end do
+            end do
+        end do
+
+     end do
     deallocate(prueba1)
     allocate(prueba1(ncontr,ncontr,ncontr,norbs))
     print*,'entering 3rd dgemm'
@@ -114,9 +127,19 @@ Program Zcontr
     allocate(prueba2(norbs,ncontr,ncontr,ncontr))
 
     !prueba2=reshape(prueba1,(/norbs,ncontr,ncontr,ncontr/), order=[4,2,3,1])
-    forall(ll=1:ncontr,k=1:ncontr,j=1:ncontr,i=1:norbs) &
-      prueba2(i,j,k,ll)=prueba1(ll,j,k,i)
+!    forall(ll=1:ncontr,k=1:ncontr,j=1:ncontr,i=1:norbs) &
+!      prueba2(i,j,k,ll)=prueba1(ll,j,k,i)
+     do ll=1,ncontr
+        do k=1,ncontr
+            do j=1,ncontr
+                do i=1,norbs
+                    prueba2(i,j,k,ll)=prueba1(ll,j,k,i)
 
+                end do
+            end do
+        end do
+
+     end do
     print*,'trying shape', shape(prueba2)
     deallocate(prueba1)
     allocate(prueba1(ncontr,ncontr,ncontr,ncontr))
@@ -126,10 +149,25 @@ Program Zcontr
     print*,prueba1(1,2,2,3)
     deallocate(prueba2)
     print*,'before last reshape'
-    prueba1=reshape(prueba1, (/ncontr,ncontr,ncontr,ncontr/), order=[2,3,4,1])
+      print*,shape(prueba1)
+    !prueba1=reshape(prueba1, (/ncontr,ncontr,ncontr,ncontr/), order=[2,3,4,1])
     print*,'before last reshape 2'
-    forall(ll=1:ncontr,k=1:ncontr,j=1:ncontr,i=1:ncontr) &
-      prueba1(i,j,k,ll)=prueba1(j,k,ll,i)
+
+
+     !dir$ ivdep
+    do ll=1,ncontr
+         !dir$ ivdep
+        do k=1,ncontr
+             !dir$ ivdep
+            do j=1,ncontr
+                 !dir$ ivdep
+                do i=1,ncontr
+                    prueba1(i,j,k,ll)=prueba1(j,k,ll,i)
+
+                end do
+            end do
+        end do
+    end do
     print*,prueba1(1,2,2,3)
 
     print*,'here we are'
@@ -145,12 +183,23 @@ Program Zcontr
 !    prueba2=prueba2+reshape(prueba1,(/ncontr,ncontr,ncontr,ncontr/),order=[4,3,1,2])
 !    prueba2=prueba2/8.00
     call cpu_time(time2)
-    !print*,time2-time1
+    print*,time2-time1
 
-    forall(ll=1:ncontr,k=1:ncontr,j=1:ncontr,i=1:ncontr) &
-      prueba1(i,j,k,ll)=prueba1(i,j,k,ll)+prueba1(j,i,k,ll)+prueba1(i,j,ll,k)+prueba1(j,i,ll,k)+ &
+    !$OMP PARALLEL DO private(ll,k,j,i) shared(prueba1) schedule(dynamic)
+      do ll=1,ncontr
+          !dir$ ivdep
+        do k=1,ncontr
+            !dir$ ivdep
+            do j=1,ncontr
+                !dir$ ivdep
+                do i=1,ncontr
+              prueba1(i,j,k,ll)=prueba1(i,j,k,ll)+prueba1(j,i,k,ll)+prueba1(i,j,ll,k)+prueba1(j,i,ll,k)+ &
               prueba1(k,ll,i,j)+prueba1(k,ll,j,i)+prueba1(ll,k,i,j)+prueba1(ll,k,j,i)
-
+                    end do
+                    end do
+                    end do
+              end do
+       !$OMP END parallel DO
       prueba1=prueba1/8.00
       call cpu_time(time3)
     print*,time3-time2
