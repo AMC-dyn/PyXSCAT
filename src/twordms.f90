@@ -1,4 +1,5 @@
 module twordms
+    use iso_fortran_env, only:  int8, int16, int32, int64
     implicit none
 
     contains
@@ -9,7 +10,7 @@ subroutine maxcoincidence(confs, ep2,ndiff)
 
         implicit none
                 INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        integer, parameter :: ikind     = int64
         integer(kind=ikind), intent(in), dimension(:,:) :: confs
         integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
         integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
@@ -1034,10 +1035,11 @@ subroutine maxcoincidence(confs, ep2,ndiff)
   end function
 
         function integer2binary_orbs(i) result(b_orbs_r)
-    integer,intent(in) :: i
-    integer :: b(32),count,count_orbs,b_orbs(32)
-    integer, allocatable,dimension(:):: b_real,b_orbs_r
-    integer k,j
+            integer, parameter :: ikind     = int64
+    integer(kind=ikind),intent(in) :: i
+    integer(kind=ikind) :: b(32),count,count_orbs,b_orbs(32)
+    integer(kind=ikind), allocatable,dimension(:):: b_real,b_orbs_r
+    integer(kind=ikind) k,j
     b=0
     j=i
     count=0

@@ -21,7 +21,7 @@ hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 2
+closed = [9,4,4,1,4,1,1]
 qmin = 1E-10
 qmax = 10
 npoints = 100
@@ -43,8 +43,8 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 1
 # Ouput name
-mldfile = 'lif_ac.mld'
-punfile = 'lif_ac.pun'
+mldfile = 'sf6-22-15.mld'
+punfile = 'sf6-22-15.pun'
 outfile = 'try_new_routine_2.dat'
 
 readtwordm = False
@@ -139,7 +139,7 @@ with open('options.dat', 'w') as f:
                 f.write(str('\n'))
         else:
             print('bitwise integration')
-            f.write('bitwise.dat')
+            f.write('bitwise.dat\n')
             bitwise = True
             alpha = 0
             beta = 0

@@ -5,6 +5,7 @@ Module TSj0groupsfast
     use MD
     use twordms
     use onerdm
+    use iso_fortran_env, only:  int8, int16, int32, int64
     implicit none
 contains
 
@@ -26,8 +27,10 @@ contains
 
         !twordm variables
         integer(kind = ikind), dimension(:), allocatable :: m1, m2, m3, m4
-        integer(kind = ikind), dimension(:, :), allocatable :: mat, ep3, ndiff2
-        integer(kind = ikind) :: nmat, i, j,numberlines
+        integer(kind = ikind), dimension(:, :), allocatable ::  ep3, ndiff2
+        integer(kind=int64), dimension(:,:), allocatable:: mat
+        integer(kind = ikind) :: nmat, i, j
+        integer(kind=int64):: numberlines
         real(kind = dp), dimension(:), allocatable :: total
 
         !Variables to create total_variables
@@ -61,18 +64,20 @@ contains
         open(unit=15, file='bitwise.dat')
               numberlines=0
               do while(.true.)
+
                   read (15, *, end=999) i
                   numberlines=numberlines+1
               end do
               
 
 999 continue
+        numberlines=numberlines-1
         close(15)
         print*,numberlines
         file_in='bitwise.dat'
         file_out='es.dat'
         call mcci_to_bit(file_in,file_out,numberlines)
-
+        print*,'created twordm'
         call createtwordm_bit(file_out,numberlines,mat,total)
 
        ! call maxcoincidence(confs, ep3, ndiff2)

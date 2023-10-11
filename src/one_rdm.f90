@@ -1,15 +1,17 @@
 
    module onerdm
        use twordms
+       use iso_fortran_env, only:  int8, int16, int32, int64
        contains
 
         function excitations(det1,det2,Nint) result(n_excitations)
            implicit none
-           integer*8, intent(in) :: det1(Nint,2), det2(Nint,2)
-           integer , intent(in) :: Nint
-           integer :: n_excitations
+            integer, parameter :: ikind     = int64
+           integer(kind=ikind), intent(in) :: det1(Nint,2), det2(Nint,2)
+           integer(kind=ikind), intent(in) :: Nint
+           integer(kind=ikind)::  n_excitations
 
-           integer :: l
+           integer(kind=ikind)::  l
 
            n_excitations = &
                    popcnt(xor( det1(1,1), det2(1,1)) ) + &
@@ -26,7 +28,7 @@
 
      subroutine onerdm_creat(confs,civs,onerdm,maxnmo,state1,state2)
             INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-        INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        integer, parameter :: ikind     = int64
          integer(kind=ikind), intent(in), dimension(:,:) :: confs
          real(kind=dp), intent(in), dimension(:,:) :: civs
          real (kind=dp), intent(out), dimension(:,:), allocatable :: onerdm
@@ -52,7 +54,7 @@
 !        integer(kind=ikind), intent(out), dimension(:,:), allocatable :: ep2, ndiff
 !        integer(kind=ikind), dimension(size(confs(:,1)), size(confs(1,:))):: matdum
 !        integer(kind=ikind), dimension(:,:), allocatable :: mat1
-!        integer(kind=ikind) :: i,j, c1,c2, count
+!        integer(kind=ikind)::  :: i,j, c1,c2, count
 !
 !
 !        allocate(ep2(size(confs(:,1)),size(confs(:,1))))
@@ -111,7 +113,7 @@
     implicit none
 
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+   integer, parameter :: ikind     = int64
 
     integer(kind=ikind), intent(in),dimension(:,:) :: confs
     integer(kind=ikind), intent(in), dimension(:,:) :: ep2, ndiff
@@ -122,13 +124,13 @@
     real(kind=dp), dimension(:,:), intent(out),allocatable :: onerdm
     integer(kind=ikind), intent(out) :: maxnmo
 
-    integer(kind=ikind) :: ep,nc1,lconfs,norbs,nc2,sorb,rorb,qorb,porb,p,q,r,s,c1,c2,count1,count
+    integer(kind=ikind)::  ep,nc1,lconfs,norbs,nc2,sorb,rorb,qorb,porb,p,q,r,s,c1,c2,count1,count
 
-    integer(kind=ikind) :: i,i1,n,count2,eg, ndiff1
+    integer(kind=ikind)::  i,i1,n,count2,eg, ndiff1
 
 
     integer(kind=ikind):: diffs1,diffs2
-    integer(kind=ikind) :: spin1,spin2
+    integer(kind=ikind)::  spin1,spin2
 
     lconfs=size(confs(1,:))
     maxnmo=lconfs/2
@@ -228,7 +230,7 @@
     implicit none
 
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+    integer, parameter :: ikind     = int64
 
     character(len=20),intent(in) :: file_read
 
@@ -237,12 +239,12 @@
     real(kind=dp), dimension(:,:), intent(out),allocatable :: onerdm
     integer(kind=ikind), intent(inout) :: maxnmo
 
-    integer(kind=ikind) :: ep,nc1,lconfs,norbs,nc2,sorb,rorb,qorb,porb,n1a,n1b,error_1,error_2
+    integer(kind=ikind):: ep,nc1,lconfs,norbs,nc2,sorb,rorb,qorb,porb,n1a,n1b,error_1,error_2
           integer(kind=ikind),allocatable, dimension(:) ::Nalpha,Nbeta
           real(kind=dp), dimension(:), allocatable :: civs
           real(kind=dp):: civ1,civ2
 
-    integer(kind=ikind) :: i,i1,n,count2,eg, ndiff1,n2a,n2b,j,count,c1,c2
+    integer(kind=ikind)::  i,i1,n,count2,eg, ndiff1,n2a,n2b,j,count,c1,c2
     integer(kind=ikind), dimension(:), allocatable :: c1a,c1b,c2a,c2b
 
 
@@ -394,38 +396,38 @@ enddo
     implicit none
 
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+    integer, parameter :: ikind     = int64
      character(len=20), intent(in) :: file_read
      integer(kind=ikind) :: norbs
      integer(KIND=IKIND), intent(in) :: numberlines
-     integer*8, intent(in), dimension(:,:):: newdat
-     integer*8,intent(in),dimension(:):: irep,start,end
+     integer(kind=ikind), intent(in), dimension(:,:):: newdat
+     integer(kind=ikind),intent(in),dimension(:):: irep,start,end
      double precision, parameter :: phase_dbl(0:1)=(/1.d0,-1.d0/)
     real(kind=dp), intent(out), dimension(:), allocatable :: total
     integer(kind=ikind), intent(out), dimension(:,:), allocatable :: mat
 
     real(kind=dp), dimension(:,:,:,:), allocatable :: twordm
     real(kind=dp), dimension(:,:), allocatable :: onerdm
-    integer*8 :: ep, i, j, k, l, compnum, c1
-     integer*8:: X_vec(numberlines)
-     integer*8, dimension(:,:,:), allocatable :: nalphbet
+    integer(kind=ikind) :: ep, i, j, k, l, compnum, c1
+     integer(kind=ikind):: X_vec(numberlines)
+     integer(kind=ikind), dimension(:,:,:), allocatable :: nalphbet
      real(kind=dp), dimension(:), allocatable :: civs
     real(kind=dp) :: time1, time2, cutoff
      double precision:: civ1,civ2,c,c_term,phase
-    integer*8 :: buffer, buffer_2, hole_int, particle_int, buffer_p, index, eg,index1
-    integer*8 :: porb,rorb,qorb,sorb, count2, p, q, r, s, dummy, n_single
+    integer(kind=ikind) :: buffer, buffer_2, hole_int, particle_int, buffer_p, index, eg,index1
+    integer(kind=ikind) :: porb,rorb,qorb,sorb, count2, p, q, r, s, dummy, n_single
 
     logical(4), dimension(:), allocatable :: logicaltwordms
     integer(kind=ikind),  dimension(:,:), allocatable :: matdum
     real(kind=dp), dimension(:), allocatable :: totaldum
-    integer*8, dimension(:,:), allocatable :: single_exc,hole_exc, particle_exc,phases,counter_exc,starts,ends
-    integer*8, dimension(:,:), allocatable :: double_exc,hole_exc_1,hole_exc_2
-integer*8, dimension(:,:),allocatable :: particle_exc_1,particle_exc_2, phases_2, counter_exc_2,starts_2,ends_2
-    integer*8, dimension(:,:,:), allocatable :: beta_excs
-    integer*8 :: buffer_prime, buffer_prime_2, tz,tz2, count_p,n,ss,ee,spin11,spin22,buffer2,buffer_3,buffer_4,newdat_1,len_rm
+    integer(kind=ikind), dimension(:,:), allocatable :: single_exc,hole_exc, particle_exc,phases,counter_exc,starts,ends
+    integer(kind=ikind), dimension(:,:), allocatable :: double_exc,hole_exc_1,hole_exc_2
+integer(kind=ikind), dimension(:,:),allocatable :: particle_exc_1,particle_exc_2, phases_2, counter_exc_2,starts_2,ends_2
+    integer(kind=ikind), dimension(:,:,:), allocatable :: beta_excs
+    integer(kind=ikind) :: buffer_prime, buffer_prime_2, tz,tz2, count_p,n,ss,ee,spin11,spin22,buffer2,buffer_3,buffer_4,newdat_1,len_rm
 
-    integer*8 :: n_double,count,nel,index2,myhigh,mylow,myhigh1,myhigh2,mylow1,mylow2,count_total
-    integer*8,dimension(:), allocatable :: find_ind,find_ind_2,all_indexes,occ,unocc
+    integer(kind=ikind) :: n_double,count,nel,index2,myhigh,mylow,myhigh1,myhigh2,mylow1,mylow2,count_total
+    integer(kind=ikind),dimension(:), allocatable :: find_ind,find_ind_2,all_indexes,occ,unocc
       double precision, external      :: ddot
 
     allocate(nalphbet(1,2,numberlines), civs(numberlines), all_indexes(numberlines))
@@ -935,34 +937,34 @@ end do
  ! basis functions, electrons, coefficients, list of orbitals in SD
 implicit none
  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-    INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+    integer, parameter :: ikind     = int64
      character(len=30), intent(in) :: file_read
 
     real(kind=dp), intent(out), dimension(:), allocatable :: total
     integer(kind=ikind), intent(out), dimension(:,:), allocatable :: mat
 
-integer ::  length
+integer(kind=ikind)::  length
 double precision, allocatable :: SpinFree2RDM(:,:,:,:)
-integer porb,rorb,sorb,qorb
-integer spins,spinq,spinp,spinr
+integer(kind=ikind)::  porb,rorb,sorb,qorb
+integer(kind=ikind)::  spins,spinq,spinp,spinr
 double precision dtemp,ep,eg
-integer ici,jci,ndiff,idiff1,idiff2,countcivs
-integer i,i1,i2,l,l2,k,k2
+integer(kind=ikind)::  ici,jci,ndiff,idiff1,idiff2,countcivs
+integer(kind=ikind)::  i,i1,i2,l,l2,k,k2
 double precision Eone_e,Etwo_e,TwoRDM_e,cutoff
 double precision civ1, civ2
-integer newdiff,mytemp,n,count2,count_p,p,q,r,s
-  integer hole,part,tz,tz2,buffer,nword
-  integer myhigh,mylow,nperm
-  integer idx_part,idx_hole
-  integer exc(0:2,2,2),mya,myb,myc,myd
-  integer tz3
-  integer myspin,samespin,ispin,nbft
-  integer buffer2,ispin2, dummy,length2,buffer3
-  integer*8 buffer_esp1, buffer_esp2, allc1,allc2
+integer(kind=ikind)::  newdiff,mytemp,n,count2,count_p,p,q,r,s
+  integer(kind=ikind)::  hole,part,tz,tz2,buffer,nword
+  integer(kind=ikind)::  myhigh,mylow,nperm
+  integer(kind=ikind)::  idx_part,idx_hole
+  integer(kind=ikind)::  exc(0:2,2,2),mya,myb,myc,myd
+  integer(kind=ikind)::  tz3
+  integer(kind=ikind)::  myspin,samespin,ispin,nbft
+  integer(kind=ikind)::  buffer2,ispin2, dummy,length2,buffer3
+  integer(kind=ikind)::  buffer_esp1, buffer_esp2, allc1,allc2
   double precision, parameter :: phase_dbl(0:1)=(/1.d0,-1.d0/)
   double precision c_term,temp
   double precision :: c1(length), c2(length)
-  integer icij(2,1,length)
+  integer(kind=ikind)::  icij(2,1,length)
  logical(4), dimension(:), allocatable :: logicaltwordms
     integer(kind=ikind),  dimension(:,:), allocatable :: matdum
     real(kind=dp), dimension(:), allocatable :: totaldum
@@ -1359,12 +1361,12 @@ end subroutine
 
 subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
     implicit none
-
-    integer(kind=SELECTED_INT_KIND(8)),intent(in), dimension(:,:):: mat
+    integer, parameter :: ikind     = int64
+    integer(kind=ikind),intent(in), dimension(:,:):: mat
     double precision, intent(in), dimension(:) :: twordm
     double precision, intent(out), dimension(:,:), allocatable::onerdm
-    integer*8, intent(in) :: nel
-    integer*8 :: maxnmo,i,j,k,l
+    integer(kind=ikind), intent(in) :: nel
+    integer(kind=ikind) :: maxnmo,i,j,k,l
 
     maxnmo=maxval(mat)
     print*,'maximum number or orbitals', maxnmo
@@ -1396,27 +1398,27 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
            implicit none
 
            INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
-           INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+           integer, parameter :: ikind     = int64
 
 
            integer(kind=ikind):: numberlines
            character(len=30),intent(in) :: file_read
-           integer*8,intent(in),dimension(:):: irep
+           integer(kind=ikind),intent(in),dimension(:):: irep
            real(kind=dp), dimension(:), allocatable :: civs
-           integer*8,dimension(:,:,:), allocatable :: Nalphbet
-           integer*8:: j, i, error_1,count,temp,sp,diff1,diff2,popcnt1,popcnt2,compnum,buffer_prime, buffer_prime_2
-            integer*8:: particle_int,hole_int,k
+           integer(kind=ikind),dimension(:,:,:), allocatable :: Nalphbet
+           integer(kind=ikind):: j, i, error_1,count,temp,sp,diff1,diff2,popcnt1,popcnt2,compnum,buffer_prime, buffer_prime_2
+            integer(kind=ikind):: particle_int,hole_int,k
            real(kind=dp),dimension(:,:), allocatable :: onerdm
            integer(kind=ikind),intent(inout):: maxnmo
-           integer*8:: exc(0:2,2,2),deg,buffer,c1,c2,ep,n1a,n2a,n1b,n2b,low,high,number,red_vec(maxnmo*2)
+           integer(kind=ikind):: exc(0:2,2,2),deg,buffer,c1,c2,ep,n1a,n2a,n1b,n2b,low,high,number,red_vec(maxnmo*2)
            double precision :: phase, c,civ1,civ2
-           integer*8:: tmp,tz,final,max,prueba(maxnmo*2),buffer_2,tz2,index,nn,nel,n,porb,qorb,newdiff,diff
-           integer*8:: mylow, myhigh
+           integer(kind=ikind):: tmp,tz,final,max,prueba(maxnmo*2),buffer_2,tz2,index,nn,nel,n,porb,qorb,newdiff,diff
+           integer(kind=ikind):: mylow, myhigh
            real(kind=dp)::time1,time2
-           integer*8, intent(in), dimension(:,:):: newdat
-           integer*8, allocatable, dimension(:,:,:) :: orb_mat
-           integer*8,allocatable, dimension(:) :: orb_indexed
-           integer*8, dimension(numberlines):: sum_mat
+           integer(kind=ikind), intent(in), dimension(:,:):: newdat
+           integer(kind=ikind), allocatable, dimension(:,:,:) :: orb_mat
+           integer(kind=ikind),allocatable, dimension(:) :: orb_indexed
+           integer(kind=ikind), dimension(numberlines):: sum_mat
               double precision, parameter :: phase_dbl(0:1)=(/1.d0,-1.d0/)
 
 
@@ -1546,17 +1548,17 @@ enddo
        subroutine compute_density_matrix(det,Ndet,coef,mo_num, &
                Nint,density_matrix)
            implicit none
-           INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
-           integer*8, intent(in) :: det(Nint,2,Ndet)
-           integer, intent(in) :: Ndet, Nint, mo_num
+           integer, parameter :: ikind     = int64
+           integer(kind=ikind), intent(in) :: det(Nint,2,Ndet)
+           integer(kind=ikind), intent(in) :: Ndet, Nint, mo_num
            double precision, intent(in) :: coef(Ndet)
            double precision, intent(out) :: density_matrix(mo_num,mo_num)
-           integer :: i,j,k,l,ispin,ishift
-           integer*8:: buffer
-           integer :: deg
-           integer :: exc(0:2,2,2)
+           integer(kind=ikind)::  i,j,k,l,ispin,ishift
+           integer(kind=ikind):: buffer
+           integer(kind=ikind)::  deg
+           integer(kind=ikind)::  exc(0:2,2,2)
            double precision :: phase, c
-           integer :: n_excitations
+           integer(kind=ikind)::  n_excitations
            density_matrix = 0.d0
 
 
@@ -1603,13 +1605,14 @@ enddo
 
        subroutine get_double_excitation(det1,det2,exc,phase,Nint)
            implicit none
-           integer, intent(in) :: Nint
-           integer*8, intent(in) :: det1(Nint,2), det2(Nint,2)
-           integer, intent(out) :: exc(0:2,2,2)
+           integer, parameter :: ikind     = int64
+           integer(kind=ikind), intent(in) :: Nint
+           integer(kind=ikind), intent(in) :: det1(Nint,2), det2(Nint,2)
+           integer(kind=ikind), intent(out) :: exc(0:2,2,2)
            double precision, intent(out) :: phase
-           integer :: l, ispin, idx_hole, idx_particle, ishift
-           integer :: i,j,k,m,n,high, low,a,b,c,d,nperm,tz,nexc
-           integer*8 :: hole, particle, tmp
+           integer(kind=ikind)::  l, ispin, idx_hole, idx_particle, ishift
+           integer(kind=ikind)::  i,j,k,m,n,high, low,a,b,c,d,nperm,tz,nexc
+           integer(kind=ikind) :: hole, particle, tmp
            double precision, parameter :: phase_dble(0:1) = (/ 1.d0, -1.d0 /)
            exc(0,1,1) = 0
            exc(0,2,1) = 0
@@ -1683,13 +1686,14 @@ enddo
 
        subroutine get_single_excitation(det1,det2,exc,phase,Nint)
            implicit none
-           integer, intent(in) :: Nint
-           integer*8, intent(in) :: det1(Nint,2)
-           integer*8, intent(in) :: det2(Nint,2)
-           integer, intent(out) :: exc(0:2,2,2)
+           integer, parameter :: ikind     = int64
+           integer(kind=ikind), intent(in) :: Nint
+           integer(kind=ikind), intent(in) :: det1(Nint,2)
+           integer(kind=ikind), intent(in) :: det2(Nint,2)
+           integer(kind=ikind), intent(out) :: exc(0:2,2,2)
            double precision, intent(out) :: phase
-           integer :: tz, l, ispin, ishift, nperm, i, j, k, m, n, high, low
-           integer*8 :: hole, particle, tmp
+           integer(kind=ikind)::  tz, l, ispin, ishift, nperm, i, j, k, m, n, high, low
+           integer(kind=ikind) :: hole, particle, tmp
            double precision, parameter :: phase_dble(0:1) = (/ 1.d0, -1.d0 /)
 
            exc(0,1,1) = 0
@@ -1743,10 +1747,12 @@ enddo
 
        subroutine get_excitation(det1,det2,exc,degree,phase,Nint)
            implicit none
-           integer, intent(in) :: Nint
-           integer*8, intent(in) :: det1(Nint,2), det2(Nint,2)
-           integer, intent(out) :: exc(0:2,2,2)
-           integer, intent(out) :: degree
+
+           integer, parameter :: ikind     = int64
+           integer(KIND=IKIND), intent(in) :: Nint
+           integer(kind=ikind), intent(in) :: det1(Nint,2), det2(Nint,2)
+           integer(KIND=IKIND), intent(out) :: exc(0:2,2,2)
+           integer(KIND=IKIND), intent(out) :: degree
            double precision, intent(out) :: phase
 
 
@@ -1775,10 +1781,11 @@ enddo
 
        subroutine mcci_to_bit(file_read,file_write,numberlines)
            implicit none
+           integer, parameter :: ikind  = int64
            character(len=60), intent(in):: file_read,file_write
-           integer(kind=SELECTED_INT_KIND(8)),intent(in):: numberlines
-           integer*8:: icij(2,1,numberlines), j, k,i,nbft,itemp,ici,ntotal,phase,iperm
-           integer*8, allocatable, dimension(:,:):: list
+           integer(kind=ikind),intent(in):: numberlines
+           integer(kind=ikind):: icij(2,1,numberlines), j, k,i,nbft,itemp,ici,ntotal,phase,iperm
+           integer(kind=ikind), allocatable, dimension(:,:):: list
            real(kind=SELECTED_REAL_KIND(15)):: c1(numberlines), c2(numberlines)
            double precision, parameter :: phase_dbl(0:1) = (/ 1.d0, -1.d0 /)
 
@@ -1787,18 +1794,31 @@ enddo
 
            do i=1,numberlines
                read(15,*)ici, c1(i), c2(i), icij(1,1,i), icij(2,1,i)
+               !if (icij(1,1,i)<0) then
+               !    print*,'negative'
+               !    stop
+               !end if
            enddo
            close(15)
-
+           print*,icij(1,1,1)
+           print*,maxval(icij)
 
            nbft=maxval(integer2binary_orbs(maxval(icij)))
+           print*,nbft
 
            allocate(list(2,popcnt(icij(1,1,1))*2))
            open(file=file_write,unit=17)
            do ici=1,numberlines
+               print*,icij(1,1,ici), ici
                 k=0
                do j=0,nbft-1
                    if(btest(icij(1,1,ici), j)) THEN
+                       ! print*,icij(1,1,ici)
+                        !if (icij(1,1,ici)<0) then
+                   !print*,'negative'
+                   !stop
+               !end if
+
                        k=k+1
                        list(1,k) = j+1
                    END IF
@@ -1854,14 +1874,15 @@ enddo
            end do !end of loop over ici
 
            close(17)
-
+           print*,'out of mccitobit'
 
            end subroutine mcci_to_bit
        recursive function combo(n,k) result(cmb)
            implicit none
-           integer*8 :: cmb
-           integer*8, intent(in) :: n,k
-           integer*8 :: mm(100,100)
+           integer, parameter :: ikind     = int64
+           integer(kind=ikind) :: cmb
+           integer(kind=ikind), intent(in) :: n,k
+           integer(kind=ikind) :: mm(100,100)
     if (k == n) then
     cmb = real(1,16)
  else if (k == 1) then
