@@ -3,6 +3,7 @@ Module TSj0contr
     use p0_cases
     use twordms
     use MD
+    use iso_fortran_env, only:  int8, int16, int32, int64
     implicit none
 contains
 
@@ -17,14 +18,14 @@ contains
         !Entering variables from readers
         integer(kind = ikind), intent(in) :: ngto, ng, nq, maxl, typec, state1, state2, ncontr
         integer(kind = ikind), intent(in), dimension(:), allocatable :: l, m, n, group, gs, gf, gc
-        integer(kind = ikind), dimension(:, :), allocatable, intent(in) :: confs
+        integer(kind = int64), dimension(:, :), allocatable, intent(in) :: confs
         real(kind = dp), intent(in), dimension(:), allocatable :: ga, xx, yy, zz, q, coeffs
         real(kind = dp), intent(in), dimension(:, :), allocatable :: mmod, civecs, geom
         real(kind = dp), intent(in) :: cutoffmd, cutoffz, cutoffcentre
 
         !twordm variables
         integer(kind = ikind), dimension(:), allocatable :: m1, m2, m3, m4
-        integer(kind = ikind), dimension(:, :), allocatable :: mat, ep3, ndiff2
+        integer(kind = int64), dimension(:, :), allocatable :: mat, ep3, ndiff2
         integer(kind = ikind) :: nmat, i, j
         real(kind = dp), dimension(:), allocatable :: total
 
@@ -43,9 +44,9 @@ contains
         P0matrix = 0.0_dp
         call set_P0(P0matrix, 4 * maxval(l), q)
 
-        call maxcoincidence(confs, ep3, ndiff2)
+        !call maxcoincidence(confs, ep3, ndiff2)
 
-        call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
+       ! call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
 
         call system('python3 Zcontr.py')
         !allocate(m1(size(mat(:, 1))), m2(size(mat(:, 1))), m3(size(mat(:, 1))), m4(size(mat(:, 1))))

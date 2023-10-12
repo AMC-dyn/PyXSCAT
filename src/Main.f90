@@ -1,11 +1,11 @@
 program main
     use omp_lib
-    use main_calculation_mod
+   ! use main_calculation_mod
     use Reader
     use linspace
     use TSj0groupsfast
-    use TSj0groups
-    use TSj0contr
+   ! use TSj0groups
+   ! use TSj0contr
     implicit none
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
@@ -83,9 +83,9 @@ program main
               end_2 = 0
 
               print*,mmod
-              call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
-      Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &
-      start1,end1, start_2, end_2, fci, nnn,nnn2, ordering1, ordering2, .True., .False.,q_abs,result)
+!              call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
+!      Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &
+!      start1,end1, start_2, end_2, fci, nnn,nnn2, ordering1, ordering2, .True., .False.,q_abs,result)
               open(unit=15,file=file_out)
 
               do i=1,npoints
@@ -106,9 +106,9 @@ program main
     if (2.eqv..False.) then
     print*,'calling total_scattering'
     if (typec/=1 .and. typec/=11) then
-    call total_scattering_calculation(Typec, atoms, geom, state1, &
-            state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
-            ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
+!    call total_scattering_calculation(Typec, atoms, geom, state1, &
+!            state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
+!            ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
     elseif (typec==1) then
          call total_scattering_j0_groups_fast(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
             state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
@@ -117,9 +117,9 @@ program main
   !          state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
   !          cutoffmd, cutoffz, cutoffcentre, result)
     elseif (typec==11) then
-        call total_scattering_j0_ncontr(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
-            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
-            cutoffmd, cutoffz, cutoffcentre, result)
+!        call total_scattering_j0_ncontr(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+!            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
+!            cutoffmd, cutoffz, cutoffcentre, result)
 
     end if
     else
@@ -133,9 +133,9 @@ program main
         ordering1 = 0
         ordering2 = 0
         end_2 = 0
-      call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
-      Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &
-      start1,end1, start_2, end_2, fci, nnn,nnn2, ordering1, ordering2, .False., .False.,q_abs,result)
+!      call  total_scattering_calculation_2(Typec, atoms, geom, state1, state2, maxl, &
+!      Ngtos, ng, ga, l, m, n, xx, yy, zz, mmod, q, nq, group, cutoffz, cutoffmd, cutoffcentre,file_bit, nconfs, newdat, &
+!      start1,end1, start_2, end_2, fci, nnn,nnn2, ordering1, ordering2, .False., .False.,q_abs,result)
 
 
     end if
