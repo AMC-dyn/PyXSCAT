@@ -146,7 +146,7 @@ program main
     end if
 
  if (typec==1) then
-    open(unit=15,file=file_out//'total.dat')
+    open(unit=15,file=trim(file_out)//trim('total.dat'))
 
     do i=1,npoints
         write(15,*)q(i),result(i)
@@ -154,32 +154,33 @@ program main
     close(15)
     print*, file_out,' created'
 else
-   open(unit=15,file=file_out//'electron_total.dat')
+   print*,trim(file_out)//trim('electron_total.dat')
+   open(unit=15,file=trim(file_out)//trim('electron_total.dat'))
       do i=1,npoints
         write(15,*)q(i),result(i)
     end do
    close(15)
-    open(unit=15,file=file_out//'electron_elastic.dat')
+    open(unit=15,file=trim(file_out)//trim('electron_elastic.dat'))
       do i=1,npoints
         write(15,*)q(i),result2(i)
     end do
    close(15)
-      open(unit=15,file=file_out//'electron_mixed.dat')
+      open(unit=15,file=trim(file_out)//trim('electron_mixed.dat'))
       do i=1,npoints
         write(15,*)q(i),Ine(i)
     end do
    close(15)
-       open(unit=15,file=file_out//'electron_nuclear.dat')
+       open(unit=15,file=trim(file_out)//trim('electron_nuclear.dat'))
       do i=1,npoints
         write(15,*)q(i),Inn(i)
     end do
    close(15)
-       open(unit=15,file=file_out//'xray_total.dat')
+       open(unit=15,file=trim(file_out)//trim('xray_total.dat'))
       do i=1,npoints
         write(15,*)q(i),Iee_total(i)
     end do
    close(15)
-   open(unit=15,file=file_out//'xray_elastic.dat')
+   open(unit=15,file=trim(file_out)//trim('xray_elastic.dat'))
       do i=1,npoints
         write(15,*)q(i),Iee_elastic(i)
     end do
