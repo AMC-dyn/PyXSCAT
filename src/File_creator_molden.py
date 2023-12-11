@@ -7,6 +7,7 @@ import twordm_red as td
 from textwrap import wrap
 
 # If there is an external file with CIvecs or 2rdms JeremyR==True
+molpro2022=True
 molpro = True
 bagel = False
 molcas = False
@@ -21,10 +22,10 @@ hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 3
+closed = 13
 qmin = 1E-10
 qmax = 10
-npoints = 500
+npoints = 100
 cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
 # the cutoff for the Z integral
 cutoffz = 1e-20  # suggested: cutoffz = 1E-9;
@@ -43,8 +44,8 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 12
 # Ouput name
-mldfile = 'lif_eq.mld'
-punfile = 'lif_eq.pun'
+mldfile = 'casscf_orbs.1800'
+punfile = 'ci_n.1800'
 outfile = 'lif_'
 
 readtwordm = False
@@ -66,7 +67,7 @@ if not jeremyR and not hf and not readtwordm:
         civs = [1.000]
 
     elif molpro:
-        civs, confs = td.twordmconst(closed, punfile)  # state1 and state2 should be used here
+        civs, confs = td.twordmconst(closed, punfile,molpro, molpro2022)  # state1 and state2 should be used here
 
     Nmo_max = len(confs[0]) / 2
     print('Nmo_max:', Nmo_max)
