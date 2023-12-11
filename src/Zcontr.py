@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
-import molden_reader_nikola as mldr
+import molden_reader_nikola_morder as mldr
 from scipy.io import FortranFile
 from copy import deepcopy
 i = 0
-nmomax =39
+nmomax =7
 
-gtos, atoms, coeffs, mos, groupC = mldr.read_orbitals('sf6-22-15.mld', N=nmomax, decontract=False)
+gtos, atoms, coeffs, mos, groupC,ncontr = mldr.read_orbitals('lif_ac_m.mld', N=nmomax, decontract=False)
 
 
 print('MO shape: ', mos.shape)
@@ -37,12 +37,12 @@ print('trying a masiva calculacion')
 
 
 
-print('trdm',trdm[0,1,2,3])
+print('trdm',trdm[0,0,0,0])
 mmod=mos
 
 print(mmod[0,:])
 CC = np.einsum("up,pqrs->uqrs", mmod, trdm, optimize='optimal')
-print('number to compare 1 : ',CC[0,1,2,3])
+print('number to compare 1 : ',CC[1,2,2,6])
 
 
 CC.tofile('prueba2.dat')
@@ -51,11 +51,13 @@ CC.tofile('prueba2.dat')
 # f.close()
 print(CC.shape)
 CC = np.einsum("vq,uqrs->uvrs", mmod, CC, optimize='optimal')
-print(CC[0,1,2,3])
+print('number to compare 1 : ',CC[1,2,2,6])
 print(CC.shape)
 CC = np.einsum("kr,uvrs->uvks", mmod, CC, optimize='optimal')
+print('number to compare 1 : ',CC[1,2,2,6])
 print(CC.shape)
 CC1 = np.einsum("ls,uvks->uvkl", mmod, CC, optimize='optimal')
+print('number to compare 1 : ',CC1[1,2,2,6])
 #CC1.tofile('Zcotr.dat')
 print('number to compare 1: ',CC1[0,1,1,2])
 print('number to compare 2: ',CC1[1,1,2,0])
@@ -85,7 +87,8 @@ CC = CC + np.einsum('abcd->cdba', CC1, optimize='optimal')
 CC = CC + np.einsum('abcd->dcba', CC1, optimize='optimal')
 
 Zbig = CC / 8.0000
-print(Zbig[0,1,1,2])
+print(Zbig[1,2,2,6])
 Zbig.tofile('Zcotr.dat')
-print(CC1.shape)
+print(Zbig[0,1,2,3])
+
 

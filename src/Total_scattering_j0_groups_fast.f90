@@ -4,6 +4,7 @@ Module TSj0groupsfast
     use twordms
     use MD
     use onerdm
+    use Zcontr
     use iso_fortran_env, only:  int8, int16, int32, int64
     implicit none
 contains
@@ -41,6 +42,7 @@ contains
         integer(kind = ikind), dimension(maxval(group)) :: group_start, group_count
         integer(kind = ikind), dimension(size(group)) :: group_sorted
          character(len=60):: File_in,File_out
+         real(kind = dp), dimension(:, :, :, :), allocatable :: Zbig
 
         !Result out
         real(kind = dp), allocatable, dimension(:), intent(out) :: Result2
@@ -73,26 +75,26 @@ contains
         !numberlines=numberlines-1
         close(15)
         print*,numberlines
-        file_in='bitwise.dat'
-        file_out='es.dat'
-        call mcci_to_bit(file_in,file_out,numberlines)
-        print*,'created twordm',numberlines
-        call createtwordm_bit(file_out,numberlines,mat,total)
+        !file_in='bitwise.dat'
+        !file_out='es.dat'
+       ! call mcci_to_bit(file_in,file_out,numberlines)
+       ! print*,'created twordm',numberlines
+       ! call createtwordm_bit(file_out,numberlines,mat,total)
 
        ! call maxcoincidence(confs, ep3, ndiff2)
 
        !call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
 
-        call system('python3 Zcontr.py')
-
-
+       ! call system('python3 Zcontr.py')
+        call contraction(Zbig)
+        !Zbig=0.0d0
         call variables_total(px, py, pz, ddx, ddy, ddz, &
                 e12, maxl, ngto, ng, group_start, group_count, group, ga, l, m, n, xx, yy, zz, &
                 mmod,  q, nq)
 
         call tot_integration(ng, ncontr,px, py, pz, l, m, n, p0matrix, ddx, ddy, ddz, &
                 group_start, group_count, group, &
-                gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeffs, e12, result2)
+                gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeffs, e12, Zbig, result2)
 
     end subroutine
 
@@ -215,7 +217,7 @@ contains
 
     subroutine tot_integration(ncap,ncontr, px, py, pz, l, m, n, p0matrix, dx, dy, dz,&
             group_start, group_count, group, &
-            gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeff, e12, tsi)
+            gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeff, e12, zbig,tsi)
 
         use omp_lib
         implicit none
@@ -249,7 +251,8 @@ contains
         integer(kind = ikind), dimension(size(l)) :: ll
         integer(kind = ikind) :: nq, i, j, k, r, count1, ng, ii, jj,npos,iii,count2
         integer(kind = ikind) :: spi, spj, spk, spr, szo, nt, ngto,newcap
-        real(kind = dp), dimension(:, :, :, :), allocatable :: Zbig
+        real(kind = dp), dimension(:, :, :, :), allocatable,intent(in) :: Zbig
+
         integer(kind=ikind),dimension(size(l)) :: veccounts
         integer(kind=ikind), dimension(:), allocatable::group_pos,ngtovec,group_sorted,group_pos2
         integer(kind=ikind), dimension(:,:), allocatable:: bigvec
@@ -339,11 +342,11 @@ contains
         if (any(isnan(p0matrix))) print*, 'ouch'
 
         count1 = 0
-        allocate(Zbig(ncontr,ncontr,ncontr,ncontr))
+        !allocate(Zbig(ncontr,ncontr,ncontr,ncontr))
 
-        open(40, file='Zcotr.dat', status='old', access='stream', form='unformatted')
-        read(40) Zbig
-        close(40)
+        !open(40, file='Zcotr.dat', status='old', access='stream', form='unformatted')
+        !read(40) Zbig
+        !close(40)
         print*,'starting loop'
         !$OMP PARALLEL do private(posI,posK,posJ,posR,spi,spj,spk,spr,zcontrred), &
         !$OMP& private(f,ii,jj,h,hx,hy,hz,iii,i,j,k,r,dx1,dx2,dy1,dy2,dz1,dz2,c1,c2,c3,c4) shared(q,l,m,n, p0matrix), &

@@ -1398,7 +1398,7 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
 
 
 
-       subroutine one_rdm_bit(file_read,onerdm, maxnmo,numberlines,newdat,irep)
+       subroutine one_rdm_bit(file_read,onerdm, maxnmo,numberlines)
 
            Use, intrinsic :: iso_fortran_env, Only : iostat_end
            implicit none
@@ -1407,9 +1407,9 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
            integer, parameter :: ikind     = int64
 
 
-           integer(kind=ikind):: numberlines
+           integer(kind=ikind),intent(in):: numberlines
            character(len=30),intent(in) :: file_read
-           integer(kind=ikind),intent(in),dimension(:):: irep
+           !integer(kind=ikind),intent(in),dimension(:):: irep
            real(kind=dp), dimension(:), allocatable :: civs
            integer(kind=ikind),dimension(:,:,:), allocatable :: Nalphbet
            integer(kind=ikind):: j, i, error_1,count,temp,sp,diff1,diff2,popcnt1,popcnt2,compnum,buffer_prime, buffer_prime_2
@@ -1419,9 +1419,9 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
            integer(kind=ikind):: exc(0:2,2,2),deg,buffer,c1,c2,ep,n1a,n2a,n1b,n2b,low,high,number,red_vec(maxnmo*2)
            double precision :: phase, c,civ1,civ2
            integer(kind=ikind):: tmp,tz,final,max,prueba(maxnmo*2),buffer_2,tz2,index,nn,nel,n,porb,qorb,newdiff,diff
-           integer(kind=ikind):: mylow, myhigh
+           integer(kind=ikind):: mylow, myhigh,dummy
            real(kind=dp)::time1,time2
-           integer(kind=ikind), intent(in), dimension(:,:):: newdat
+          ! integer(kind=ikind), intent(in), dimension(:,:):: newdat
            integer(kind=ikind), allocatable, dimension(:,:,:) :: orb_mat
            integer(kind=ikind),allocatable, dimension(:) :: orb_indexed
            integer(kind=ikind), dimension(numberlines):: sum_mat
@@ -1438,7 +1438,7 @@ subroutine one_rdm_two_rdm(mat,twordm,onerdm,nel)
            open(15,file=file_read)
            do i=1,count
 
-               read(15,*)j, civs(i), Nalphbet(1,1,i), Nalphbet(1,2,i)
+               read(15,*)j, civs(i),dummy, Nalphbet(1,1,i), Nalphbet(1,2,i)
            enddo
            close(15)
 

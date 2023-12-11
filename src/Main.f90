@@ -4,6 +4,7 @@ program main
     use Reader
     use linspace
     use TSj0groupsfast
+    use TESfast
    ! use TSj0groups
    ! use TSj0contr
     implicit none
@@ -20,7 +21,7 @@ program main
     real(kind=dp),dimension(:,:), allocatable:: mmod
     real(kind=dp),dimension(:,:), allocatable:: geom
     real(kind=dp),dimension(:), allocatable:: ga, xx,yy,zz
-    real(kind=dp), dimension(:), allocatable:: result,q_abs
+    real(kind=dp), dimension(:), allocatable:: result,q_abs,Iee_total,Iee_elastic,Ine,Inn,result2
     integer*8, dimension(1):: nnn,start1,end1, nnn2, start_2, end_2,ordering1,ordering2
     integer*8, dimension(1,1):: newdat
     real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax
@@ -105,7 +106,7 @@ program main
     nq=npoints
     if (2.eqv..False.) then
     print*,'calling total_scattering'
-    if (typec/=1 .and. typec/=11) then
+    if (typec/=1 .and. typec/=12) then
 !    call total_scattering_calculation(Typec, atoms, geom, state1, &
 !            state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
 !            ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
@@ -116,7 +117,11 @@ program main
   !      call total_scattering_j0_groups(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
   !          state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
   !          cutoffmd, cutoffz, cutoffcentre, result)
-    elseif (typec==11) then
+    elseif (typec==12) then
+         call total_electron_scattering_fast(atoms,q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
+            cutoffmd, cutoffz, cutoffcentre,contrvec,norbs,Iee_total,Iee_elastic,Ine,Inn,result,result2)
+
 !        call total_scattering_j0_ncontr(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
 !            state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
 !            cutoffmd, cutoffz, cutoffcentre, result)
@@ -140,13 +145,45 @@ program main
 
     end if
 
-    open(unit=15,file=file_out)
+ if (typec==1) then
+    open(unit=15,file=file_out//'total.dat')
 
     do i=1,npoints
         write(15,*)q(i),result(i)
     end do
     close(15)
     print*, file_out,' created'
-
+else
+   open(unit=15,file=file_out//'electron_total.dat')
+      do i=1,npoints
+        write(15,*)q(i),result(i)
+    end do
+   close(15)
+    open(unit=15,file=file_out//'electron_elastic.dat')
+      do i=1,npoints
+        write(15,*)q(i),result2(i)
+    end do
+   close(15)
+      open(unit=15,file=file_out//'electron_mixed.dat')
+      do i=1,npoints
+        write(15,*)q(i),Ine(i)
+    end do
+   close(15)
+       open(unit=15,file=file_out//'electron_nuclear.dat')
+      do i=1,npoints
+        write(15,*)q(i),Inn(i)
+    end do
+   close(15)
+       open(unit=15,file=file_out//'xray_total.dat')
+      do i=1,npoints
+        write(15,*)q(i),Iee_total(i)
+    end do
+   close(15)
+   open(unit=15,file=file_out//'xray_elastic.dat')
+      do i=1,npoints
+        write(15,*)q(i),Iee_elastic(i)
+    end do
+   close(15)
+ end if
 end program main
 

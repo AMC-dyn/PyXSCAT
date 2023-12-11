@@ -21,11 +21,11 @@ hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = [9,4,4,1,4,1,1]
+closed = 3
 qmin = 1E-10
 qmax = 10
-npoints = 100
-cutoffcentre = 0.1  # suggested: cutoffcentre = 0.01;
+npoints = 500
+cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
 # the cutoff for the Z integral
 cutoffz = 1e-20  # suggested: cutoffz = 1E-9;
 # the cutoff for the product of the MD coefficients
@@ -41,11 +41,11 @@ largeconf = False
 # ELASTIC ELECTRON --> 6
 # TOTAL J2 --> 7
 # ELASTIC J2 --> 8
-Type = 1
+Type = 12
 # Ouput name
-mldfile = 'sf6-22-15.mld'
-punfile = 'sf6-22-15.pun'
-outfile = 'try_new_routine_2.dat'
+mldfile = 'lif_eq.mld'
+punfile = 'lif_eq.pun'
+outfile = 'lif_'
 
 readtwordm = False
 file_read_twordm = 'QC-2RDM-AD.dat'
@@ -87,7 +87,7 @@ civs = np.array(civs)
 
 if molcas:
     mldfile = 'molcas.rasscf.molden'
-    gtos, atoms = mcmldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
+    gtos, atoms, coeffs, mos, groupC,contr = mldreader.read_orbitals(mldfile, N=Nmo_max, decontract=True)
 elif bagel:
     mldfile = 'orbitals.molden'
     Nmo_max = 20
@@ -123,7 +123,7 @@ with open('options.dat', 'w') as f:
         f.write(str(len(confs[0])) + '\n')
         f.write(str(np.size(civs[0, :])) + '\n')
 
-        if np.size(confs) < 10:
+        if np.size(confs) < 2:
             bitwise = False
             print('Normal integration')
             for i in range(np.size(confs)):

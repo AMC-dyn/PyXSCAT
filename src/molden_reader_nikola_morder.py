@@ -98,9 +98,13 @@ def _read_atoms_file(file):
     atoms = mol.Molecule()
 
     for line in file:
+        print(line)
         if "[GTO]" in line:
             break
+        elif "[" in line:
+            break
         else:
+            print(line)
             columns = line.split()
             # symbol = columns[0]
             atmnum = int(columns[2])
@@ -142,6 +146,8 @@ def _read_contractions(file):
     output:
         gtos -- list of instances of PrimitiveGTO
     """
+    molpro=True
+    molcas=False
     groupC = []
     # start from the beginning of the file
     file.seek(0)
@@ -165,28 +171,32 @@ def _read_contractions(file):
     contraction_counter = 1
     group_counter = 0
     # loop until you find the [MO] tag
+    print('starting reading of GTOS ', line)
     for line in file:
+        print('next ',line)
         if "[MO]" in line:
             break
         else:
             # skip if line is blank or whitspace
             if not line or line.isspace():
-
                 line = file.readline()
                 # if the second line is blank or whitespace just go the the MO
                 # condition
-                if not line or line.isspace():
+                if not line or line.isspace() and molpro:
                     continue
+                elif "[MO]" in line and molcas:
+                    break
                 # if it was a single blank line read the next atom
                 else:
                     atms = [int(s) for s in line.split() if s.isdigit()]
                     atm = atms[0]
-
+                    print(atm)
                     line = file.readline()
             # read the contraction
+            print(line)
             contraction_spec = line.split()
 
-            type_of_GTO = contraction_spec[0]
+            type_of_GTO = str(contraction_spec[0])
             num_of_primitives = int(contraction_spec[1])
 
             numR = 1
