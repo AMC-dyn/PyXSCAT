@@ -98,7 +98,7 @@ contains
         print*,numberlines
         file_in='bitwise.dat'
         file_out='es.dat'
-        call mcci_to_bit(file_in,file_out,numberlines)
+        !call mcci_to_bit(file_in,file_out,numberlines)
 
         maxnmo=norbs
         print*,'maxumum number or orbitals, ', maxnmo
