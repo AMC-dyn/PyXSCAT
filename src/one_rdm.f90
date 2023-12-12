@@ -1062,8 +1062,8 @@ print*,'starting big loop'
 !now jci>ici and double values so we don't need to do jci<ici
 
 
-!!$OMP PARALLEL DO private(exc,temp,n,mytemp,newdiff,ici,jci,c_term,buffer,sorb,ispin2,buffer2,qorb) shared(phase_dbl,icij, c1,c2,length2), &
-!!$OMP& private(nperm,samespin,myspin,idx_part,idx_hole,hole,part,tz,mylow,myhigh,mya,myb,myc,myd) schedule(dynamic) REDUCTION(+:SpinFree2RDM)
+!$OMP PARALLEL DO private(exc,temp,n,mytemp,newdiff,ici,jci,c_term,buffer,sorb,ispin2,buffer2,qorb) shared(phase_dbl,icij, c1,c2,length2), &
+!$OMP& private(nperm,samespin,myspin,idx_part,idx_hole,hole,part,tz,mylow,myhigh,mya,myb,myc,myd) schedule(dynamic) REDUCTION(+:SpinFree2RDM)
 do ici=1,length2
 do jci=1,length2
 
@@ -1311,12 +1311,12 @@ end if  ! end of  single difference, newdiff.eq.2
 
 end do !end of ici loop
 end do !end of jci loop
-!!$OMP END PARALLEL DO
-print*,'here we are'
+!$OMP END PARALLEL DO
+print*,'final step of 2rdm'
 
-print*, maxval(SpinFree2RDM)
 
-print*,'final guy', SpinFree2RDM(11,11,12,14)
+
+
 
 !Write out 2RDM
 
