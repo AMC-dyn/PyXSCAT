@@ -71,7 +71,7 @@ contains
 
         P0matrix = 0.0_dp
         call set_P0(P0matrix, 4 * maxval(l), q)
-        call contraction(Zbig)
+        call contraction(Zbig,mat,total)
 
 
         call variables_total(px, py, pz, ddx, ddy, ddz, &
@@ -83,16 +83,16 @@ contains
                 gs,gf,gc,contrvec,cutoffz, cutoffmd, cutoffcentre, q,coeffs, e12, Zbig, Iee_total)
 
 
-        open(unit=15, file='bitwise.dat')
-        numberlines=0
-        do while(.true.)
+       ! open(unit=15, file='bitwise.dat')
+      !  numberlines=0
+       ! do while(.true.)
 
-            read (15, *, end=999) i
-            numberlines=numberlines+1
-        end do
+       !     read (15, *, end=999) i
+       !     numberlines=numberlines+1
+      !  end do
 
 
-        999 continue
+        !999 continue
         !numberlines=numberlines-1
         close(15)
         print*,numberlines
@@ -102,8 +102,8 @@ contains
 
         maxnmo=norbs
         print*,'maxumum number or orbitals, ', maxnmo
-        call one_rdm_bit(file_out,onerdm_matrix, maxnmo,numberlines)
-
+        !call one_rdm_bit(file_out,onerdm_matrix, maxnmo,numberlines)
+        call one_rdm_two_rdm(mat,total,onerdm_matrix,int(sum(Zn)))
         call variables_elastic(px,py,pz,ddx,ddy,ddz,z,e12,maxl, ngto,ng,group_start,group_count,group,ga,l,m,n,xx,yy,zz, &
                 mmod,onerdm_matrix,norbs,q,nq)
 

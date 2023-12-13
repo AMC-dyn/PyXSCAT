@@ -46,7 +46,7 @@ Type = 12
 # Ouput name
 mldfile = 'casscf_orbs.1800'
 punfile = 'ci_n.1800'
-outfile = 'lif_'
+outfile = 'lif2_'
 
 readtwordm = False
 file_read_twordm = 'QC-2RDM-AD.dat'

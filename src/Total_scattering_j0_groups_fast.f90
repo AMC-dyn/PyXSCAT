@@ -86,7 +86,7 @@ contains
        !call createtwordm(confs, civecs, ndiff2, ep3, mat, total, state1, state2)
 
        ! call system('python3 Zcontr.py')
-        call contraction(Zbig)
+        call contraction(Zbig,mat,total)
         !Zbig=0.0d0
         call variables_total(px, py, pz, ddx, ddy, ddz, &
                 e12, maxl, ngto, ng, group_start, group_count, group, ga, l, m, n, xx, yy, zz, &

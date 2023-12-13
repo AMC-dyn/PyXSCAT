@@ -4,7 +4,7 @@ Module Zcontr
     use onerdm
     use iso_fortran_env, only:  int8, int16, int32, int64
     contains
-    subroutine Contraction(prueba2)
+    subroutine Contraction(prueba2,mat,total)
     implicit none
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
@@ -16,7 +16,8 @@ Module Zcontr
     integer(kind=ikind),dimension(:,:), allocatable:: confs
 
     real(kind=dp),dimension(:), allocatable:: q
-    real(kind=dp),dimension(:), allocatable:: coeffs,total
+    real(kind=dp),dimension(:), allocatable:: coeffs
+    real(kind=dp),dimension(:), allocatable,intent(out)::total
     real(kind=dp),dimension(:,:), allocatable:: civs
     real(kind=dp),dimension(:,:), allocatable:: mmod
     real(kind=dp),dimension(:,:), allocatable:: geom
@@ -28,7 +29,7 @@ Module Zcontr
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc,contrvec
     integer(kind=ikind):: typec, i, j,k,ll, npoints,ncivs,lconfs,maxl,ng,nq,count
     logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
-    integer(kind = int64), dimension(:, :), allocatable :: mat
+    integer(kind = int64), dimension(:, :), allocatable,intent(out) :: mat
     real(kind=dp), dimension(:,:,:,:), allocatable :: twordm,zcontract,prueba1
     real(kind=dp), dimension(:,:,:,:), allocatable, intent(out) :: prueba2
     real(kind=dp), dimension(:,:), allocatable:: interm,interm2,mos
