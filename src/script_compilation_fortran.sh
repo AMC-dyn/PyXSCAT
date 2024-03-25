@@ -17,8 +17,8 @@ $f1 MD.f90
 $f1 Bessels_j0.f90
 $f1 Zcontr.f90
 #$f1 Total_scattering_j0_contr.f90
-#$f1 Total_scattering_j0_groups.f90
-$f1 Total_scattering_j0_groups_fast.f90
+$f1 Total_scattering_j0_groups.f90
+#$f1 Total_scattering_j0_groups_fast.f90
 $f1 Total_electron_scattering_fast.f90
 #$f1 main_calculation.f90 
 $f1 linspace.f90

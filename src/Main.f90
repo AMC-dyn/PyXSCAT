@@ -3,10 +3,10 @@ program main
    ! use main_calculation_mod
     use Reader
     use linspace
-    use TSj0groupsfast
+    !use TSj0groupsfast
     use TESfast
-   ! use TSj0groups
-   ! use TSj0contr
+    use TSj0groups
+    !use TSj0contr
     implicit none
     INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
     INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
@@ -27,18 +27,18 @@ program main
     real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc,contrvec
     integer(kind=ikind):: typec, i, j,k, npoints,ncivs,lconfs,maxl,ng,nq,count
-    logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
+    logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci,readtwordm
      
 
     call read_files(nconfs,ngtos,norbs,ng,ncontr,state1,state2,natoms,typec,maxl,npoints, &
                cutoffcentre,cutoffz,cutoffmd,atoms,coeffs,xx,yy,zz,ga,l,m,n,group,mmod,geom, &
-               jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,&
+               jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,readtwordm,&
                file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,contrvec,bitwise)
 
 
 
     if (molpro.eqv..False. .and. molcas.eqv..False. .and. bagel.eqv..False.)  then
-            !read(15,*) var
+            print*,'Entering Main.f90 back'
             print*,var
             var2rdm='readtwordm'
             print*,var2rdm
@@ -111,12 +111,12 @@ program main
 !            state2, maxl, Ngtos, ng,ga, l, m, n, xx, yy, zz, mmod, coeffs,q, nq, group, &
 !            ncontr,gs,gf,gc,cutoffz, cutoffmd, cutoffcentre, confs, civs,q_abs, result)
     elseif (typec==1) then
-         call total_scattering_j0_groups_fast(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+        ! call total_scattering_j0_groups_fast(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
+        !    state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
+         !   cutoffmd, cutoffz, cutoffcentre,contrvec, result)
+        call total_scattering_j0_groups(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
             state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
-            cutoffmd, cutoffz, cutoffcentre,contrvec, result)
-  !      call total_scattering_j0_groups(q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
-  !          state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &
-  !          cutoffmd, cutoffz, cutoffcentre, result)
+            cutoffmd, cutoffz, cutoffcentre, result)
     elseif (typec==12) then
          call total_electron_scattering_fast(atoms,q, l, m, n, ngtos, ng, nq, maxl, typec, state1, &
             state2, ncontr, group, gs, gf, gc, confs, ga, xx, yy, zz, coeffs, mmod, civs, geom, &

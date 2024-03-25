@@ -7,7 +7,7 @@ module Reader
 
     subroutine read_files(nconfs,ngtos,norbs,ng,ncontr,state1,state2,natoms,typec,maxl,npoints, &
                cutoffcentre,cutoffz,cutoffmd,atoms,coeffs,xx,yy,zz,ga,l,m,n,group,mmod,geom, &
-               jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,&
+               jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,readtwordm,&
                file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,contrvec,bitwise)
     implicit none
 
@@ -21,14 +21,15 @@ module Reader
     integer(kind=ikind), dimension(:), allocatable, intent(out):: l,m,n,group,gs,gc, gf,contrvec
     integer(kind=ikind),dimension(:,:), allocatable,intent(out):: confs
     real(kind=dp),dimension(:,:),intent(out), allocatable:: civs,mmod,geom
-    logical, intent(out) :: jeremyR,mcci,hf,molpro,molcas,bagel,bitwise
-    character(len=60), intent(out):: file_out,file_bit,var
+    logical, intent(out) :: jeremyR,mcci,hf,molpro,molcas,bagel,bitwise,readtwordm
+    character(len=60), intent(out):: file_out,var
+    character(len=100),intent(out)::file_bit
     character(len=60) :: var2rdm
     integer(kind=ikind)::i,j
 
 
 
-
+    readtwordm=.False.
     open(unit=15, file='basis.dat')
     read(15,*)ngtos
     allocate(xx(ngtos), yy(ngtos), zz(ngtos), ga(ngtos), l(ngtos), m(ngtos), n(ngtos), group(ngtos),contrvec(ngtos))
@@ -82,14 +83,16 @@ module Reader
   read(15,*)molpro
   read(15,*)molcas
   read(15,*)bagel
+  read(15,*)readtwordm
   print*,'molpro is ', molpro
   print*,'molcas is ', molcas
   print*,'bagel is ', bagel
-      if (molpro.eqv..True.) then
+  print*,'readtwordm is ', readtwordm
+      if (molpro.eqv..True. .and. readtwordm.eqv..False.) then
         read(15,*)nconfs
         read(15,*)lconfs
         read(15,*)ncivs
-        if (nconfs<2) then
+        if (nconfs<0) then
 
             allocate(confs(nconfs,lconfs),civs(nconfs,ncivs))
 
@@ -130,11 +133,10 @@ module Reader
 
             if (var==var2rdm) then
               print*,'We have a 2RDM to read'
-
+              readtwordm=.True.
               read(15,*) file_bit
               print*,file_bit
               close(15)
-
               end if
               end if
     end subroutine

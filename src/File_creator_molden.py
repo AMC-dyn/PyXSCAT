@@ -7,13 +7,13 @@ import twordm_red as td
 from textwrap import wrap
 
 # If there is an external file with CIvecs or 2rdms JeremyR==True
-molpro2022=True
+molpro2022=False
 molpro = True
 bagel = False
 molcas = False
 extra_precision_molcas = True
 caspt2 = False
-jeremyR = False
+jeremyR = True
 fileJeremy = 'QC-2RDM-AD.dat'
 # If we convert form a MCCI calculation to a bitwise operation mcci==True
 mcci = False
@@ -22,10 +22,10 @@ hf = False
 # States involved
 state1 = 1
 state2 = 1
-closed = 13
+closed = 0
 qmin = 1E-10
 qmax = 10
-npoints = 100
+npoints = 150
 cutoffcentre = 0.01  # suggested: cutoffcentre = 0.01;
 # the cutoff for the Z integral
 cutoffz = 1e-20  # suggested: cutoffz = 1E-9;
@@ -44,12 +44,12 @@ largeconf = False
 # ELASTIC J2 --> 8
 Type = 12
 # Ouput name
-mldfile = 'casscf_orbs.1800'
-punfile = 'ci_n.1800'
-outfile = 'lif2_'
+mldfile = 'hf_joe.mld'
+punfile = 'DATA_NATE/sf62+_cas46.pun'
+outfile = 'hf_joe'
 
-readtwordm = False
-file_read_twordm = 'QC-2RDM-AD.dat'
+readtwordm = True
+file_read_twordm = '2rdm_hf.txt'
 if not jeremyR and not hf and not readtwordm:
 
     # This routine reads the CIvectors and the configurations
@@ -75,10 +75,10 @@ if not jeremyR and not hf and not readtwordm:
 elif not jeremyR and hf:
     civs = [1.000]
     # The number of occupied orbs or he configuration used must be specified by the user in hf
-    norbs = 12
-    confs = ['ab' * norbs]
+    norbs = 35
+    confs = ['ab'*34+'ab']
     print(confs)
-    Nmo_max = 12
+    Nmo_max = 35
 else:
     # If the 2rdm or Civector is constructed in a bit-wise manner, the number or orbitals needs to be specified here by the user
     confs = 0
@@ -118,13 +118,18 @@ with open('options.dat', 'w') as f:
     f.write(str(molpro) + '\n')
     f.write(str(molcas) + '\n')
     f.write(str(bagel) + '\n')
-    if molpro and not readtwordm and not hf:
-        f.write(str(np.size(confs)) + '\n')
+    f.write(str(readtwordm)+'\n')
+    if molpro and not readtwordm:
+        if not hf:
+            f.write(str(np.size(confs)) + '\n')
 
-        f.write(str(len(confs[0])) + '\n')
-        f.write(str(np.size(civs[0, :])) + '\n')
-
-        if np.size(confs) < 2:
+            f.write(str(len(confs[0])) + '\n')
+            f.write(str(np.size(civs[0, :])) + '\n')
+        else:
+            f.write(str(1) + '\n')
+            f.write(str(len(confs[0])) + '\n')
+            f.write(str(1) + '\n')
+        if np.size(confs) < 0:
             bitwise = False
             print('Normal integration')
             for i in range(np.size(confs)):
@@ -135,8 +140,11 @@ with open('options.dat', 'w') as f:
 
                 g1 = [int(i) for i in lst]
                 f.write(str(g1)[1:-1].replace(',', ' '))
-                for j in range(np.size(civs[0, :])):
-                    f.write(' ' + str(civs[i, j]) + ' ')
+                if not hf:
+                    for j in range(np.size(civs[0, :])):
+                        f.write(' ' + str(civs[i, j]) + ' ')
+                else:
+                    f.write(' ' + str(1.000) + ' ')
                 f.write(str('\n'))
         else:
             print('bitwise integration')
@@ -157,7 +165,11 @@ with open('options.dat', 'w') as f:
                                 alpha = alpha + 2 ** (j / 2)
                             else:
                                 beta = beta + 2 ** ((j - 1) / 2)
-                    m.write(str(i) + ' ' + str(civs[i, state1 - 1]) + ' ' + str(civs[i, state2 - 1]) + ' ' + str(
+                    if not hf:
+                        m.write(str(i) + ' ' + str(civs[i, state1 - 1]) + ' ' + str(civs[i, state2 - 1]) + ' ' + str(
+                        int(alpha)) + ' ' + str(int(beta)) + '\n')
+                    else:
+                        m.write(str(i) + ' ' + str(1.000) + ' ' + str(1.000) + ' ' + str(
                         int(alpha)) + ' ' + str(int(beta)) + '\n')
         f.write(str(bitwise) + '\n')
     elif bagel and not hf:

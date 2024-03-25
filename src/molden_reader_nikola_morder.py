@@ -109,13 +109,13 @@ def _read_atoms_file(file):
             # symbol = columns[0]
             atmnum = int(columns[2])
             # coordinates in au
-            # x = float(columns[3])
-            # y = float(columns[4])
-            # z = float(columns[5])
+            x = float(columns[3])
+            y = float(columns[4])
+            z = float(columns[5])
 
-            x = float(columns[3]) / AU2ANG
-            y = float(columns[4]) / AU2ANG
-            z = float(columns[5]) / AU2ANG
+           # x = float(columns[3]) / AU2ANG
+           # y = float(columns[4]) / AU2ANG
+           # z = float(columns[5]) / AU2ANG
             atoms.add_atom(mol.Atom(atmnum, x, y, z))
 
     else:
@@ -376,7 +376,7 @@ def _read_MO(file, mo_cutoff):
     syms_array = np.array([float(i) for i in syms])
     print('after order', syms_array[idx])
 
-    mo = mo[idx, :]
+    #mo = mo[idx, :]
 
     energy_array = np.array(energy)
     energy_array = energy_array[idx]

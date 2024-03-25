@@ -368,7 +368,7 @@ contains
             end do
 
         enddo
-        print*,tsi(90)
+       ! print*,tsi(90)
 
 
     end subroutine nuclei_electron_integration

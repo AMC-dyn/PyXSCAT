@@ -4,6 +4,7 @@ Module TSj0groups
     use twordms
     use MD
     use onerdm
+    use iso_fortran_env, only:  int8, int16, int32, int64
     implicit none
 contains
 
@@ -14,6 +15,7 @@ contains
         !Precision parameters
         INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
         INTEGER, PARAMETER :: ikind = SELECTED_INT_KIND(8)
+        !INTEGER, PARAMETER :: ikind = int64
 
         !Entering variables from readers
         integer(kind = ikind), intent(in) :: ngto, ng, nq, maxl, typec, state1, state2, ncontr
@@ -25,10 +27,11 @@ contains
 
         !twordm variables
         integer(kind = ikind), dimension(:), allocatable :: m1, m2, m3, m4
-        integer(kind = ikind), dimension(:, :), allocatable :: mat, ep3, ndiff2
-        integer(kind = ikind) :: nmat, i, j,numberlines
+        integer(kind = ikind), dimension(:, :), allocatable ::  ep3, ndiff2
+        integer(kind = ikind) :: nmat, i, j
         real(kind = dp), dimension(:), allocatable :: total
-
+        integer(kind=int64), dimension(:,:), allocatable:: mat
+        integer(kind=int64):: numberlines
         !Variables to create total_variables
         real(kind = dp), DIMENSION(size(q), 4 * maxval(l) + 1, 4 * maxval(l) + 1, 4 * maxval(l) + 1) :: P0matrix
         real(kind = dp), dimension(maxl * 2 + 1, maxl + 1, maxl + 1, ng, ng) :: ddx, ddy, ddz

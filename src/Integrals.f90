@@ -5523,8 +5523,6 @@ SUBROUTINE tot_integral_ijkr_pzero_read(nq,l,m,n,p0mat,dx1,dy1,dz1,dx2,dy2,dz2,i
             zcontr, zcontr2, &
             cutoff1, cutoff2,f)
 
-
-
         implicit none
 
 

@@ -24,12 +24,12 @@ F 0.0 0.0 -1.56
 }
 cartesian
 basis={
-   default,def2-TZVPP
+   default,def2-TZVP
 }
-{df-rks,pbe,df_basis=def2-tzvpp(u)}
+{df-rks,pbe,df_basis=def2-tzvp(u)}
 
 
-{df-rks,pbe,df_basis=def2-tzvpp(u),nitord=1;
+{df-rks,pbe,df_basis=def2-svp(u),nitord=1;
    ! in the program, closed-shell orbitals always have lower numbers
    ! than open-shell orbitals. In order to get the core hole state, we
    ! thus need to exchange the localized N1s orbital (1.1) with whatever
@@ -40,9 +40,6 @@ basis={
    orbital,2101.2;     ! use the localized orbitals as input
    wf,spin=1,charge=1  ! one open-shell orbital (implicitly 21.1)
 }
-
-
-
 
 put,molden,sf6_core.mld
 ---

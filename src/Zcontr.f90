@@ -28,7 +28,7 @@ Module Zcontr
     real(kind=dp):: cutoffcentre,cutoffz,cutoffmd,qmin,qmax,time1,time2,time3
     integer(kind=ikind),dimension(:), allocatable:: l,m,n,group,gs,gf,gc,contrvec
     integer(kind=ikind):: typec, i, j,k,ll, npoints,ncivs,lconfs,maxl,ng,nq,count
-    logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci
+    logical:: jeremyR, mcci, hf,molpro,molcas,bagel,bitwise,fci,readtwordm
     integer(kind = int64), dimension(:, :), allocatable,intent(out) :: mat
     real(kind=dp), dimension(:,:,:,:), allocatable :: twordm,zcontract,prueba1
     real(kind=dp), dimension(:,:,:,:), allocatable, intent(out) :: prueba2
@@ -39,9 +39,10 @@ Module Zcontr
 
     call read_files(nconfs,ngtos,norbs,ng,ncontr,state1,state2,natoms,typec,maxl,npoints, &
                cutoffcentre,cutoffz,cutoffmd,atoms,coeffs,xx,yy,zz,ga,l,m,n,group,mmod,geom, &
-               jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,&
+               jeremyR,mcci,hf,molpro,molcas,bagel,qmin,qmax,readtwordm,&
                file_out,file_bit,var,gs,gc,gf,confs,civs,lconfs,ncivs,contrvec,bitwise)
 
+    if (readtwordm==.False.) then
             open(unit=15, file='bitwise.dat')
               numberlines=0
               do while(.true.)
@@ -49,15 +50,44 @@ Module Zcontr
                   numberlines=numberlines+1
               end do
 
-
 999 continue
         close(15)
+
+
+    print*, 'entering the twordm call'
 
     file_in='bitwise.dat'
     file_out='es.dat'
     call mcci_to_bit(file_in,file_out,numberlines)
     call createtwordm_bit(file_out,numberlines,mat,total)
+    print*,'out of twordm call'
     !norbs=maxval(mat(:,1))
+    else
+            print*,'----------------------------------'
+            print*,'----------------------------------'
+            print*,'----------------------------------'
+            print*,file_bit
+            open(unit=15, file=file_bit)
+              numberlines=0
+              do while(.true.)
+                  read (15, *, end=998) i
+                  numberlines=numberlines+1
+              end do
+
+998 continue
+        close(15)
+        print*,numberlines
+        allocate(mat(numberlines,4), total(numberlines))
+        open(unit=15, file=file_bit)
+        do i=1,numberlines
+            read(15,*) mat(i,1),mat(i,2),mat(i,3),mat(i,4),total(i)
+
+        end do
+
+
+
+    end if
+
     allocate(twordm(norbs,norbs,norbs,norbs), zcontract(ncontr,ncontr,ncontr,ncontr))
     open(unit=15, file='MOs2.dat')
     read(15,*)norbs2,ngtos2
